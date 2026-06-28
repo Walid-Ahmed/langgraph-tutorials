@@ -65,10 +65,16 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-For the LLM example in tutorial 3, create a local `.env` file in the repo root:
+For LLM examples, create a local `.env` file in the repo root:
 
 ```bash
 OPENAI_API_KEY=your_api_key_here
+```
+
+For the augmented LLM web-search workflow, optionally add:
+
+```bash
+TAVILY_API_KEY=your_tavily_key_here
 ```
 
 ## Suggested Order

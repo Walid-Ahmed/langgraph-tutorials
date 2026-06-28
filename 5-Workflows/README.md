@@ -36,7 +36,7 @@ flowchart TD
 
 | File | Workflow | Purpose |
 |---|---|---|
-| `00_augmented_llm.md` | Augmented LLM | LLM enhanced with tools, retrieval, or memory |
+| `00_augmented_llm.md` + `00_augmented_llm.py` | Augmented LLM | LLM enhanced with tools, retrieval, or memory |
 | `01_prompt_chaining.md` | Prompt chaining | Break a task into ordered LLM steps |
 | `02_routing.md` | Routing | Send work to different paths based on input or state |
 | `03_parallelization.md` | Parallelization | Run independent steps side by side |
@@ -45,7 +45,7 @@ flowchart TD
 
 ## Part 2 — Code Example That Reinforces The Concept
 
-Code examples will be added later.
+The augmented LLM workflow now has a code example. Other workflow patterns are still placeholders.
 
 For now, each markdown file includes:
 

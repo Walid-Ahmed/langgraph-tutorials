@@ -15,16 +15,18 @@ This folder shows how a graph can choose different paths based on state.
 |---|---|
 | `05_conditional_edges.py` | Grades an answer, then routes to `pass_node` or `retry_node` |
 
-## Flow
+## Graph Plot
 
 ```mermaid
 flowchart TD
-    START --> GRADE["grade_node"]
-    GRADE -. score >= 70 .-> PASS["pass_node"]
-    GRADE -. score < 70 .-> RETRY["retry_node"]
-    PASS --> END
+    START([START]) --> GRADE["grade_node"]
+    GRADE -. "score >= 70" .-> PASS["pass_node"]
+    GRADE -. "score < 70" .-> RETRY["retry_node"]
+    PASS --> END([END])
     RETRY --> END
 ```
+
+Solid edges always run. Dotted edges are conditional and are chosen by the router function.
 
 ## Key Idea
 

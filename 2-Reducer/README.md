@@ -17,10 +17,17 @@ This folder explains how LangGraph updates state when nodes return new values.
 | `02_custom_reducer.py` | Shows custom reducer logic for merging updates |
 | `03_messages_reducer.py` | Shows message-style state updates with a reducer |
 
-## Key Idea
+## Graph Plot
 
-Without a reducer, a new value usually replaces the old value.
-With a reducer, you decide how old state and new updates combine.
+```mermaid
+flowchart LR
+    START([START]) --> UPDATE["update_node"]
+    UPDATE --> END([END])
+```
+
+All reducer examples use the same graph shape. The difference is how state is merged after `update_node` returns updates.
+
+## Reducer Idea
 
 ```mermaid
 flowchart LR
@@ -28,3 +35,5 @@ flowchart LR
     NEW["new update"] --> REDUCER
     REDUCER --> MERGED["merged state"]
 ```
+
+Without a reducer, a new value usually replaces the old value. With a reducer, you decide how old state and new updates combine.

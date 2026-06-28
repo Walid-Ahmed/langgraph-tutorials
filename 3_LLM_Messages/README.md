@@ -15,12 +15,23 @@ This folder shows how to use LangGraph with chat-style message history.
 |---|---|
 | `04_simple_chatbot.py` | A simple one-turn chatbot graph using message history |
 
-## Flow
+## Graph Plot
 
 ```mermaid
 flowchart LR
-    START --> CHATBOT["chatbot node"]
-    CHATBOT --> END
+    START([START]) --> CHATBOT["chatbot"]
+    CHATBOT --> END([END])
+```
+
+The chatbot node receives the message history, calls the LLM, and returns only the new AI message.
+
+## Message State Idea
+
+```mermaid
+flowchart LR
+    HISTORY["existing messages"] --> ADD["add_messages"]
+    AI["new AI message"] --> ADD
+    ADD --> UPDATED["updated history"]
 ```
 
 ## Note

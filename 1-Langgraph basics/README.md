@@ -16,13 +16,15 @@ This folder introduces the simplest LangGraph workflow.
 |---|---|
 | `00_simple_graph.py` | A minimal graph that converts input text to uppercase and increments a step counter |
 
-## Flow
+## Graph Plot
 
 ```mermaid
 flowchart LR
-    START --> PROCESS["process node"]
-    PROCESS --> END
+    START([START]) --> PROCESS["process"]
+    PROCESS --> END([END])
 ```
+
+This graph always runs one node: `process`.
 
 ## Run
 

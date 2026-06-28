@@ -1,8 +1,12 @@
 # LangGraph Tutorials
 
-A small educational repo for learning LangGraph one concept at a time.
+An educational repo for learning LangGraph one concept at a time.
 
-Each folder focuses on one idea, with simple code and comments so you can see how the graph works without extra complexity.
+## Main Objective
+
+The goal of this repo is to make LangGraph easier to understand through small, focused examples.
+
+Each folder picks one core concept, explains it with simple code, and shows how that concept fits into a graph workflow.
 
 ## Learning Path
 
@@ -13,14 +17,15 @@ flowchart TD
     C --> D["4. Conditional Edges"]
 ```
 
-## Concepts By Folder
+## Folders And What They Cover
 
-| Folder | Concept | What You Learn |
+| Folder | Covers | Main Idea |
 |---|---|---|
-| `1-Langgraph basics/` | Basic graph flow | Create a state, add a node, connect `START -> node -> END` |
-| `2-Reducer/` | Reducers | Control how state updates are merged instead of replaced |
-| `3_LLM_Messages/` | Message state | Store chat history and append new AI messages with `add_messages` |
-| `Conditional Edges/` | Routing | Use a router function to choose the next node based on state |
+| `1-Langgraph basics/` | Simple graph structure | Build your first graph with state, one node, and `START -> node -> END` |
+| `2-Reducer/` | Reducers and state merging | Learn how reducers control whether state values are replaced, added, or appended |
+| `3_LLM_Messages/` | LLM chat messages | Learn how message history is stored and updated with `add_messages` |
+| `Conditional Edges/` | Conditional routing | Learn how a router function chooses the next node based on the current state |
+| `util.py` | Shared helper functions | Contains reusable helper code like `plot_graph()` for visualizing graphs |
 
 ## Key Idea
 

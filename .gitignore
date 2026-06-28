@@ -1,0 +1,23 @@
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Environment variables and secrets
+.env
+**/.env
+
+# macOS files
+.DS_Store
+
+# Generated graph images
+graph.png
+**/graph.png
+
+# Personal notes
+notes.md
+**/notes.md
+**/notes_*.md

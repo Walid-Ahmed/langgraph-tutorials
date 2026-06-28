@@ -58,6 +58,10 @@ flowchart TD
     ROUTER -->|no| END([END])
 ```
 
+Generated graph image:
+
+![Augmented LLM graph](diagrams/00_augmented_llm_graph.png)
+
 Why the graph loops back:
 
 - first LLM call decides whether a tool is needed

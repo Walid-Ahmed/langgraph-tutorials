@@ -1,137 +1,218 @@
 # LangChain Augmentation Snippets
 
-These snippets are LangChain building blocks that fit inside the larger **Augmented LLM** workflow idea.
+This page collects small **LangChain augmentation patterns** that fit naturally into the LangGraph workflow lessons.
 
-They are useful because LangGraph workflows often use LangChain models, tools, prompts, and structured outputs inside graph nodes.
+These examples are not full graphs by themselves. Think of them as building blocks:
+
+- **Structured output** makes the LLM return data in a predictable shape.
+- **Tool binding** lets the LLM decide when a tool should be called.
+- **LangGraph** can then place those augmented LLM calls inside graph nodes.
+
+Before running these examples, make sure your `.env` file contains:
+
+```bash
+OPENAI_API_KEY=your_openai_key
+```
 
 ## Where This Fits
 
 ```mermaid
 flowchart TD
     A["Augmented LLM"] --> B["Structured output"]
-    A --> C["Tool calling"]
-    B --> D["Can be used inside a LangGraph node"]
-    C --> D
+    A --> C["Tool binding"]
+    B --> D["Clean data for graph nodes"]
+    C --> E["Tool calls for graph nodes"]
+    D --> F["LangGraph workflow"]
+    E --> F
 ```
-
-Use this file as a reference before turning these ideas into full LangGraph examples.
 
 ---
 
-## 1. Structured Output With Pydantic
+## 1. Structured Output
 
-Structured output means: instead of getting free-form text, you ask the LLM to return data that matches a schema.
+Sometimes you do not want a normal paragraph from the LLM.
+
+You want something structured, like:
 
 ```python
-from pydantic import BaseModel, Field
-
-
-class SearchQuery(BaseModel):
-    search_query: str = Field(
-        None,
-        description="Query that is optimized web search."
-    )
-    justification: str = Field(
-        None,
-        description="Why this query is relevant to the user's request."
-    )
+{
+    "search_query": "...",
+    "justification": "..."
+}
 ```
 
-This schema says the LLM should return two fields:
+This is useful when the next step in your app expects reliable fields instead of free-form text.
 
-| Field | Meaning |
-|---|---|
-| `search_query` | A search query optimized for web search |
-| `justification` | Why the query is useful |
+### Full Code
 
-Then bind the schema to the LLM:
+```python
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
+
+load_dotenv()
+
+
+# 1. Create the base LLM
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+
+
+# 2. Define the structure you want back from the LLM
+class SearchQuery(BaseModel):
+    """Schema for an optimized web-search query."""
+
+    search_query: str = Field(
+        description="Query that is optimized for web search."
+    )
+    justification: str = Field(
+        description="Why this query is relevant to the user's request."
+    )
+
+
+# 3. Augment the LLM with structured output
+structured_llm = llm.with_structured_output(SearchQuery)
+
+
+# 4. Invoke the augmented LLM
+output = structured_llm.invoke(
+    "How does Calcium CT score relate to high cholesterol?"
+)
+
+
+# 5. Print the structured result
+print(output.model_dump())
+print("Search query:", output.search_query)
+print("Justification:", output.justification)
+```
+
+### What Is Happening?
+
+The important line is:
 
 ```python
 structured_llm = llm.with_structured_output(SearchQuery)
 ```
 
-Now the LLM is augmented with a structured output schema:
+This tells the LLM:
 
-```python
-output = structured_llm.invoke(
-    "How does Calcium CT score relate to high cholesterol?"
-)
-```
+> Do not just answer normally. Return an object that matches the `SearchQuery` schema.
 
-The result should be a `SearchQuery` object, not just plain text.
+So instead of receiving a long explanation, your code receives a predictable object with:
 
-### Why This Matters
+- `search_query`
+- `justification`
 
-This is useful when a workflow needs reliable fields for the next step.
-
-For example:
-
-```mermaid
-flowchart LR
-    USER["user question"] --> LLM["structured LLM"]
-    LLM --> QUERY["SearchQuery object"]
-    QUERY --> SEARCH["web search node"]
-```
-
-The structured output can become input to another node.
+This is very useful before search, retrieval, routing, grading, or any workflow step that needs clean data.
 
 ---
 
 ## 2. Tool Binding
 
-Tool binding means: you give the LLM a list of functions it is allowed to request.
+Tool binding gives the LLM access to functions.
+
+The LLM does not automatically run the function by itself. Instead, it can return a **tool call request** saying:
+
+> I want to call `multiply` with these arguments.
+
+In LangGraph, a `ToolNode` can then execute that tool call.
+
+### Full Code
 
 ```python
+from dotenv import load_dotenv
+from langchain_core.tools import tool
+from langchain_openai import ChatOpenAI
+
+load_dotenv()
+
+
+# 1. Create the base LLM
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+
+
+# 2. Define a tool
+@tool
 def multiply(a: int, b: int) -> int:
+    """Multiply two integers."""
     return a * b
+
+
+# 3. Augment the LLM with tools
+llm_with_tools = llm.bind_tools([multiply])
+
+
+# 4. Ask something that should trigger the tool
+msg = llm_with_tools.invoke("What is 2 times 3?")
+
+
+# 5. Inspect the tool call requested by the LLM
+print(msg.tool_calls)
 ```
 
-Then bind the tool to the LLM:
+### What Is Happening?
+
+The important line is:
 
 ```python
 llm_with_tools = llm.bind_tools([multiply])
 ```
 
-Now the model can decide to call `multiply` when needed:
+This tells the LLM:
+
+> You are allowed to use the `multiply` tool if it helps answer the user.
+
+When you run:
 
 ```python
 msg = llm_with_tools.invoke("What is 2 times 3?")
 ```
 
-The model response can contain tool calls:
-
-```python
-msg.tool_calls
-```
-
-Example conceptually:
+The response may contain a tool call like:
 
 ```python
 [
     {
         "name": "multiply",
         "args": {"a": 2, "b": 3},
-        "id": "..."
+        "id": "...",
+        "type": "tool_call"
     }
 ]
 ```
 
-Important: the LLM does not execute the Python function by itself. It requests a tool call. In LangGraph, a `ToolNode` can execute that call.
+That means the LLM selected the tool and prepared the arguments.
 
-```mermaid
-flowchart LR
-    LLM["LLM with tools"] --> CALL["tool call"]
-    CALL --> TOOLNODE["ToolNode"]
-    TOOLNODE --> RESULT["tool result"]
-```
+Important distinction:
+
+- `bind_tools()` lets the LLM **request** a tool call.
+- A `ToolNode` in LangGraph can **execute** that tool call.
+
+That is why this snippet connects directly to the augmented LLM workflow example in this folder.
 
 ---
 
-## How This Connects To This Repo
+## 3. How These Fit Into LangGraph
 
-| Snippet | Full Tutorial Location |
-|---|---|
-| `with_structured_output(SearchQuery)` | `5-Workflows/00_augmented_llm_structured_output.md` |
-| `bind_tools([multiply])` | `5-Workflows/00_augmented_llm.md` |
+These snippets are LangChain patterns, but they become especially useful inside LangGraph.
 
-These snippets are small LangChain concepts. The workflow tutorials show how to place similar ideas inside LangGraph graphs.
+| LangChain Pattern | What It Does | LangGraph Use |
+|---|---|---|
+| `with_structured_output()` | Forces predictable output fields | Use inside a node that needs clean state updates |
+| `bind_tools()` | Lets the LLM request tool calls | Route to a `ToolNode` when tools are needed |
+| Pydantic schema | Defines the shape of model output | Makes graph state updates easier to trust |
+| Tool function | Gives the LLM an action it can request | Becomes part of an agent or workflow loop |
+
+A simple mental model:
+
+```text
+LangChain augments the LLM.
+LangGraph decides where that augmented LLM fits in the workflow.
+```
+
+For example:
+
+- A structured-output node can classify, grade, or extract information.
+- A tool-calling node can decide whether external actions are needed.
+- A conditional edge can route based on the structured output or tool calls.
+
+So these snippets are small on purpose — they are the pieces you later plug into larger graphs.

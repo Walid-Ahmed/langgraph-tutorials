@@ -10,6 +10,10 @@ In this example, the LLM can:
 
 ![Augmented LLM concept](figures/workflow-01-augmented-llm.png)
 
+Another helpful mental model: an augmented LLM is still an LLM in the middle, but it can be connected to retrieval, memory, and tools.
+
+![Augmented LLM capabilities](figures/workflow-08-augmented-llm-capabilities.png)
+
 ## Part 1 — Core Tutorial
 
 A normal LLM answers directly from the prompt.

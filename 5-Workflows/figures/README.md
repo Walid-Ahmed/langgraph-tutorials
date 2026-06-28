@@ -14,3 +14,4 @@ Source: [Workflow types deck](https://docs.google.com/presentation/d/1SuUtO_OCcg
 | `workflow-05-orchestrator-workers.png` | Orchestrator-worker concept |
 | `workflow-06-evaluator-optimizer.png` | Evaluator-optimizer concept |
 | `workflow-07-augmented-llm-flow.png` | Augmented LLM flow diagram |
+| `workflow-08-augmented-llm-capabilities.png` | Augmented LLM capabilities: retrieval, memory, and tools |

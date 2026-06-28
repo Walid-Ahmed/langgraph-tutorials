@@ -42,7 +42,7 @@ This folder uses those building blocks to explain larger workflow patterns. The 
 |---|---|---|
 | `00_augmented_llm.md` + `00_augmented_llm.py` | Augmented LLM with tools | LLM enhanced with tools, retrieval, or memory |
 | `00_augmented_llm_structured_output.md` + `00_augmented_llm_structured_output.py` | Augmented LLM with structured output | LLM output constrained by a Pydantic schema |
-| `01_prompt_chaining.md` | Prompt chaining | Break a task into ordered LLM steps |
+| `01_prompt_chaining.md` + `01_prompt_chaining.py` | Prompt chaining | Break a content-generation task into ordered quality-control steps |
 | `02_routing.md` | Routing | Send work to different paths based on input or state |
 | `03_parallelization.md` | Parallelization | Run independent steps side by side |
 | `04_orchestrator_workers.md` | Orchestrator-workers | One controller delegates work to specialized workers |

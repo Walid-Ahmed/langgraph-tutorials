@@ -23,7 +23,7 @@ flowchart TD
 |---|---|---|
 | `1-Langgraph basics/` | Basic graph | State, node, edges, compile, invoke |
 | `2-Reducer/` | Reducers | Difference between replacing state and merging state |
-| `3_LLM_Messages/` | Message state | How chat history is stored and updated |
+| `3_LLM_Messages/` | Message state | How chat history is stored, updated, and extended with `MessagesState` |
 | `4-Conditional Edges/` | Routing | How the graph chooses different paths |
 
 ## Core Mental Model

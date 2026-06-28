@@ -55,6 +55,42 @@ return {"messages": [response]}
 
 The `add_messages` reducer appends that response to the conversation history.
 
+## Extending `MessagesState`
+
+LangGraph provides a built-in `MessagesState` for conversation history. It already includes a special `messages` field that works correctly with LangGraph messages.
+
+You can create your own custom state by inheriting from `MessagesState`:
+
+```python
+from langgraph.graph import MessagesState
+
+class MyGraphState(MessagesState):
+    turn_count: int
+```
+
+This means `MyGraphState` includes everything from `MessagesState`, plus one extra field called `turn_count`.
+
+Conceptually, it is similar to writing:
+
+```python
+class MyGraphState(TypedDict):
+    messages: list
+    turn_count: int
+```
+
+But `MessagesState` is better for LangGraph chat workflows because it already handles message history properly.
+
+A state using `MyGraphState` can look like this:
+
+```python
+{
+    "messages": [...],
+    "turn_count": 3
+}
+```
+
+So yes: `MyGraphState` is a custom state class that extends LangGraph's built-in `MessagesState`.
+
 ## Setup
 
 Create a local `.env` file before running this example:
@@ -89,4 +125,13 @@ graph.add_edge("chatbot", END)
 
 This creates a one-node chatbot graph.
 
-Note: LangGraph also provides `MessagesState`, which already includes a `messages` field with the `add_messages` reducer.
+You can also use LangGraph's built-in `MessagesState` instead of manually defining the `messages` field:
+
+```python
+from langgraph.graph import MessagesState
+
+class MyGraphState(MessagesState):
+    turn_count: int
+```
+
+This keeps the built-in message handling and adds your own custom fields.

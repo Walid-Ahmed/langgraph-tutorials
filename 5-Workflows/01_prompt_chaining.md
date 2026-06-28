@@ -119,13 +119,19 @@ Run from the repo root:
 python "5-Workflows/01_prompt_chaining.py"
 ```
 
-The script prints each stage preview, saves a graph image, and creates:
+The script prints each stage preview, saves a graph image, and creates a local report:
 
 ```text
 5-Workflows/prompt_chaining_output.html
 ```
 
 Open that HTML file to inspect the full chain: topic, requirements, draft, fact-check report, improved content, and final formatted output.
+
+The repo also includes a checked-in sample report you can view without running the LLM:
+
+```text
+5-Workflows/examples/prompt_chaining_output.html
+```
 
 ## Code Explanation
 

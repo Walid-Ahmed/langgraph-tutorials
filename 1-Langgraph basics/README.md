@@ -81,6 +81,18 @@ Run it from the repo root:
 python "1-Langgraph basics/00_simple_graph.py"
 ```
 
+### Expected Output
+
+You should see the graph result with uppercase text and an incremented step:
+
+```python
+{'input': 'hello', 'output': 'HELLO', 'step': 1}
+```
+
+### Try It Yourself
+
+Change the initial `input` value from `"hello"` to another word, then run the script again. The graph flow stays the same, but the output changes.
+
 ### Graph Visualization
 
 This example also prints a Mermaid diagram to the terminal and saves a PNG file named `graph.png` in your current directory. That helps you see the graph shape before you run it.

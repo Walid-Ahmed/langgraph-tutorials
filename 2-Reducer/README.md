@@ -87,6 +87,8 @@ Final state:
 }
 ```
 
+What to notice: `5` disappeared, and `["lion", "tiger"]` disappeared. That is replacement behavior.
+
 ### Example B: With Reducers
 
 File:
@@ -124,6 +126,8 @@ Final state:
 }
 ```
 
+What to notice: the old values stayed, and the new values were combined with them. That is reducer behavior.
+
 ### Example C: Message Reducer
 
 File:
@@ -155,6 +159,10 @@ python "2-Reducer/01_state_without_reducer.py"
 python "2-Reducer/02_custom_reducer.py"
 python "2-Reducer/03_messages_reducer.py"
 ```
+
+### Try It Yourself
+
+In `02_custom_reducer.py`, change the node update from `"count": 1` to `"count": 10`. The final count should become `15` because the reducer adds the old and new values.
 
 ## Code Explanation
 

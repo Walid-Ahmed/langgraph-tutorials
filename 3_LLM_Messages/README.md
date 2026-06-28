@@ -167,7 +167,7 @@ That keeps LangGraph's built-in message behavior and adds your own fields.
 
 - Conversation history lives in a `messages` field with the `add_messages` reducer
 - Nodes return **only new messages**; LangGraph appends them to history
-- `MessagesState` is a convenient shortcut when you do not need a custom state schema
+- `MessagesState` is a convenient built-in base for message history, and you can extend it with extra fields
 
 ## Next Step
 

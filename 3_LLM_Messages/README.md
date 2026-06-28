@@ -2,6 +2,14 @@
 
 This tutorial shows how LangGraph can carry chat history through a graph.
 
+## What You'll Learn
+
+After this tutorial, you will be able to:
+
+- Store conversation history in graph state using `add_messages`
+- Send the full message history to an LLM inside a node
+- Understand when to use manual `ChatState` vs LangGraph's built-in `MessagesState`
+
 ## Part 1 — Concept
 
 Chatbots need memory. Not long-term memory yet — just the conversation so far.
@@ -71,6 +79,8 @@ File:
 04_simple_chatbot.py
 ```
 
+This example uses a manual `ChatState` on purpose — it shows the same pattern that `MessagesState` wraps for you: a `messages` field with the `add_messages` reducer attached.
+
 The example starts with one human message:
 
 ```python
@@ -91,11 +101,30 @@ return {"messages": [response]}
 
 `add_messages` appends the response to the existing history.
 
-Setup for this example:
+### Setup
+
+Create a `.env` file in the repo root with your OpenAI API key:
 
 ```bash
 OPENAI_API_KEY=your_api_key_here
 ```
+
+Run it from the repo root:
+
+```bash
+python "3_LLM_Messages/04_simple_chatbot.py"
+```
+
+### Expected Output
+
+You should see the initial human message, then a final conversation with two messages:
+
+```text
+HumanMessage: What is RAG?
+AIMessage: RAG stands for Retrieval-Augmented Generation. ...
+```
+
+The exact AI reply will vary, but the structure is always: one human message in, one AI message appended.
 
 ## Code Explanation
 
@@ -133,3 +162,13 @@ class MyGraphState(MessagesState):
 ```
 
 That keeps LangGraph's built-in message behavior and adds your own fields.
+
+## What You Learned
+
+- Conversation history lives in a `messages` field with the `add_messages` reducer
+- Nodes return **only new messages**; LangGraph appends them to history
+- `MessagesState` is a convenient shortcut when you do not need a custom state schema
+
+## Next Step
+
+Continue to [4. Conditional Edges](../4-Conditional%20Edges/README.md) to learn how a graph chooses different paths at runtime.

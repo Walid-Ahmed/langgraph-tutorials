@@ -2,6 +2,14 @@
 
 This tutorial teaches how a LangGraph workflow can choose different paths.
 
+## What You'll Learn
+
+After this tutorial, you will be able to:
+
+- Distinguish normal edges from conditional edges
+- Write a router function that returns the next node name
+- Wire branching paths with `add_conditional_edges`
+
 ## Part 1 — Concept
 
 A normal edge always goes to the same next node.
@@ -80,11 +88,25 @@ If the score is below `70`, the graph returns:
 "Retry needed 🔁"
 ```
 
-Run it:
+Run it from the repo root:
 
 ```bash
 python "4-Conditional Edges/05_conditional_edges.py"
 ```
+
+### Graph Visualization
+
+Like tutorial 1, this example prints a Mermaid diagram and saves `graph.png` in your current directory so you can see both branches before running the graph.
+
+### Try It Yourself
+
+Open `05_conditional_edges.py` and change the `answer` field to something that does not contain `"rag"`, for example:
+
+```python
+"answer": "I am not sure.",
+```
+
+Run the script again. The score will be `50`, the graph will route to `retry_node`, and the result will be `"Retry needed 🔁"`.
 
 ## Code Explanation
 
@@ -127,3 +149,13 @@ graph.add_edge("retry_node", END)
 ```
 
 Both possible branches end the graph cleanly.
+
+## What You Learned
+
+- Normal edges always go to the same next node
+- Router functions **read state** and return a **node name**, not a state update
+- `add_conditional_edges` connects a source node to multiple possible destinations
+
+## Previous Step
+
+This is the last tutorial in the series. Review earlier concepts in [1. LangGraph Basics](../1-Langgraph%20basics/README.md), [2. Reducers](../2-Reducer/README.md), or [3. LLM Messages](../3_LLM_Messages/README.md).

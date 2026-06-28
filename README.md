@@ -4,6 +4,14 @@ A beginner-friendly tutorial repo for learning LangGraph one concept at a time.
 
 This repo is meant to feel like a guided path, not a code dump. Each folder introduces one idea, explains why it matters, then uses a small Python file to make the idea concrete.
 
+## Prerequisites
+
+- Python 3.10 or newer
+- Basic Python (functions, dictionaries, classes)
+- An OpenAI API key for tutorial 3 only (the LLM chatbot example)
+
+For deeper reference, see the [official LangGraph documentation](https://langchain-ai.github.io/langgraph/).
+
 ## Part 1 — Concept Roadmap
 
 LangGraph lets you build workflows as graphs. A graph is made of three main pieces:
@@ -41,13 +49,15 @@ flowchart TD
 
 ## Setup
 
+From the repo root:
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-For LLM examples, create a local `.env` file:
+For the LLM example in tutorial 3, create a local `.env` file in the repo root:
 
 ```bash
 OPENAI_API_KEY=your_api_key_here
@@ -57,30 +67,21 @@ OPENAI_API_KEY=your_api_key_here
 
 Read and run the folders in order:
 
-1. `1-Langgraph basics/`
-2. `2-Reducer/`
-3. `3_LLM_Messages/`
-4. `4-Conditional Edges/`
+1. [`1-Langgraph basics/`](1-Langgraph%20basics/)
+2. [`2-Reducer/`](2-Reducer/)
+3. [`3_LLM_Messages/`](3_LLM_Messages/)
+4. [`4-Conditional Edges/`](4-Conditional%20Edges/)
 
 Each folder has its own README that works like a mini tutorial.
 
-## Part 2 — Code Illustration
+## Troubleshooting
 
-Most examples use this same shape:
+| Problem | Fix |
+|---|---|
+| `ModuleNotFoundError: No module named 'langgraph'` | Activate the virtual environment and run `pip install -r requirements.txt` |
+| `OpenAI` authentication error in tutorial 3 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
+| Run commands fail with "file not found" | Run commands from the repo root, not from inside a tutorial folder |
 
-```python
-graph = StateGraph(StateSchema)
-graph.add_node("node_name", node_function)
-graph.add_edge(START, "node_name")
-graph.add_edge("node_name", END)
-app = graph.compile()
-result = app.invoke(initial_state)
-```
+## Getting Started
 
-Line by line:
-
-- `StateGraph(StateSchema)` creates a graph with a specific state shape.
-- `add_node()` registers a Python function as a graph step.
-- `add_edge()` connects one step to the next.
-- `compile()` turns the graph definition into a runnable app.
-- `invoke()` runs the app with an initial state.
+Tutorial 1 walks through the core graph pattern step by step. Once you understand that shape, the rest of the series builds on it. Start with [`1-Langgraph basics/README.md`](1-Langgraph%20basics/README.md).

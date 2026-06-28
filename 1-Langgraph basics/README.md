@@ -2,6 +2,14 @@
 
 This tutorial starts with the smallest useful LangGraph: one state, one node, and one path.
 
+## What You'll Learn
+
+After this tutorial, you will be able to:
+
+- Define a state schema with `TypedDict`
+- Write a node function that returns a partial state update
+- Build, compile, and run a graph with `StateGraph`, `START`, and `END`
+
 ## Part 1 — Concept
 
 A LangGraph workflow is a graph. The graph receives some state, passes it into a node, and gets an updated state back.
@@ -67,11 +75,15 @@ Final result:
 }
 ```
 
-Run it:
+Run it from the repo root:
 
 ```bash
 python "1-Langgraph basics/00_simple_graph.py"
 ```
+
+### Graph Visualization
+
+This example also prints a Mermaid diagram to the terminal and saves a PNG file named `graph.png` in your current directory. That helps you see the graph shape before you run it.
 
 ## Code Explanation
 
@@ -108,3 +120,14 @@ result = app.invoke(initial_state)
 ```
 
 This runs the graph. The final state contains the original input plus the updated output and step.
+
+## What You Learned
+
+- A LangGraph workflow is **state in → node → state out**
+- Nodes return **partial updates**, not the full state
+- `compile()` turns a graph definition into a runnable app
+- `invoke()` runs the app with an initial state
+
+## Next Step
+
+Continue to [2. Reducers](../2-Reducer/README.md) to learn how LangGraph merges state updates.

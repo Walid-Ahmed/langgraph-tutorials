@@ -2,6 +2,14 @@
 
 This tutorial teaches reducers by showing the same idea in two worlds: first without reducers, then with reducers.
 
+## What You'll Learn
+
+After this tutorial, you will be able to:
+
+- Explain the difference between replacing and merging state updates
+- Attach custom reducers to state fields with `Annotated`
+- Use `add_messages` to append conversation history instead of replacing it
+
 ## Part 1 — Concept
 
 A node usually returns a partial state update. LangGraph then has to answer an important question:
@@ -140,7 +148,7 @@ Initial message.
 Hello from the node!
 ```
 
-Run the examples:
+Run the examples from the repo root:
 
 ```bash
 python "2-Reducer/01_state_without_reducer.py"
@@ -183,3 +191,13 @@ messages: Annotated[List[HumanMessage], add_messages]
 ```
 
 `add_messages` preserves existing message history and appends new messages.
+
+## What You Learned
+
+- Without a reducer, node updates **replace** existing values
+- With `Annotated[field, reducer]`, you control how updates are **merged**
+- `add_messages` is the standard reducer for growing conversation history
+
+## Next Step
+
+Continue to [3. LLM Messages](../3_LLM_Messages/README.md) to connect an LLM to a graph with message history.

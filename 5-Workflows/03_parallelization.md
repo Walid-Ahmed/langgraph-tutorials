@@ -2,7 +2,7 @@
 
 ## Part 1 — Core Tutorial
 
-Parallelization runs independent tasks at the same time, then combines the results.
+Parallelization runs independent tasks at the same time, then combines the results. The official workflow pattern is useful when tasks do not depend on each other, such as generating multiple analyses of the same input.
 
 ![Parallelization workflow](figures/workflow-04-parallelization.png)
 
@@ -18,7 +18,7 @@ flowchart TD
 
 ## When To Use
 
-Use this pattern when several tasks do not depend on each other.
+Use this pattern when several tasks do not depend on each other. If task B needs task A's output, use prompt chaining instead.
 
 Examples:
 
@@ -32,4 +32,4 @@ Placeholder for future LangGraph implementation.
 
 ## Code Explanation
 
-TODO: Explain fan-out, reducers for merging results, and final aggregation node.
+Future code should show fan-out from one input into several worker nodes, reducers to collect their outputs, and a final aggregation node that turns the collected results into one answer.

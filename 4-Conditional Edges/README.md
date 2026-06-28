@@ -14,7 +14,7 @@ After this tutorial, you will be able to:
 
 A normal edge always goes to the same next node.
 
-A conditional edge asks a router function where to go next.
+A conditional edge asks a router function where to go next. The router reads state and returns a label or node name; it should not be treated like a normal state-updating node.
 
 Think of it like a small traffic controller inside the graph:
 
@@ -58,7 +58,7 @@ Part 2 uses code to make routing concrete. It turns the idea into these pieces:
 | Success branch | `pass_node()` |
 | Retry branch | `retry_node()` |
 
-When reading the code example, keep this split in mind: `grade_node()` updates state, while `route_after_grade()` chooses the next node.
+When reading the code example, keep this split in mind: `grade_node()` updates state, while `route_after_grade()` chooses the next node. This separation is the heart of conditional routing.
 
 ## Part 2 — Code Example That Reinforces The Concept
 
@@ -170,6 +170,6 @@ Both possible branches end the graph cleanly.
 - Router functions **read state** and return a **node name**, not a state update
 - `add_conditional_edges` connects a source node to multiple possible destinations
 
-## Previous Step
+## Next Step
 
-This is the last tutorial in the series. Review earlier concepts in [1. LangGraph Basics](../1-Langgraph%20basics/README.md), [2. Reducers](../2-Reducer/README.md), or [3. LLM Messages](../3_LLM_Messages/README.md).
+Continue to [5. Workflows](../5-Workflows/README.md) to see how conditional edges, messages, and reducers combine into larger LLM workflow patterns.

@@ -18,7 +18,7 @@ Another helpful mental model: an augmented LLM is still an LLM in the middle, bu
 
 A normal LLM answers directly from the prompt.
 
-An augmented LLM can do something more useful: it can decide, “I need a tool for this,” call that tool, read the result, and then answer the user.
+An augmented LLM can do something more useful: it can decide, “I need a tool for this,” request that tool with structured arguments, read the result, and then answer the user. In LangChain, tools are normal functions with names, descriptions, and typed inputs that the model can choose from.
 
 ```mermaid
 flowchart TD
@@ -164,7 +164,7 @@ def get_weather(destination_city: str) -> str:
     ...
 ```
 
-`@tool` exposes the Python function to the LLM. The LLM can request this tool when the user asks about weather.
+`@tool` exposes the Python function to the LLM with a tool name, description, and argument schema. The LLM can request this tool when the user asks about weather.
 
 ```python
 response = requests.get(url, params=params, timeout=10)
@@ -181,7 +181,7 @@ llm = ChatOpenAI(model="gpt-4o", temperature=0)
 llm_with_tools = llm.bind_tools(tools)
 ```
 
-`bind_tools()` tells the model which tools are available and what arguments each tool expects.
+`bind_tools()` tells the model which tools are available and what arguments each tool expects. It does not run the tool by itself; it lets the model produce a tool call that `ToolNode` can execute.
 
 ```python
 class AgentState(TypedDict):

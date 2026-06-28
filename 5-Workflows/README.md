@@ -12,7 +12,7 @@ Source figures: [Workflow types deck](https://docs.google.com/presentation/d/1Su
 
 ## Part 1 — Core Tutorial
 
-A workflow is a reusable pattern for organizing how an LLM system thinks, calls tools, makes decisions, and checks results.
+A workflow is a reusable pattern for organizing how an LLM system thinks, calls tools, makes decisions, and checks results. The official LangGraph docs describe workflows as more predictable than open-ended agents: the path is mostly defined by code, even when an LLM helps with a step.
 
 Earlier folders teach the building blocks:
 
@@ -22,7 +22,7 @@ Earlier folders teach the building blocks:
 - message history
 - conditional edges
 
-This folder will use those building blocks to explain larger workflow patterns.
+This folder uses those building blocks to explain larger workflow patterns. The goal is not to memorize names; it is to recognize the shape of the problem and pick the simplest graph that fits.
 
 
 ## Visual Workflow Map

@@ -8,9 +8,11 @@ This repo is meant to feel like a guided path, not a code dump. Each folder intr
 
 - Python 3.10 or newer
 - Basic Python (functions, dictionaries, classes)
-- An OpenAI API key for tutorial 3 only (the LLM chatbot example)
+- An OpenAI API key for LLM examples in tutorials 3 and 5
 
-For deeper reference, see the [official LangGraph documentation](https://langchain-ai.github.io/langgraph/).
+For deeper reference, see the [official LangGraph documentation](https://docs.langchain.com/oss/python/langgraph/overview).
+
+This repo intentionally follows the official LangGraph mental model: define **state**, run **nodes**, connect them with **edges**, then compile the graph into something you can invoke. The examples are small so the idea is visible before the code becomes realistic.
 
 ## Part 1 — Core Tutorial Roadmap
 
@@ -53,7 +55,7 @@ Each tutorial follows the same rhythm:
 | `2-Reducer/` | Compare state updates with and without reducers | Understand how LangGraph preserves or combines state |
 | `3_LLM_Messages/` | Store chat history in graph state | Learn how LLM conversations fit into LangGraph |
 | `4-Conditional Edges/` | Route to different nodes | Learn how graphs make decisions |
-| `5-Workflows/` | Workflow patterns | Placeholder tutorials for larger LLM workflow designs |
+| `5-Workflows/` | Workflow patterns | Larger LLM designs such as tool use, routing, parallel work, and evaluation loops |
 
 ## Setup
 
@@ -95,8 +97,18 @@ Each folder has its own README that works like a mini tutorial.
 | Problem | Fix |
 |---|---|
 | `ModuleNotFoundError: No module named 'langgraph'` | Activate the virtual environment and run `pip install -r requirements.txt` |
-| `OpenAI` authentication error in tutorial 3 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
+| `OpenAI` authentication error in tutorials 3 or 5 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
 | Run commands fail with "file not found" | Run commands from the repo root, not from inside a tutorial folder |
+
+## Official References Used
+
+These tutorials are enriched from the official LangChain and LangGraph docs, then simplified into beginner examples:
+
+- [LangGraph overview](https://docs.langchain.com/oss/python/langgraph/overview)
+- [LangGraph Graph API](https://docs.langchain.com/oss/python/langgraph/graph-api)
+- [LangGraph workflows and agents](https://docs.langchain.com/oss/python/langgraph/workflows-agents)
+- [LangChain tools](https://docs.langchain.com/oss/python/langchain/tools)
+- [LangChain structured output](https://docs.langchain.com/oss/python/langchain/structured-output)
 
 ## Getting Started
 

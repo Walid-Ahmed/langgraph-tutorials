@@ -27,7 +27,7 @@ flowchart LR
     RULE --> FINAL["final state"]
 ```
 
-Without a reducer, the update usually replaces the old value. With a reducer, you choose how values are merged.
+Without a reducer, the update usually replaces the old value. With a reducer, you choose how values are merged. In LangGraph, reducer rules live on individual state fields, so one field can replace while another field appends.
 
 All examples use the same graph shape:
 
@@ -150,7 +150,7 @@ File:
 03_messages_reducer.py
 ```
 
-Conversation history should not be replaced every time a new message appears. For that, LangGraph provides `add_messages`.
+Conversation history should not be replaced every time a new message appears. For that, LangGraph provides `add_messages`, the message-focused reducer used throughout chat and tool-calling graphs.
 
 ```mermaid
 flowchart TD
@@ -212,7 +212,7 @@ For messages:
 messages: Annotated[List[HumanMessage], add_messages]
 ```
 
-`add_messages` preserves existing message history and appends new messages.
+`add_messages` preserves existing message history and appends new messages. This is why message state can grow turn by turn instead of being overwritten.
 
 ## What You Learned
 

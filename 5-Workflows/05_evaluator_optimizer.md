@@ -2,7 +2,7 @@
 
 ## Part 1 — Core Tutorial
 
-An evaluator-optimizer workflow generates an output, checks it, then improves it if needed.
+An evaluator-optimizer workflow generates an output, checks it, then improves it if needed. This pattern is useful when quality matters more than a single fast answer.
 
 ![Evaluator optimizer workflow](figures/workflow-06-evaluator-optimizer.png)
 
@@ -18,7 +18,7 @@ flowchart TD
 
 ## When To Use
 
-Use this pattern when quality matters and the system should review or improve its own output.
+Use this pattern when quality matters and the system should review or improve its own output. Always define a stopping rule, otherwise the loop can keep trying forever.
 
 Examples:
 
@@ -32,4 +32,4 @@ Placeholder for future LangGraph implementation.
 
 ## Code Explanation
 
-TODO: Explain generation node, evaluator node, conditional retry loop, and stopping condition.
+Future code should show a generator node, an evaluator node that returns a grade or feedback, a conditional edge that decides retry vs accept, and a maximum iteration count.

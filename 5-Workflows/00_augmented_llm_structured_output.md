@@ -10,7 +10,7 @@ Instead of asking the model for free-form text, we ask it to return a validated 
 
 A normal LLM response might look like a paragraph.
 
-A structured-output LLM response looks like data your program can trust and use.
+A structured-output LLM response looks like data your program can trust and use. This is useful when the next graph step needs fields, not prose.
 
 ```mermaid
 flowchart TD
@@ -26,7 +26,7 @@ The key idea:
 3. call the LLM
 4. receive a validated Python object
 
-This is an LLM augmentation because the schema guides the model and validates the result.
+This is an LLM augmentation because the schema guides the model and validates the result. The official structured-output pattern is especially helpful for extraction, classification, grading, and routing.
 
 ## What To Look For In The Code Example
 
@@ -97,7 +97,7 @@ class ProductReview(BaseModel):
     summary: str
 ```
 
-This Pydantic model defines the structure the LLM must return.
+This Pydantic model defines the structure the LLM must return. Field descriptions act like tiny instructions for each output key.
 
 ```python
 structured_llm = llm.with_structured_output(ProductReview)

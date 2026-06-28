@@ -2,7 +2,7 @@
 
 ## Part 1 — Core Tutorial
 
-Routing sends work to different paths depending on the input or current state.
+Routing sends work to different paths depending on the input or current state. In real LLM workflows, the router often uses structured output so the graph receives a reliable routing label.
 
 ![Routing workflow](figures/workflow-03-routing.png)
 
@@ -16,7 +16,7 @@ flowchart TD
 
 ## When To Use
 
-Use this pattern when different inputs need different handling.
+Use this pattern when different inputs need different handling. The important design question is: what small set of destinations can the router choose from?
 
 Examples:
 
@@ -30,4 +30,4 @@ Placeholder for future LangGraph implementation.
 
 ## Code Explanation
 
-TODO: Explain router function, conditional edges, and destination nodes.
+Future code should show a router node or router function that returns a label, then `add_conditional_edges()` mapping labels to destination nodes. Keep the labels simple, such as `billing`, `technical`, or `general`.

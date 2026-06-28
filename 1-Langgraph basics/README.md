@@ -28,7 +28,7 @@ The path is always:
 START -> process -> END
 ```
 
-There are no branches yet. No reducers yet. No LLM yet. Just the core idea.
+There are no branches yet. No reducers yet. No LLM yet. Just the core idea. In official LangGraph terms, this is the smallest useful `StateGraph`: state comes in, a node returns an update, and edges define the path.
 
 ### The Three Pieces
 
@@ -139,7 +139,7 @@ graph.add_edge("process", END)
 app = graph.compile()
 ```
 
-This creates the graph, adds the node, connects the path, and compiles the graph into a runnable app.
+This creates the graph, adds the node, connects the path, and compiles the graph into a runnable app. Think of `compile()` as the moment your sketch becomes executable.
 
 ```python
 result = app.invoke(initial_state)

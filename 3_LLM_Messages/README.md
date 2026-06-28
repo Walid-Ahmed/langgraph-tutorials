@@ -25,7 +25,7 @@ flowchart TD
     E --> F["message history grows"]
 ```
 
-The key idea: each node can return a new message, and LangGraph appends it to the existing message history.
+The key idea: each node can return a new message, and LangGraph appends it to the existing message history. This matches the official pattern: chat history is just graph state, usually stored under `messages`.
 
 The graph itself is simple:
 
@@ -69,7 +69,7 @@ class MyGraphState(TypedDict):
     turn_count: int
 ```
 
-But `MessagesState` is special because it already handles LangGraph messages properly.
+But `MessagesState` is special because it already handles LangGraph messages properly. Use it when your graph is message-first, then extend it only for extra fields like counters, routing labels, or metadata.
 
 ### What To Look For In The Code Example
 
@@ -155,7 +155,7 @@ def chatbot_node(state: ChatState) -> dict:
     return {"messages": [response]}
 ```
 
-This node receives the conversation history, calls the LLM, and returns the new AI message.
+This node receives the conversation history, calls the LLM, and returns the new AI message. The node does not manually append; the reducer does that merge step.
 
 ```python
 graph = StateGraph(ChatState)

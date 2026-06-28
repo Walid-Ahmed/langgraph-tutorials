@@ -6,6 +6,8 @@ The goal is to collect common workflow patterns and later turn each one into a c
 
 No code is included here yet. These files are planning placeholders.
 
+Reference: [LangGraph Workflows and Agents](https://docs.langchain.com/oss/python/langgraph/workflows-agents#llms-and-augmentations)
+
 ## Part 1 — Core Tutorial
 
 A workflow is a reusable pattern for organizing how an LLM system thinks, calls tools, makes decisions, and checks results.

@@ -12,7 +12,7 @@ This repo is meant to feel like a guided path, not a code dump. Each folder intr
 
 For deeper reference, see the [official LangGraph documentation](https://langchain-ai.github.io/langgraph/).
 
-## Part 1 — Concept Roadmap
+## Part 1 — Core Tutorial Roadmap
 
 LangGraph lets you build workflows as graphs. A graph is made of three main pieces:
 
@@ -37,6 +37,12 @@ flowchart TD
     B --> C["3. LLM Messages"]
     C --> D["4. Conditional Edges"]
 ```
+
+Each tutorial follows the same rhythm:
+
+1. Part 1 teaches the core concept in plain language
+2. Part 2 uses a small code example to make that concept concrete
+3. the final Code Explanation connects important code lines back to the concept
 
 ## Folder Guide
 

@@ -10,7 +10,7 @@ After this tutorial, you will be able to:
 - Send the full message history to an LLM inside a node
 - Understand when to use manual `ChatState` vs LangGraph's built-in `MessagesState`
 
-## Part 1 — Concept
+## Part 1 — Core Tutorial
 
 Chatbots need memory. Not long-term memory yet — just the conversation so far.
 
@@ -71,7 +71,21 @@ class MyGraphState(TypedDict):
 
 But `MessagesState` is special because it already handles LangGraph messages properly.
 
-## Part 2 — Code Illustration
+### What To Look For In The Code Example
+
+Part 2 uses code to make the message-state concept concrete. It shows the manual version first:
+
+| Concept | Code To Watch |
+|---|---|
+| Message state | `class ChatState(TypedDict)` |
+| Message field | `messages` |
+| Message reducer | `add_messages` |
+| LLM call | `llm.invoke(state["messages"])` |
+| New message update | `return {"messages": [response]}` |
+
+After that, the tutorial shows how `MessagesState` can replace the manual `messages` setup when you want built-in message handling.
+
+## Part 2 — Code Example That Reinforces The Concept
 
 File:
 

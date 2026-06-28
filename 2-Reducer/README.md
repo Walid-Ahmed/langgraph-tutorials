@@ -10,7 +10,7 @@ After this tutorial, you will be able to:
 - Attach custom reducers to state fields with `Annotated`
 - Use `add_messages` to append conversation history instead of replacing it
 
-## Part 1 — Concept
+## Part 1 — Core Tutorial
 
 A node usually returns a partial state update. LangGraph then has to answer an important question:
 
@@ -39,7 +39,21 @@ flowchart LR
 
 The interesting part is not the graph path. The interesting part is what happens to state after `update_node` returns.
 
-## Part 2 — Code Illustration
+### What To Look For In The Code Example
+
+Part 2 is the practical version of the reducer concept. It uses three files to show the same idea step by step:
+
+| Concept | Code To Watch |
+|---|---|
+| No reducer | `StateWithoutReducer` |
+| Node update | `node_to_update()` returns `{"count": 1, "animals": ["cat"]}` |
+| Custom reducer | `custom_increment(current, new)` |
+| Attach reducer | `Annotated[int, custom_increment]` |
+| Message reducer | `Annotated[List[HumanMessage], add_messages]` |
+
+So when you read the code, focus on the state schema first. That is where reducer behavior is defined.
+
+## Part 2 — Code Example That Reinforces The Concept
 
 ### Example A: Without A Reducer
 

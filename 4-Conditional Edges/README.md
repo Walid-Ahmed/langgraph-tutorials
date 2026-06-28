@@ -10,7 +10,7 @@ After this tutorial, you will be able to:
 - Write a router function that returns the next node name
 - Wire branching paths with `add_conditional_edges`
 
-## Part 1 — Concept
+## Part 1 — Core Tutorial
 
 A normal edge always goes to the same next node.
 
@@ -46,7 +46,21 @@ Solid edges always run. Dotted edges are conditional.
 | Normal edge | Always goes to one next node | `START -> grade_node` |
 | Conditional edge | Router chooses the next node | `grade_node -> pass_node` or `retry_node` |
 
-## Part 2 — Code Illustration
+### What To Look For In The Code Example
+
+Part 2 uses code to make routing concrete. It turns the idea into these pieces:
+
+| Concept | Code Name |
+|---|---|
+| Node that creates the decision data | `grade_node()` |
+| Router that chooses the branch | `route_after_grade()` |
+| Conditional wiring | `graph.add_conditional_edges(...)` |
+| Success branch | `pass_node()` |
+| Retry branch | `retry_node()` |
+
+When reading the code example, keep this split in mind: `grade_node()` updates state, while `route_after_grade()` chooses the next node.
+
+## Part 2 — Code Example That Reinforces The Concept
 
 File:
 

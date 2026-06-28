@@ -10,7 +10,7 @@ After this tutorial, you will be able to:
 - Write a node function that returns a partial state update
 - Build, compile, and run a graph with `StateGraph`, `START`, and `END`
 
-## Part 1 — Concept
+## Part 1 — Core Tutorial
 
 A LangGraph workflow is a graph. The graph receives some state, passes it into a node, and gets an updated state back.
 
@@ -38,7 +38,21 @@ There are no branches yet. No reducers yet. No LLM yet. Just the core idea.
 | Node | `process()` | The function that changes the data |
 | Edges | `START -> process -> END` | The order of execution |
 
-## Part 2 — Code Illustration
+### What To Look For In The Code Example
+
+Part 2 is not a new concept. It is the code version of this tutorial. Before reading it, look for these names:
+
+| Concept | Code Name |
+|---|---|
+| State schema | `SimpleState` |
+| Node function | `process()` |
+| Graph object | `graph = StateGraph(SimpleState)` |
+| Flow | `graph.add_edge(...)` |
+| Run step | `app.invoke(initial_state)` |
+
+The code example uses these exact pieces to build the first graph.
+
+## Part 2 — Code Example That Reinforces The Concept
 
 File:
 

@@ -3,6 +3,8 @@ import sys
 from pathlib import Path
 from typing import Annotated
 
+import requests
+
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
@@ -23,6 +25,8 @@ except ImportError:
 
 load_dotenv()
 
+weather_api_key = os.getenv("OPENWEATHER_API_KEY")
+
 
 # ---------------------------------------------------------
 # 1. Tools
@@ -31,17 +35,34 @@ load_dotenv()
 # from its internal model knowledge.
 # ---------------------------------------------------------
 @tool
-def get_weather(city: str) -> str:
-    """Get the weather for a city."""
-    print("tool weather is called")
+def get_weather(destination_city: str) -> str:
+    """Fetch live weather for a city from OpenWeatherMap."""
+    print(f"get_weather called for {destination_city}")
 
-    weather_data = {
-        "New York": "Sunny, 72 F",
-        "London": "Cloudy, 15 C",
-        "Tokyo": "Rainy, 20 C",
+    if not weather_api_key:
+        return "Weather data not available: OPENWEATHER_API_KEY is missing"
+
+    url = "http://api.openweathermap.org/data/2.5/weather"
+    params = {
+        "q": destination_city,
+        "appid": weather_api_key,
+        "units": "metric",
     }
 
-    return weather_data.get(city, "Weather data not available")
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        print(f"Weather API status: {response.status_code}")
+        print(f"Weather API raw: {response.text[:200]}")
+
+        if response.status_code == 200:
+            data = response.json()
+            description = data["weather"][0]["description"].capitalize()
+            temperature = data["main"]["temp"]
+            return f"{description} with {temperature}°C"
+
+        return f"Weather data not available for {destination_city}"
+    except Exception as error:
+        return f"Error fetching weather: {error}"
 
 
 @tool
@@ -52,7 +73,8 @@ def calculate_tip(bill_amount: float, tip_percentage: float) -> float:
     return round(bill_amount * (tip_percentage / 100), 2)
 
 
-# Start with local tools that do not need external API keys.
+# Start with tools that do not need Tavily.
+# get_weather still needs OPENWEATHER_API_KEY to return live weather.
 tools = [get_weather, calculate_tip]
 
 

@@ -29,7 +29,7 @@ The loop is important:
 
 | Tool | Purpose |
 |---|---|
-| `get_weather` | Returns fake weather for a few cities |
+| `get_weather` | Fetches live weather from OpenWeatherMap when `OPENWEATHER_API_KEY` is available |
 | `calculate_tip` | Calculates a tip amount |
 | `TavilySearch` | Searches the web when `TAVILY_API_KEY` is available |
 
@@ -84,6 +84,12 @@ This example needs an OpenAI API key:
 OPENAI_API_KEY=your_api_key_here
 ```
 
+For live weather, add:
+
+```bash
+OPENWEATHER_API_KEY=your_openweather_key_here
+```
+
 For web search, also add:
 
 ```bash
@@ -104,7 +110,7 @@ def get_weather(city: str) -> str:
     ...
 ```
 
-The `@tool` decorator turns a Python function into a tool the LLM can request.
+The `@tool` decorator turns a Python function into a tool the LLM can request. In this example, `get_weather()` calls OpenWeatherMap and returns a short weather string such as `Scattered clouds with 15.98°C`.
 
 ```python
 llm = ChatOpenAI(model="gpt-4o", temperature=0)

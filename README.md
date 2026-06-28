@@ -71,9 +71,10 @@ For LLM examples, create a local `.env` file in the repo root:
 OPENAI_API_KEY=your_api_key_here
 ```
 
-For the augmented LLM web-search workflow, optionally add:
+For the augmented LLM workflow, optionally add API keys for live weather and web search:
 
 ```bash
+OPENWEATHER_API_KEY=your_openweather_key_here
 TAVILY_API_KEY=your_tavily_key_here
 ```
 

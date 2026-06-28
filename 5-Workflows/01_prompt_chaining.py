@@ -234,7 +234,9 @@ def save_html_report(result: ContentState) -> Path:
 # 5. Run It
 # ---------------------------------------------------------
 def main() -> None:
-    plot_graph(graph)
+    graph_image_path = Path(__file__).resolve().parent / "diagrams" / "01_prompt_chaining_graph.png"
+    graph_image_path.parent.mkdir(exist_ok=True)
+    plot_graph(graph, graph_image_path)
 
     result = graph.invoke(
         {

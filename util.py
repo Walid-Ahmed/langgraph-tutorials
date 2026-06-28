@@ -1,4 +1,4 @@
-def plot_graph(app):
+def plot_graph(app, output_path="graph.png"):
     # Visualize the graph
     print("\n--- Mermaid Graph ---")
     print(app.get_graph().draw_mermaid())
@@ -6,7 +6,7 @@ def plot_graph(app):
     # Save as PNG
     png_bytes = app.get_graph().draw_mermaid_png()
 
-    with open("graph.png", "wb") as f:
+    with open(output_path, "wb") as f:
         f.write(png_bytes)
 
-    print("\nGraph saved to graph.png")
+    print(f"\nGraph saved to {output_path}")

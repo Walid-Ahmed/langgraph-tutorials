@@ -95,6 +95,10 @@ flowchart LR
     FORMAT --> END([END])
 ```
 
+Generated LangGraph plot from the code:
+
+![Prompt chaining graph](diagrams/01_prompt_chaining_graph.png)
+
 Run from the repo root:
 
 ```bash

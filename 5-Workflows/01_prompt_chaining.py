@@ -18,6 +18,16 @@ load_dotenv()
 #
 # Prompt chaining works by passing outputs forward.
 # Each field below is created by one step and used by the next.
+#
+# Important: node returns are partial state updates.
+# Returning {"draft": draft} updates only the draft field.
+# It does not overwrite the whole state. Fields not returned,
+# like topic or requirements, stay unchanged.
+#
+# No reducer is used here. Without a reducer, if the same field
+# is returned again later, that field is replaced. Reducers are
+# only needed when you want to merge old + new values for the
+# same field, such as appending messages with add_messages.
 # ---------------------------------------------------------
 class ContentState(TypedDict):
     topic: str

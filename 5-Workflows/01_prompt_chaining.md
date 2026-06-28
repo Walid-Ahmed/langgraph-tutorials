@@ -32,6 +32,20 @@ output from step 1 -> input to step 2 -> input to step 3 -> final output
 
 This makes the workflow easier to debug because every intermediate result is saved in state.
 
+### Partial State Updates, Not Reducers
+
+In this example, each node returns only the field it wants to update:
+
+```python
+return {"draft": draft}
+```
+
+This does **not** overwrite the whole state. It only updates `draft`. Fields not returned, such as `topic` and `requirements`, stay unchanged.
+
+This is normal LangGraph state behavior: node returns are **partial state updates**.
+
+No reducer is being used for `draft`, `fact_check_results`, `improved_content`, or `final_draft`. Without a reducer, if the same field is updated again later, that field is replaced. Reducers are only needed when you want to merge old and new values for the same field, like appending messages with `add_messages`.
+
 ## When To Use
 
 Use prompt chaining when one big prompt would be too messy, and the task is easier as smaller stages. It works best when each stage has a clear job and a clear output for the next stage.

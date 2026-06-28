@@ -44,6 +44,12 @@ flowchart TD
 | `04_orchestrator_workers.md` | Orchestrator-workers | One controller delegates work to specialized workers |
 | `05_evaluator_optimizer.md` | Evaluator-optimizer | Generate, evaluate, and improve outputs iteratively |
 
+## Supporting Resources
+
+| Resource | Purpose |
+|---|---|
+| `resources/langchain_augmentation_snippets.md` | Small LangChain snippets for structured output and tool binding before they are used inside LangGraph workflows |
+
 ## Part 2 — Code Example That Reinforces The Concept
 
 The augmented LLM workflow now has a code example. Other workflow patterns are still placeholders.

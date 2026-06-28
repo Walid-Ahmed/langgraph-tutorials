@@ -2,33 +2,17 @@
 
 A beginner-friendly tutorial repo for learning LangGraph one concept at a time.
 
-## Main Objective
+This repo is meant to feel like a guided path, not a code dump. Each folder introduces one idea, explains why it matters, then uses a small Python file to make the idea concrete.
 
-This repo teaches LangGraph through small examples. Each folder focuses on one concept, explains the idea, shows the graph flow, and ends with a code explanation.
+## Part 1 — Concept Roadmap
 
-The goal is not to build a big app immediately. The goal is to understand the building blocks clearly.
+LangGraph lets you build workflows as graphs. A graph is made of three main pieces:
 
-## Learning Path
-
-```mermaid
-flowchart TD
-    A["1. Basic Graph"] --> B["2. Reducers"]
-    B --> C["3. LLM Messages"]
-    C --> D["4. Conditional Edges"]
-```
-
-## Folders
-
-| Folder | Topic | What You Learn |
+| Piece | Meaning | Simple Way To Think About It |
 |---|---|---|
-| `1-Langgraph basics/` | Basic graph | State, node, edges, compile, invoke |
-| `2-Reducer/` | Reducers | Difference between replacing state and merging state |
-| `3_LLM_Messages/` | Message state | How chat history is stored, updated, and extended with `MessagesState` |
-| `4-Conditional Edges/` | Routing | How the graph chooses different paths |
-
-## Core Mental Model
-
-LangGraph workflows are graphs. Data moves through the graph as state.
+| State | Data moving through the graph | The backpack your workflow carries |
+| Node | A function that does work | A step in the workflow |
+| Edge | A connection between nodes | The road to the next step |
 
 ```mermaid
 flowchart LR
@@ -37,7 +21,23 @@ flowchart LR
     UPDATE --> END([END])
 ```
 
-A node reads the current state and returns an update. Edges decide which node runs next.
+The learning path builds up slowly:
+
+```mermaid
+flowchart TD
+    A["1. Basic Graph"] --> B["2. Reducers"]
+    B --> C["3. LLM Messages"]
+    C --> D["4. Conditional Edges"]
+```
+
+## Folder Guide
+
+| Folder | Tutorial Focus | Why It Matters |
+|---|---|---|
+| `1-Langgraph basics/` | Build the smallest possible graph | Learn the core shape: state, node, edge, compile, invoke |
+| `2-Reducer/` | Compare state updates with and without reducers | Understand how LangGraph preserves or combines state |
+| `3_LLM_Messages/` | Store chat history in graph state | Learn how LLM conversations fit into LangGraph |
+| `4-Conditional Edges/` | Route to different nodes | Learn how graphs make decisions |
 
 ## Setup
 
@@ -55,18 +55,18 @@ OPENAI_API_KEY=your_api_key_here
 
 ## Suggested Order
 
-Read and run the folders in this order:
+Read and run the folders in order:
 
 1. `1-Langgraph basics/`
 2. `2-Reducer/`
 3. `3_LLM_Messages/`
 4. `4-Conditional Edges/`
 
-Each folder has its own README tutorial.
+Each folder has its own README that works like a mini tutorial.
 
-## Code Explanation
+## Part 2 — Code Illustration
 
-Most examples follow this pattern:
+Most examples use this same shape:
 
 ```python
 graph = StateGraph(StateSchema)
@@ -81,6 +81,6 @@ Line by line:
 
 - `StateGraph(StateSchema)` creates a graph with a specific state shape.
 - `add_node()` registers a Python function as a graph step.
-- `add_edge()` connects graph steps together.
+- `add_edge()` connects one step to the next.
 - `compile()` turns the graph definition into a runnable app.
-- `invoke()` runs the graph with an initial state.
+- `invoke()` runs the app with an initial state.

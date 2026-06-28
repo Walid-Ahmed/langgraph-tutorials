@@ -1,19 +1,24 @@
 # 4. Conditional Edges
 
-This folder teaches how a graph can choose different paths based on state.
+This tutorial teaches how a LangGraph workflow can choose different paths.
 
-## Goal
+## Part 1 — Concept
 
-Understand how `add_conditional_edges()` lets a router function decide the next node.
+A normal edge always goes to the same next node.
 
-This is useful when your workflow needs a decision, such as:
+A conditional edge asks a router function where to go next.
 
-- pass or retry
-- approve or reject
-- use a tool or skip it
-- continue or end
+Think of it like a small traffic controller inside the graph:
 
-## Graph Plot
+```mermaid
+flowchart TD
+    A["current state"] --> B["router function"]
+    B --> C{"Which path?"}
+    C --> D["path A"]
+    C --> E["path B"]
+```
+
+In this example, the graph grades an answer. If the score is high enough, it goes to `pass_node`. If not, it goes to `retry_node`.
 
 ```mermaid
 flowchart TD
@@ -26,7 +31,14 @@ flowchart TD
 
 Solid edges always run. Dotted edges are conditional.
 
-## What The Example Does
+### Normal Edge vs Conditional Edge
+
+| Edge Type | What It Does | Example |
+|---|---|---|
+| Normal edge | Always goes to one next node | `START -> grade_node` |
+| Conditional edge | Router chooses the next node | `grade_node -> pass_node` or `retry_node` |
+
+## Part 2 — Code Illustration
 
 File:
 
@@ -34,7 +46,17 @@ File:
 05_conditional_edges.py
 ```
 
-The graph starts at `grade_node`. That node creates a score.
+The graph starts with an answer:
+
+```python
+{
+    "answer": "RAG means retrieval augmented generation.",
+    "score": 0,
+    "result": ""
+}
+```
+
+The `grade_node` checks the answer and sets a score.
 
 Then the router reads the score:
 
@@ -46,10 +68,19 @@ flowchart TD
     C -->|no| E["retry_node"]
 ```
 
-If the score is `70` or higher, the graph goes to `pass_node`.
-If the score is below `70`, the graph goes to `retry_node`.
+If the score is `70` or higher, the graph returns:
 
-## Run
+```python
+"Passed ✅"
+```
+
+If the score is below `70`, the graph returns:
+
+```python
+"Retry needed 🔁"
+```
+
+Run it:
 
 ```bash
 python "4-Conditional Edges/05_conditional_edges.py"
@@ -75,7 +106,7 @@ def route_after_grade(state: AgentState) -> str:
     return "retry_node"
 ```
 
-This is the router. It is not a normal node. It returns the name of the next node.
+This is the router. It is not a normal node that updates state. It returns the name of the next node.
 
 ```python
 graph.add_conditional_edges(
@@ -88,11 +119,11 @@ graph.add_conditional_edges(
 )
 ```
 
-This connects `grade_node` to multiple possible next nodes. The router decides which one runs.
+This tells LangGraph: after `grade_node`, call `route_after_grade`, then follow the matching path.
 
 ```python
 graph.add_edge("pass_node", END)
 graph.add_edge("retry_node", END)
 ```
 
-Both branches end the graph cleanly.
+Both possible branches end the graph cleanly.

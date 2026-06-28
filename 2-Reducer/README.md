@@ -1,24 +1,27 @@
 # 2. Reducers
 
-This folder teaches reducers by comparing the same kind of update in three situations:
+This tutorial teaches reducers by showing the same idea in two worlds: first without reducers, then with reducers.
 
-1. without a reducer
-2. with custom reducers
-3. with the built-in message reducer
+## Part 1 — Concept
 
-## Goal
-
-Understand this question:
+A node usually returns a partial state update. LangGraph then has to answer an important question:
 
 ```text
-When a node returns an update, should LangGraph replace the old value or combine it with the new value?
+Should this update replace the old value, or should it be combined with the old value?
 ```
 
-That rule is controlled by a reducer.
+That combining rule is called a **reducer**.
 
-## Graph Plot
+```mermaid
+flowchart LR
+    OLD["old state"] --> RULE["reducer rule"]
+    NEW["node update"] --> RULE
+    RULE --> FINAL["final state"]
+```
 
-All examples use this simple graph:
+Without a reducer, the update usually replaces the old value. With a reducer, you choose how values are merged.
+
+All examples use the same graph shape:
 
 ```mermaid
 flowchart LR
@@ -26,11 +29,11 @@ flowchart LR
     UPDATE --> END([END])
 ```
 
-The graph shape is simple so you can focus on how state changes.
+The interesting part is not the graph path. The interesting part is what happens to state after `update_node` returns.
 
----
+## Part 2 — Code Illustration
 
-## Step 1: Without A Reducer
+### Example A: Without A Reducer
 
 File:
 
@@ -56,14 +59,14 @@ Node update:
 }
 ```
 
-Because there is no reducer, the update replaces the old values.
+Because there is no reducer, the old values are replaced:
 
 ```mermaid
 flowchart TD
-    A["count = 5"] --> B["node returns count = 1"]
+    A["count = 5"] --> B["update count = 1"]
     B --> C["final count = 1"]
 
-    D["animals = lion, tiger"] --> E["node returns animals = cat"]
+    D["animals = lion, tiger"] --> E["update animals = cat"]
     E --> F["final animals = cat"]
 ```
 
@@ -76,9 +79,7 @@ Final state:
 }
 ```
 
----
-
-## Step 2: With Reducers
+### Example B: With Reducers
 
 File:
 
@@ -86,23 +87,14 @@ File:
 02_custom_reducer.py
 ```
 
-Now the state uses reducers:
+Now the state tells LangGraph how to merge updates:
 
 ```python
 count: Annotated[int, custom_increment]
 animals: Annotated[List[str], add]
 ```
 
-The node returns the same kind of update:
-
-```python
-{
-    "count": 1,
-    "animals": ["cat"]
-}
-```
-
-But the result is different:
+So the same style of update behaves differently:
 
 ```mermaid
 flowchart TD
@@ -124,9 +116,7 @@ Final state:
 }
 ```
 
----
-
-## Step 3: Message Reducer
+### Example C: Message Reducer
 
 File:
 
@@ -134,15 +124,7 @@ File:
 03_messages_reducer.py
 ```
 
-Message history should usually be preserved. A chatbot should not forget old messages every time a new message is added.
-
-LangGraph provides `add_messages` for this:
-
-```python
-messages: Annotated[List[HumanMessage], add_messages]
-```
-
-Flow:
+Conversation history should not be replaced every time a new message appears. For that, LangGraph provides `add_messages`.
 
 ```mermaid
 flowchart TD
@@ -158,7 +140,7 @@ Initial message.
 Hello from the node!
 ```
 
-## Run
+Run the examples:
 
 ```bash
 python "2-Reducer/01_state_without_reducer.py"
@@ -176,23 +158,23 @@ class StateWithoutReducer(TypedDict):
     animals: list[str]
 ```
 
-There is no merge rule, so updates replace old values.
+There is no merge rule attached to `count` or `animals`, so returned values replace old values.
 
-With reducers:
+With a custom reducer:
 
 ```python
 def custom_increment(current: int, new: int) -> int:
     return current + new
 ```
 
-This tells LangGraph how to combine the old count and the new count.
+This function receives the current value and the new update, then returns the merged value.
 
 ```python
 count: Annotated[int, custom_increment]
 animals: Annotated[List[str], add]
 ```
 
-`Annotated` attaches a reducer to a state field.
+`Annotated` attaches a reducer to a field. `custom_increment` adds numbers. `add` concatenates lists.
 
 For messages:
 
@@ -200,4 +182,4 @@ For messages:
 messages: Annotated[List[HumanMessage], add_messages]
 ```
 
-`add_messages` keeps existing messages and appends new messages.
+`add_messages` preserves existing message history and appends new messages.

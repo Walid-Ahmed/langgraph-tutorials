@@ -1,12 +1,17 @@
 # 4. Conditional Edges
 
-This folder shows how a graph can choose different paths based on state.
+This folder teaches how a graph can choose different paths based on state.
 
-## Objective
+## Goal
 
-Understand how to route from one node to different next nodes using `add_conditional_edges()`.
+Understand how `add_conditional_edges()` lets a router function decide the next node.
 
-This is useful when the graph should make a decision, such as pass/retry, tool/no tool, approve/reject, or continue/end.
+This is useful when your workflow needs a decision, such as:
+
+- pass or retry
+- approve or reject
+- use a tool or skip it
+- continue or end
 
 ## Graph Plot
 
@@ -19,36 +24,30 @@ flowchart TD
     RETRY --> END
 ```
 
-## Routing Flow
+Solid edges always run. Dotted edges are conditional.
+
+## What The Example Does
+
+File:
+
+```text
+05_conditional_edges.py
+```
+
+The graph starts at `grade_node`. That node creates a score.
+
+Then the router reads the score:
 
 ```mermaid
 flowchart TD
-    A["grade_node creates score"] --> B["route_after_grade reads score"]
+    A["grade_node sets score"] --> B["route_after_grade reads score"]
     B --> C{"score >= 70?"}
     C -->|yes| D["pass_node"]
     C -->|no| E["retry_node"]
 ```
 
-## File
-
-| File | Covers |
-|---|---|
-| `05_conditional_edges.py` | Grades an answer, then routes to `pass_node` or `retry_node` |
-
-## Key Code Ideas
-
-- `grade_node` is a normal node that updates state with a score.
-- `route_after_grade` is a router function, not a normal node.
-- The router reads state and returns the next node name.
-- `add_conditional_edges()` connects the source node to possible destinations.
-- Both branches eventually go to `END`.
-
-## Normal Edge vs Conditional Edge
-
-| Edge Type | Meaning | Example |
-|---|---|---|
-| Normal edge | Always go to the next node | `graph.add_edge(START, "grade_node")` |
-| Conditional edge | Router decides where to go | `graph.add_conditional_edges("grade_node", route_after_grade, ...)` |
+If the score is `70` or higher, the graph goes to `pass_node`.
+If the score is below `70`, the graph goes to `retry_node`.
 
 ## Run
 
@@ -56,6 +55,44 @@ flowchart TD
 python "Conditional Edges/05_conditional_edges.py"
 ```
 
-## Takeaway
+## Code Explanation
 
-Use conditional edges when the graph needs to choose the next step based on the current state.
+```python
+def grade_node(state: AgentState) -> dict:
+    if "rag" in state["answer"].lower():
+        score = 90
+    else:
+        score = 50
+    return {"score": score}
+```
+
+This node reads the answer and returns a score update.
+
+```python
+def route_after_grade(state: AgentState) -> str:
+    if state["score"] >= 70:
+        return "pass_node"
+    return "retry_node"
+```
+
+This is the router. It is not a normal node. It returns the name of the next node.
+
+```python
+graph.add_conditional_edges(
+    "grade_node",
+    route_after_grade,
+    {
+        "pass_node": "pass_node",
+        "retry_node": "retry_node",
+    }
+)
+```
+
+This connects `grade_node` to multiple possible next nodes. The router decides which one runs.
+
+```python
+graph.add_edge("pass_node", END)
+graph.add_edge("retry_node", END)
+```
+
+Both branches end the graph cleanly.

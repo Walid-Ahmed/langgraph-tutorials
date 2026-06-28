@@ -1,15 +1,15 @@
 # 1. LangGraph Basics
 
-This folder introduces the smallest useful LangGraph: one state, one node, one path.
+This folder teaches the simplest LangGraph workflow: one state, one node, and one path from `START` to `END`.
 
-## Objective
+## Goal
 
-Understand the basic building blocks of a LangGraph workflow:
+By the end of this example, you should understand how to:
 
-1. **State** carries data through the graph.
-2. **Node** does work and returns updates.
-3. **Edges** decide what runs next.
-4. **Compile** turns the graph definition into something you can run.
+- define graph state
+- create a node function
+- connect nodes with edges
+- compile and run a graph
 
 ## Graph Plot
 
@@ -19,29 +19,40 @@ flowchart LR
     PROCESS --> END([END])
 ```
 
-## How The Example Works
+This graph always runs the same path:
 
-```mermaid
-flowchart TD
-    A["Initial state"] --> B["process node reads input"]
-    B --> C["converts text to uppercase"]
-    C --> D["increments step"]
-    D --> E["final state"]
+```text
+START -> process -> END
 ```
 
-## File
+## What The Example Does
 
-| File | Covers |
-|---|---|
-| `00_simple_graph.py` | Builds a simple graph that turns `hello` into `HELLO` and increments `step` |
+The file `00_simple_graph.py` starts with this state:
 
-## Key Code Ideas
+```python
+{
+    "input": "hello",
+    "output": "",
+    "step": 0
+}
+```
 
-- `SimpleState` defines the shape of the state.
-- `process()` is the node function.
-- `graph.add_edge(START, "process")` sets the entry path.
-- `graph.add_edge("process", END)` ends the graph.
-- `graph.compile()` creates the runnable app.
+The `process` node:
+
+1. reads `input`
+2. converts it to uppercase
+3. increments `step`
+4. returns the updated values
+
+Final result:
+
+```python
+{
+    "input": "hello",
+    "output": "HELLO",
+    "step": 1
+}
+```
 
 ## Run
 
@@ -49,6 +60,38 @@ flowchart TD
 python "1-Langgraph basics/00_simple_graph.py"
 ```
 
-## Takeaway
+## Code Explanation
 
-A LangGraph app is just state moving through functions connected by edges.
+```python
+class SimpleState(TypedDict):
+    input: str
+    output: str
+    step: int
+```
+
+This defines the shape of the graph state.
+
+```python
+def process(state: SimpleState) -> dict:
+    output = state["input"].upper()
+    step = state["step"] + 1
+    return {"output": output, "step": step}
+```
+
+This is the node. It reads state and returns only the fields it wants to update.
+
+```python
+graph = StateGraph(SimpleState)
+graph.add_node("process", process)
+graph.add_edge(START, "process")
+graph.add_edge("process", END)
+app = graph.compile()
+```
+
+This builds the graph, connects the flow, and compiles it into a runnable app.
+
+```python
+result = app.invoke(initial_state)
+```
+
+This runs the graph with the starting state.

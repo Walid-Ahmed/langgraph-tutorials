@@ -1,12 +1,12 @@
 # 3. LLM Messages
 
-This folder shows how to use LangGraph for a simple chatbot-style workflow.
+This folder teaches how to use LangGraph with chat-style message history.
 
-## Objective
+## Goal
 
-Understand how message history moves through a graph and how a node can call an LLM.
+Understand how a graph can keep conversation history and send that history to an LLM.
 
-The important idea is that the graph keeps a `messages` list, and each new response is added to that list.
+The key idea is that the state has a `messages` field. Each node can add new messages without deleting the old ones.
 
 ## Graph Plot
 
@@ -22,43 +22,71 @@ flowchart LR
 flowchart TD
     A["HumanMessage"] --> B["messages state"]
     B --> C["chatbot node"]
-    C --> D["LLM call"]
+    C --> D["LLM receives full history"]
     D --> E["AI response"]
     E --> F["add_messages appends response"]
 ```
 
-## File
+## What The Example Does
 
-| File | Covers |
-|---|---|
-| `04_simple_chatbot.py` | Sends conversation history to an LLM and appends the AI response |
+File:
 
-## Key Code Ideas
-
-- `messages` stores the conversation history.
-- `add_messages` appends new messages instead of replacing the list.
-- `llm.invoke(state["messages"])` sends the full conversation to the model.
-- The node returns only the new AI message.
-- LangGraph merges that message into state using the reducer.
-
-## `MessagesState` Note
-
-This example manually defines message state with:
-
-```python
-messages: Annotated[list, add_messages]
+```text
+04_simple_chatbot.py
 ```
 
-LangGraph also provides `MessagesState`, which already includes a `messages` field with the `add_messages` reducer.
+The initial state contains one human message:
+
+```python
+HumanMessage(content="What is RAG?")
+```
+
+The chatbot node sends the full `messages` list to the LLM:
+
+```python
+response = llm.invoke(state["messages"])
+```
+
+Then it returns only the new AI message:
+
+```python
+return {"messages": [response]}
+```
+
+The `add_messages` reducer appends that response to the conversation history.
 
 ## Setup
 
-Create a local `.env` file before running LLM examples:
+Create a local `.env` file before running this example:
 
 ```bash
 OPENAI_API_KEY=your_api_key_here
 ```
 
-## Takeaway
+## Code Explanation
 
-For chatbots, state usually means conversation history. The `add_messages` reducer keeps that history growing turn by turn.
+```python
+class ChatState(TypedDict):
+    messages: Annotated[list, add_messages]
+```
+
+This defines state with a `messages` field. `add_messages` tells LangGraph to append new messages instead of replacing the list.
+
+```python
+def chatbot_node(state: ChatState) -> dict:
+    response = llm.invoke(state["messages"])
+    return {"messages": [response]}
+```
+
+This node receives the current conversation, calls the LLM, and returns the new AI message.
+
+```python
+graph = StateGraph(ChatState)
+graph.add_node("chatbot", chatbot_node)
+graph.add_edge(START, "chatbot")
+graph.add_edge("chatbot", END)
+```
+
+This creates a one-node chatbot graph.
+
+Note: LangGraph also provides `MessagesState`, which already includes a `messages` field with the `add_messages` reducer.

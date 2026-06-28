@@ -1,4 +1,4 @@
-# LangGraph Learning Examples
+# LangGraph Tutorials
 
 Simple LangGraph examples for learning graph basics, reducers, message state, and conditional edges.
 

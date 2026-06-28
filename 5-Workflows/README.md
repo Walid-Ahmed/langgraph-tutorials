@@ -36,7 +36,8 @@ flowchart TD
 
 | File | Workflow | Purpose |
 |---|---|---|
-| `00_augmented_llm.md` + `00_augmented_llm.py` | Augmented LLM | LLM enhanced with tools, retrieval, or memory |
+| `00_augmented_llm.md` + `00_augmented_llm.py` | Augmented LLM with tools | LLM enhanced with tools, retrieval, or memory |
+| `00_augmented_llm_structured_output.md` + `00_augmented_llm_structured_output.py` | Augmented LLM with structured output | LLM output constrained by a Pydantic schema |
 | `01_prompt_chaining.md` | Prompt chaining | Break a task into ordered LLM steps |
 | `02_routing.md` | Routing | Send work to different paths based on input or state |
 | `03_parallelization.md` | Parallelization | Run independent steps side by side |

@@ -44,6 +44,7 @@ The loop is important:
 | Tool execution node | `ToolNode(tools)` |
 | Tool routing | `should_use_tools()` |
 | Tool loop | `tools -> llm` |
+| Graph plot | `plot_graph(graph)` |
 
 The key split: the LLM node decides what should happen, while `ToolNode` runs the requested tools.
 
@@ -148,3 +149,9 @@ graph_builder.add_edge("tools", "llm")
 ```
 
 After tools run, the graph loops back to the LLM so it can turn tool results into a final answer.
+
+```python
+plot_graph(graph)
+```
+
+The example reuses the shared `plot_graph()` helper from `util.py` to print the Mermaid graph and save `graph.png`.

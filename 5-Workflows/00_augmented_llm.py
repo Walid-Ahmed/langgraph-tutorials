@@ -1,4 +1,6 @@
 import os
+import sys
+from pathlib import Path
 from typing import Annotated
 
 from dotenv import load_dotenv
@@ -9,6 +11,9 @@ from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from typing_extensions import TypedDict
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from util import plot_graph
 
 try:
     from langchain_tavily import TavilySearch
@@ -141,20 +146,9 @@ graph = graph_builder.compile()
 # ---------------------------------------------------------
 # 7. Run It
 # ---------------------------------------------------------
-def save_graph_png() -> None:
-    """Save the graph image when Mermaid rendering is available."""
-    try:
-        with open("graph.png", "wb") as file:
-            file.write(graph.get_graph().draw_mermaid_png())
-        print("Graph saved to graph.png")
-    except Exception as error:
-        print("Could not save graph.png:", error)
-        print("Mermaid graph:")
-        print(graph.get_graph().draw_mermaid())
-
-
 def main() -> None:
-    save_graph_png()
+    # Print the Mermaid graph and save graph.png using the shared helper.
+    plot_graph(graph)
 
     prompts = [
         "What's the weather in London?",

@@ -52,7 +52,7 @@ If the score is below `70`, the graph goes to `retry_node`.
 ## Run
 
 ```bash
-python "Conditional Edges/05_conditional_edges.py"
+python "4-Conditional Edges/05_conditional_edges.py"
 ```
 
 ## Code Explanation

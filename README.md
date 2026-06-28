@@ -24,7 +24,7 @@ flowchart TD
 | `1-Langgraph basics/` | Basic graph | State, node, edges, compile, invoke |
 | `2-Reducer/` | Reducers | Difference between replacing state and merging state |
 | `3_LLM_Messages/` | Message state | How chat history is stored and updated |
-| `Conditional Edges/` | Routing | How the graph chooses different paths |
+| `4-Conditional Edges/` | Routing | How the graph chooses different paths |
 
 ## Core Mental Model
 
@@ -60,7 +60,7 @@ Read and run the folders in this order:
 1. `1-Langgraph basics/`
 2. `2-Reducer/`
 3. `3_LLM_Messages/`
-4. `Conditional Edges/`
+4. `4-Conditional Edges/`
 
 Each folder has its own README tutorial.
 

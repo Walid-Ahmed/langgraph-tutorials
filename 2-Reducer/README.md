@@ -1,16 +1,17 @@
 # 2. Reducers
 
-This folder explains how LangGraph decides what happens when a node returns a state update.
+This folder is a step-by-step tutorial about **reducers** in LangGraph.
 
-## Objective
+A reducer controls how LangGraph combines:
 
-Understand the difference between replacing state and merging state.
+- the **current state**
+- the **update returned by a node**
 
-Reducers matter because nodes usually return **partial updates**, not the whole state.
+Without a reducer, the new value usually replaces the old value. With a reducer, you decide how to merge them.
 
-## Graph Plot
+## The Graph Used In This Folder
 
-All examples in this folder use the same graph shape:
+All files use the same simple graph:
 
 ```mermaid
 flowchart LR
@@ -18,39 +19,208 @@ flowchart LR
     UPDATE --> END([END])
 ```
 
-The graph shape is simple on purpose. The lesson is about how state changes after `update_node` runs.
+The graph is simple on purpose. The important lesson is not the graph shape — it is how the state changes.
 
-## Reducer Concept
+---
 
-```mermaid
-flowchart LR
-    OLD["old state"] --> REDUCER["reducer"]
-    NEW["node update"] --> REDUCER
-    REDUCER --> FINAL["new state"]
+## 1. First: State Without A Reducer
+
+File:
+
+```text
+01_state_without_reducer.py
 ```
 
-## Files
+The state starts like this:
 
-| File | Covers | Result |
+```python
+initial_state = {
+    "count": 5,
+    "animals": ["lion", "tiger"]
+}
+```
+
+The node returns this update:
+
+```python
+return {
+    "count": 1,
+    "animals": ["cat"]
+}
+```
+
+Because there is **no reducer**, LangGraph replaces the old values.
+
+```mermaid
+flowchart TD
+    A["count = 5"] --> C["node returns count = 1"]
+    C --> E["final count = 1"]
+
+    B["animals = lion, tiger"] --> D["node returns animals = cat"]
+    D --> F["final animals = cat"]
+```
+
+Final result:
+
+```python
+{
+    "count": 1,
+    "animals": ["cat"]
+}
+```
+
+### What You Learn
+
+If a state field has no reducer, the node update replaces the old value.
+
+---
+
+## 2. Then: State With Reducers
+
+File:
+
+```text
+02_custom_reducer.py
+```
+
+Now the state fields use reducers:
+
+```python
+count: Annotated[int, custom_increment]
+animals: Annotated[List[str], add]
+```
+
+This means:
+
+| Field | Reducer | What Happens |
 |---|---|---|
-| `01_state_without_reducer.py` | No reducer | New values replace old values |
-| `02_custom_reducer.py` | Custom reducer | `count` is incremented and `animals` are appended |
-| `03_messages_reducer.py` | Message reducer | New messages are appended to message history |
+| `count` | `custom_increment` | old count + new count |
+| `animals` | `add` | old list + new list |
 
-## Logical Flow
+The same initial state starts here:
 
-1. Start with normal state updates.
-2. Notice that values get replaced.
-3. Add reducers to control how updates merge.
-4. Apply the same idea to chat/message history.
+```python
+{
+    "count": 5,
+    "animals": ["lion", "tiger"]
+}
+```
 
-## Key Code Ideas
+The node still returns:
 
-- No reducer means default overwrite behavior.
-- `Annotated[type, reducer]` attaches a reducer to a state field.
-- A custom reducer receives the old value and new value.
-- `add_messages` is a reducer designed for message history.
+```python
+{
+    "count": 1,
+    "animals": ["cat"]
+}
+```
+
+But now reducers merge the values:
+
+```mermaid
+flowchart TD
+    A["count: 5"] --> R1["custom_increment"]
+    B["update: 1"] --> R1
+    R1 --> C["count: 6"]
+
+    D["animals: lion, tiger"] --> R2["add"]
+    E["update: cat"] --> R2
+    R2 --> F["animals: lion, tiger, cat"]
+```
+
+Final result:
+
+```python
+{
+    "count": 6,
+    "animals": ["lion", "tiger", "cat"]
+}
+```
+
+### What You Learn
+
+Reducers let the old state and new update work together instead of replacing each other.
+
+---
+
+## 3. Finally: Message Reducer
+
+File:
+
+```text
+03_messages_reducer.py
+```
+
+Chatbots need to keep conversation history. If every new message replaced the old messages, the chatbot would forget everything.
+
+LangGraph provides `add_messages` for this:
+
+```python
+messages: Annotated[List[HumanMessage], add_messages]
+```
+
+Initial messages:
+
+```python
+[
+    HumanMessage(content="Initial message.")
+]
+```
+
+The node returns one new message:
+
+```python
+HumanMessage(content="Hello from the node!")
+```
+
+`add_messages` appends the new message to the existing list:
+
+```mermaid
+flowchart TD
+    A["Initial message"] --> R["add_messages"]
+    B["Hello from the node!"] --> R
+    R --> C["Initial message + Hello from the node!"]
+```
+
+Final message history:
+
+```text
+Initial message.
+Hello from the node!
+```
+
+### What You Learn
+
+`add_messages` is a reducer made for conversation history. It keeps old messages and appends new ones.
+
+---
+
+## Mental Model
+
+Think of a reducer as the rule for this question:
+
+```text
+old value + new update = what should the final value be?
+```
+
+Examples:
+
+| Situation | Without Reducer | With Reducer |
+|---|---|---|
+| Number update | replace old number | add numbers together |
+| List update | replace old list | append/concatenate lists |
+| Message update | replace message history | append new message |
+
+---
+
+## Run The Examples
+
+```bash
+python "2-Reducer/01_state_without_reducer.py"
+python "2-Reducer/02_custom_reducer.py"
+python "2-Reducer/03_messages_reducer.py"
+```
 
 ## Takeaway
 
-Reducers answer this question: **when a node returns an update, should LangGraph replace the old value or combine it with the new one?**
+Reducers are important when you want LangGraph to **preserve and combine state** instead of simply replacing it.

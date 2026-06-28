@@ -36,6 +36,7 @@ flowchart TD
     A["1. Basic Graph"] --> B["2. Reducers"]
     B --> C["3. LLM Messages"]
     C --> D["4. Conditional Edges"]
+    D --> E["5. Workflows"]
 ```
 
 Each tutorial follows the same rhythm:
@@ -52,6 +53,7 @@ Each tutorial follows the same rhythm:
 | `2-Reducer/` | Compare state updates with and without reducers | Understand how LangGraph preserves or combines state |
 | `3_LLM_Messages/` | Store chat history in graph state | Learn how LLM conversations fit into LangGraph |
 | `4-Conditional Edges/` | Route to different nodes | Learn how graphs make decisions |
+| `5-Workflows/` | Workflow patterns | Placeholder tutorials for larger LLM workflow designs |
 
 ## Setup
 
@@ -77,6 +79,7 @@ Read and run the folders in order:
 2. [`2-Reducer/`](2-Reducer/)
 3. [`3_LLM_Messages/`](3_LLM_Messages/)
 4. [`4-Conditional Edges/`](4-Conditional%20Edges/)
+5. [`5-Workflows/`](5-Workflows/)
 
 Each folder has its own README that works like a mini tutorial.
 

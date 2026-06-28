@@ -8,6 +8,8 @@ In this example, the LLM can:
 - calculate a tip
 - optionally search the web with Tavily
 
+![Augmented LLM concept](figures/workflow-01-augmented-llm.png)
+
 ## Part 1 — Core Tutorial
 
 A normal LLM answers directly from the prompt.
@@ -58,7 +60,11 @@ flowchart TD
     ROUTER -->|no| END([END])
 ```
 
-Generated graph image:
+Source workflow figure:
+
+![Augmented LLM loop](figures/workflow-07-augmented-llm-flow.png)
+
+Generated LangGraph plot from the code:
 
 ![Augmented LLM graph](diagrams/00_augmented_llm_graph.png)
 

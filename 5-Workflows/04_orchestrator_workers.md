@@ -4,6 +4,8 @@
 
 An orchestrator-worker workflow uses one central node to plan or delegate work to specialized worker nodes.
 
+![Orchestrator worker workflow](figures/workflow-05-orchestrator-workers.png)
+
 ```mermaid
 flowchart TD
     TASK["task"] --> ORCH["orchestrator"]

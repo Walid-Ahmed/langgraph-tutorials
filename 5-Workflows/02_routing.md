@@ -4,6 +4,8 @@
 
 Routing sends work to different paths depending on the input or current state.
 
+![Routing workflow](figures/workflow-03-routing.png)
+
 ```mermaid
 flowchart TD
     INPUT["input"] --> ROUTER["router"]

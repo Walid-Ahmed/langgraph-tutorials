@@ -4,6 +4,8 @@
 
 Prompt chaining breaks a task into multiple ordered steps. Each step uses the result from the previous step.
 
+![Prompt chaining workflow](figures/workflow-02-prompt-chaining.png)
+
 ```mermaid
 flowchart LR
     INPUT["input"] --> STEP1["step 1"]

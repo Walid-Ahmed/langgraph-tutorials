@@ -4,6 +4,8 @@
 
 Parallelization runs independent tasks at the same time, then combines the results.
 
+![Parallelization workflow](figures/workflow-04-parallelization.png)
+
 ```mermaid
 flowchart TD
     INPUT["input"] --> A["task A"]

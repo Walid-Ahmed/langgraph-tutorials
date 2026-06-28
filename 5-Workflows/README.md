@@ -1,12 +1,14 @@
 # 5. Workflows
 
-This folder is a placeholder area for future LangGraph workflow tutorials.
+This folder teaches common LangGraph workflow patterns: how an LLM system can call tools, chain steps, route work, run tasks in parallel, delegate to workers, and improve its own output.
 
-The goal is to collect common workflow patterns and later turn each one into a clear tutorial with diagrams, explanation, and code examples.
-
-No code is included here yet. These files are planning placeholders.
+Some tutorials already include runnable code. Others are concise placeholders that will grow into full examples.
 
 Reference: [LangGraph Workflows and Agents](https://docs.langchain.com/oss/python/langgraph/workflows-agents#llms-and-augmentations)
+
+Source figures: [Workflow types deck](https://docs.google.com/presentation/d/1SuUtO_OCcglql3DRU5KnbKtxxHokxPhX/edit?slide=id.p2#slide=id.p2)
+
+![Workflow roadmap](figures/workflow-00-roadmap.png)
 
 ## Part 1 — Core Tutorial
 
@@ -22,15 +24,17 @@ Earlier folders teach the building blocks:
 
 This folder will use those building blocks to explain larger workflow patterns.
 
-```mermaid
-flowchart TD
-    A["LLM workflow"] --> B["Augmented LLM"]
-    A --> C["Prompt chaining"]
-    A --> D["Routing"]
-    A --> E["Parallelization"]
-    A --> F["Orchestrator-workers"]
-    A --> G["Evaluator-optimizer"]
-```
+
+## Visual Workflow Map
+
+| Workflow | Figure | Core Idea |
+|---|---|---|
+| Augmented LLM | <img src="figures/workflow-01-augmented-llm.png" alt="Augmented LLM" width="220"> | Add tools, structured output, or memory to the model |
+| Prompt chaining | <img src="figures/workflow-02-prompt-chaining.png" alt="Prompt chaining" width="220"> | Pass one LLM result into the next step |
+| Routing | <img src="figures/workflow-03-routing.png" alt="Routing" width="220"> | Classify input and send it to the right path |
+| Parallelization | <img src="figures/workflow-04-parallelization.png" alt="Parallelization" width="220"> | Run independent LLM calls at the same time |
+| Orchestrator-workers | <img src="figures/workflow-05-orchestrator-workers.png" alt="Orchestrator workers" width="220"> | Let a manager break work into subtasks |
+| Evaluator-optimizer | <img src="figures/workflow-06-evaluator-optimizer.png" alt="Evaluator optimizer" width="220"> | Generate, evaluate, improve, and stop when good enough |
 
 ## Planned Workflow Tutorials
 
@@ -64,7 +68,7 @@ For now, each markdown file includes:
 
 ## Code Explanation
 
-No code yet. When code is added, each workflow tutorial should explain:
+Each workflow tutorial should explain:
 
 1. what state fields are needed
 2. which nodes are involved

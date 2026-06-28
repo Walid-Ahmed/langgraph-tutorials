@@ -4,6 +4,8 @@ This tutorial shows another kind of **augmented LLM**: an LLM that returns data 
 
 Instead of asking the model for free-form text, we ask it to return a validated `ProductReview` object.
 
+![Augmented LLM structured output concept](figures/workflow-01-augmented-llm.png)
+
 ## Part 1 — Core Tutorial
 
 A normal LLM response might look like a paragraph.

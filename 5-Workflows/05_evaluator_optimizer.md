@@ -4,6 +4,8 @@
 
 An evaluator-optimizer workflow generates an output, checks it, then improves it if needed.
 
+![Evaluator optimizer workflow](figures/workflow-06-evaluator-optimizer.png)
+
 ```mermaid
 flowchart TD
     INPUT["input"] --> GENERATE["generate answer"]

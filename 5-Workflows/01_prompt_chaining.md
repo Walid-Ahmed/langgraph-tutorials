@@ -143,6 +143,10 @@ File:
 
 This second example is still prompt chaining, but it adds one conditional edge. The graph first generates a joke, then checks whether it appears to have a punchline.
 
+The hand-drawn flow below shows the idea: one LLM call creates the first joke, a gate checks it, and only failed jokes continue into more LLM steps.
+
+![Prompt chaining joke gate concept](figures/workflow-09-prompt-chaining-joke-gate.png)
+
 ```mermaid
 flowchart TD
     START([START]) --> JOKE["generate_joke"]

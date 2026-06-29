@@ -227,4 +227,4 @@ After tools run, the graph returns to the LLM. This is what lets the model turn 
 plot_graph(graph)
 ```
 
-The example reuses the shared `plot_graph()` helper from `util.py` to print the Mermaid graph and save `graph.png`.
+The example reuses the shared `plot_graph()` helper from `util.py` to print the Mermaid graph and save `diagrams/00_augmented_llm_graph.png`.

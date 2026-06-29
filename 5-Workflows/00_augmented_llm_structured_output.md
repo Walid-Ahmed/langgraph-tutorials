@@ -56,6 +56,10 @@ flowchart LR
     ANALYZE --> END([END])
 ```
 
+Generated LangGraph plot from the code:
+
+![Structured output graph](diagrams/00_augmented_llm_structured_output_graph.png)
+
 The input is a product review. The output is structured JSON-like data:
 
 ```json

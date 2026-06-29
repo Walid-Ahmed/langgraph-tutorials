@@ -28,7 +28,7 @@ Examples:
 
 ## Part 2 — Code Example That Reinforces The Concept
 
-Placeholder for future LangGraph implementation.
+No runnable code yet. This page is the concept guide for a future evaluator-optimizer example.
 
 ## Code Explanation
 

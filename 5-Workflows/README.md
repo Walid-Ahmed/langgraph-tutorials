@@ -2,7 +2,7 @@
 
 This folder teaches common LangGraph workflow patterns: how an LLM system can call tools, chain steps, route work, run tasks in parallel, delegate to workers, and improve its own output.
 
-Some tutorials already include runnable code. Others are concise placeholders that will grow into full examples.
+This folder mixes runnable examples with concise concept pages. The runnable examples come first, and the remaining pages mark patterns that will get code later.
 
 Reference: [LangGraph Workflows and Agents](https://docs.langchain.com/oss/python/langgraph/workflows-agents#llms-and-augmentations)
 
@@ -36,7 +36,7 @@ This folder uses those building blocks to explain larger workflow patterns. The 
 | Orchestrator-workers | <img src="figures/workflow-05-orchestrator-workers.png" alt="Orchestrator workers" width="220"> | Let a manager break work into subtasks |
 | Evaluator-optimizer | <img src="figures/workflow-06-evaluator-optimizer.png" alt="Evaluator optimizer" width="220"> | Generate, evaluate, improve, and stop when good enough |
 
-## Planned Workflow Tutorials
+## Workflow Tutorials
 
 | File | Workflow | Purpose |
 |---|---|---|
@@ -54,21 +54,18 @@ This folder uses those building blocks to explain larger workflow patterns. The 
 |---|---|
 | `resources/langchain_augmentation_snippets.md` | Small LangChain snippets for structured output and tool binding before they are used inside LangGraph workflows |
 
-## Part 2 — Code Example That Reinforces The Concept
+## How To Use This Folder
 
-The augmented LLM workflow now has a code example. Other workflow patterns are still placeholders.
+Start with the runnable examples:
 
-For now, each markdown file includes:
+1. `00_augmented_llm.py` for tools and `ToolNode`
+2. `00_augmented_llm_structured_output.py` for Pydantic output
+3. `01_prompt_chaining.py` for a sequential content pipeline
+4. `01_prompt_chaining_joke_gate.py` for prompt chaining with a quality gate
 
-- concept summary
-- when to use it
-- graph shape placeholder
-- future code placeholder
-- notes for implementation
+Then read the concept pages for routing, parallelization, orchestrator-workers, and evaluator-optimizer. Those pages explain the pattern before code is added.
 
-## Code Explanation
-
-Each workflow tutorial should explain:
+Each tutorial should make clear:
 
 1. what state fields are needed
 2. which nodes are involved

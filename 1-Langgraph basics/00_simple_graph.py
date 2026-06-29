@@ -1,4 +1,3 @@
-#colab  https://colab.research.google.com/drive/1QSREHPqmqL7wlphXUz1T2vA0JRJuY2_E#scrollTo=11Y38hyEvMk1
 import sys
 from pathlib import Path
 from typing import TypedDict
@@ -18,13 +17,15 @@ class SimpleState(TypedDict):
     step: int
 
 def process(state: SimpleState) -> dict:
-    output=state["input"].upper()
-    step=state["step"] + 1
+    output = state["input"].upper()
+    step = state["step"] + 1
     return {
-            "output": output,
-            "step": step,
-        }
-def demo_simple_graph():
+        "output": output,
+        "step": step,
+    }
+
+
+def demo_simple_graph() -> None:
     # Create graph
     graph = StateGraph(SimpleState)
     # Add nodes
@@ -40,10 +41,10 @@ def demo_simple_graph():
     plot_graph(app)
 
     # Run app
-    initial_state={
+    initial_state = {
         "input": "hello",
         "output": "",
-        "step": 0
+        "step": 0,
     }
     result = app.invoke(initial_state)
 

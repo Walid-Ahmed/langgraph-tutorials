@@ -132,7 +132,12 @@ def format_output(state: ContentState) -> dict:
     """
 
     final_draft = llm.invoke(prompt).content.strip()
-    final_draft = final_draft.removeprefix("```html").removeprefix("```").removesuffix("```").strip()
+    final_draft = (
+        final_draft.removeprefix("```html")
+        .removeprefix("```")
+        .removesuffix("```")
+        .strip()
+    )
 
     print("=== STEP 4: Formatted for Publication ===")
     print(final_draft[:200] + "...\n")
@@ -244,7 +249,11 @@ def save_html_report(result: ContentState) -> Path:
 # 5. Run It
 # ---------------------------------------------------------
 def main() -> None:
-    graph_image_path = Path(__file__).resolve().parent / "diagrams" / "01_prompt_chaining_graph.png"
+    graph_image_path = (
+        Path(__file__).resolve().parent
+        / "diagrams"
+        / "01_prompt_chaining_graph.png"
+    )
     graph_image_path.parent.mkdir(exist_ok=True)
     plot_graph(graph, graph_image_path)
 

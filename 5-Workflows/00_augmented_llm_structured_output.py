@@ -97,7 +97,13 @@ graph = graph_builder.compile()
 # 6. Run It
 # ---------------------------------------------------------
 def main() -> None:
-    plot_graph(graph)
+    graph_image_path = (
+        Path(__file__).resolve().parent
+        / "diagrams"
+        / "00_augmented_llm_structured_output_graph.png"
+    )
+    graph_image_path.parent.mkdir(exist_ok=True)
+    plot_graph(graph, graph_image_path)
 
     review_text = """
     I bought this wireless mouse last month and it's been mostly great.

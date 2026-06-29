@@ -169,8 +169,13 @@ graph = graph_builder.compile()
 # 7. Run It
 # ---------------------------------------------------------
 def main() -> None:
-    # Print the Mermaid graph and save graph.png using the shared helper.
-    plot_graph(graph)
+    graph_image_path = (
+        Path(__file__).resolve().parent
+        / "diagrams"
+        / "00_augmented_llm_graph.png"
+    )
+    graph_image_path.parent.mkdir(exist_ok=True)
+    plot_graph(graph, graph_image_path)
 
     prompts = [
         "What's the weather in London?",

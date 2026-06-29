@@ -37,6 +37,7 @@ Use this pattern when several tasks do not depend on each other.
 Good examples:
 
 - analyze the same document from multiple angles
+- translate the same paragraph into multiple languages
 - generate several candidate answers
 - run independent checks before a final response
 - create different versions of the same content for different channels
@@ -82,9 +83,32 @@ parallel_builder.add_edge("generate_story", "aggregator")
 parallel_builder.add_edge("generate_poem", "aggregator")
 ```
 
-### Example B — Social Media Content Package
+### Example B — Translate One Paragraph Into Three Languages
 
-The second example uses the same graph shape for a more practical task. It generates platform-specific content from one topic:
+This example shows a very common real use case: one English paragraph is translated into Arabic, French, and Italian at the same time.
+
+Each translation branch is independent:
+
+- `translate_to_arabic` writes `arabic_translation`
+- `translate_to_french` writes `french_translation`
+- `translate_to_italian` writes `italian_translation`
+- `aggregate_translations` combines them into `combined_output`
+
+Generated LangGraph plot from the code:
+
+![Translation parallelization graph](diagrams/03_parallelization_translation_graph.png)
+
+Run it:
+
+```bash
+python 5-Workflows/03_parallelization_translation.py
+```
+
+This is a strong example of parallelization because the French translation does not need to wait for the Arabic translation, and the Italian translation does not need either one.
+
+### Example C — Social Media Content Package
+
+The third example uses the same graph shape for a content workflow. It generates platform-specific content from one topic:
 
 - Instagram post
 - Twitter/X post
@@ -105,44 +129,53 @@ The graph starts with one topic, sends it to three platform-specific LLM nodes, 
 
 ## Code Explanation
 
-The creative example state has one shared input and one output field for each branch:
+The translation example state has one shared input and one output field for each branch:
 
 ```python
-class State(TypedDict):
-    topic: str
-    joke: str
-    story: str
-    poem: str
+class TranslationState(TypedDict):
+    english_paragraph: str
+    arabic_translation: str
+    french_translation: str
+    italian_translation: str
     combined_output: str
 ```
 
 Each worker returns a partial state update:
 
 ```python
-return {"joke": msg.content}
+return {"arabic_translation": msg.content}
 ```
 
-This does not overwrite the whole state. It only updates `joke`; the other fields stay available.
+This does not overwrite the whole state. It only updates `arabic_translation`; the other fields stay available.
 
 This example does **not** need a reducer because each parallel node writes to a different key. There is no conflict:
 
-- `generate_joke` writes `joke`
-- `generate_story` writes `story`
-- `generate_poem` writes `poem`
+- `translate_to_arabic` writes `arabic_translation`
+- `translate_to_french` writes `french_translation`
+- `translate_to_italian` writes `italian_translation`
 
-You would need a reducer if multiple parallel nodes wrote to the same field, for example if every node returned `{"outputs": [...]}` and you wanted LangGraph to merge all lists together.
+You would need a reducer if multiple parallel nodes wrote to the same field, for example if every node returned `{"translations": [...]}` and you wanted LangGraph to merge all lists together.
 
 The aggregator reads the completed branch outputs and creates one final result:
 
 ```python
-def aggregator(state: State) -> dict:
-    combined = f"Here's a story, joke, and poem about {state['topic']}!\n\n"
-    combined += f"STORY:\n{state['story']}\n\n"
-    combined += f"JOKE:\n{state['joke']}\n\n"
-    combined += f"POEM:\n{state['poem']}"
-    return {"combined_output": combined}
+def aggregate_translations(state: TranslationState) -> dict:
+    combined_output = f"""
+    ORIGINAL ENGLISH
+    {state['english_paragraph']}
+
+    ARABIC
+    {state['arabic_translation']}
+
+    FRENCH
+    {state['french_translation']}
+
+    ITALIAN
+    {state['italian_translation']}
+    """
+    return {"combined_output": combined_output}
 ```
 
-The social media example uses the same idea with different field names: `instagram_post`, `twitter_post`, and `linkedin_post`.
+The creative example and social media example use the same idea with different state fields. Same graph shape, different task.
 
 So the key lesson is simple: use parallelization when branches are independent, and join them only when the graph has enough information to build the final answer.

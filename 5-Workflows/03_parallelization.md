@@ -6,6 +6,10 @@ Parallelization runs independent tasks at the same time, then combines the resul
 
 ![Parallelization workflow](figures/workflow-04-parallelization.png)
 
+The hand-drawn view below shows the same idea in plain language: one input fans out to several LLM calls, then an aggregator joins their results into one output.
+
+![Parallelization fan-out fan-in concept](figures/workflow-10-parallelization-fan-out-fan-in.png)
+
 ```mermaid
 flowchart TD
     INPUT["input"] --> A["task A"]

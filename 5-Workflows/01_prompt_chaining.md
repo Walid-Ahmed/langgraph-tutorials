@@ -1,13 +1,13 @@
 # 01. Prompt Chaining
 
-This tutorial shows a **content generation pipeline with quality control**.
+This tutorial teaches **prompt chaining** with two examples: a content pipeline and a joke pipeline.
 
-The graph does not ask one giant prompt to do everything. Instead, it chains smaller LLM steps together:
+This tutorial includes two examples:
 
-1. generate a draft
-2. fact-check the draft
-3. improve the draft using feedback
-4. format the final result for publication
+1. a content generation pipeline with quality control
+2. a joke generation chain with a conditional quality gate
+
+The graph does not ask one giant prompt to do everything. Instead, it chains smaller LLM steps together.
 
 ## Part 1 — Core Tutorial
 
@@ -81,7 +81,7 @@ The important design choice is that each node writes a new state field:
 | `improve_content` | `improved_content` | `format_output` |
 | `format_output` | `final_draft` | final output |
 
-## Part 2 — Code Example That Reinforces The Concept
+## Part 2 — Code Example A: Content Pipeline
 
 File:
 
@@ -133,7 +133,47 @@ The repo also includes a checked-in sample report you can view without running t
 5-Workflows/examples/prompt_chaining_output.html
 ```
 
-## Code Explanation
+## Part 3 — Code Example B: Joke Chain With A Gate
+
+File:
+
+```text
+01_prompt_chaining_joke_gate.py
+```
+
+This second example is still prompt chaining, but it adds one conditional edge. The graph first generates a joke, then checks whether it appears to have a punchline.
+
+```mermaid
+flowchart TD
+    START([START]) --> JOKE["generate_joke"]
+    JOKE -. "Pass" .-> END([END])
+    JOKE -. "Fail" .-> IMPROVE["improve_joke"]
+    IMPROVE --> POLISH["polish_joke"]
+    POLISH --> END
+```
+
+Generated LangGraph plot from the code:
+
+![Prompt chaining joke gate graph](diagrams/01_prompt_chaining_joke_gate_graph.png)
+
+Run from the repo root:
+
+```bash
+python "5-Workflows/01_prompt_chaining_joke_gate.py"
+```
+
+What makes this example interesting:
+
+- `generate_joke()` is the first LLM call
+- `check_punchline()` is a router, not a state-updating node
+- if the joke passes, the graph ends early
+- if it fails, the graph chains into `improve_joke()` and `polish_joke()`
+
+This is a nice bridge between prompt chaining and conditional edges: the chain is mostly sequential, but a quality gate decides whether more steps are needed.
+
+The original notebook-style version used `IPython.display` to show the graph inline. In this repo version, the graph is saved as a PNG so it works from a normal Python script.
+
+## Code Explanation A: Content Pipeline
 
 ```python
 class ContentState(TypedDict):
@@ -186,6 +226,42 @@ graph_builder.add_edge("improve_content", "format_output")
 ```
 
 These normal edges create the chain. There is no branching here: every step always runs in order.
+
+## Code Explanation B: Joke Chain With A Gate
+
+```python
+def generate_joke(state: JokeState) -> dict:
+    msg = llm.invoke(f"Write a short joke about {state['topic']}.")
+    return {"joke": msg.content}
+```
+
+The first node creates the initial joke and writes only the `joke` field.
+
+```python
+def check_punchline(state: JokeState) -> str:
+    if "?" in state["joke"] or "!" in state["joke"]:
+        return "Pass"
+    return "Fail"
+```
+
+This function is a router. It reads state and returns a route label. It does not update state.
+
+```python
+graph_builder.add_conditional_edges(
+    "generate_joke",
+    check_punchline,
+    {"Fail": "improve_joke", "Pass": END},
+)
+```
+
+This conditional edge means: after the first joke, either stop immediately or continue the chain.
+
+```python
+graph_builder.add_edge("improve_joke", "polish_joke")
+graph_builder.add_edge("polish_joke", END)
+```
+
+If the joke fails the gate, the graph continues through two more LLM calls before ending.
 
 ## What You Learned
 

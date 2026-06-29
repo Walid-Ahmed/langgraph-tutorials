@@ -6,3 +6,4 @@ This folder stores generated graph plots from runnable workflow examples.
 |---|---|
 | `00_augmented_llm_graph.png` | `../00_augmented_llm.py` |
 | `01_prompt_chaining_graph.png` | `../01_prompt_chaining.py` |
+| `01_prompt_chaining_joke_gate_graph.png` | `../01_prompt_chaining_joke_gate.py` |

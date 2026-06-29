@@ -44,7 +44,7 @@ This folder uses those building blocks to explain larger workflow patterns. The 
 | `00_augmented_llm_structured_output.md` + `00_augmented_llm_structured_output.py` | Augmented LLM with structured output | LLM output constrained by a Pydantic schema |
 | `01_prompt_chaining.md` + `01_prompt_chaining.py` + `01_prompt_chaining_joke_gate.py` | Prompt chaining | Break tasks into ordered LLM steps, with an optional quality gate |
 | `02_routing.md` | Routing | Send work to different paths based on input or state |
-| `03_parallelization.md` + `03_parallelization.py` | Parallelization | Run independent LLM calls side by side, then combine them |
+| `03_parallelization.md` + `03_parallelization.py` + `03_parallelization_creative.py` | Parallelization | Run independent LLM calls side by side, then combine them |
 | `04_orchestrator_workers.md` | Orchestrator-workers | One controller delegates work to specialized workers |
 | `05_evaluator_optimizer.md` | Evaluator-optimizer | Generate, evaluate, and improve outputs iteratively |
 
@@ -62,7 +62,8 @@ Start with the runnable examples:
 2. `00_augmented_llm_structured_output.py` for Pydantic output
 3. `01_prompt_chaining.py` for a sequential content pipeline
 4. `01_prompt_chaining_joke_gate.py` for prompt chaining with a quality gate
-5. `03_parallelization.py` for independent LLM branches that join at the end
+5. `03_parallelization_creative.py` for a minimal joke/story/poem fan-out
+6. `03_parallelization.py` for a practical social-media content package
 
 Then read the concept pages for routing, orchestrator-workers, and evaluator-optimizer. Those pages explain the pattern before code is added.
 

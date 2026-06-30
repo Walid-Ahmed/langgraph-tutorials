@@ -1,11 +1,12 @@
 # 01. Prompt Chaining
 
-This tutorial teaches **prompt chaining** with two examples: a content pipeline and a joke pipeline.
+This tutorial teaches **prompt chaining** with three examples: a content pipeline, a joke pipeline with a quality gate, and an essay drafter with reflection.
 
-This tutorial includes two examples:
+This tutorial includes three examples:
 
 1. a content generation pipeline with quality control
 2. a joke generation chain with a conditional quality gate
+3. an essay drafter that drafts, reflects, and revises
 
 The graph does not ask one giant prompt to do everything. Instead, it chains smaller LLM steps together.
 
@@ -267,9 +268,57 @@ graph_builder.add_edge("polish_joke", END)
 
 If the joke fails the gate, the graph continues through two more LLM calls before ending.
 
+## Part 4 — Code Example C: Essay Drafter With Reflection
+
+File: `01_prompt_chaining_essay_drafter.py`
+
+This example is a LangGraph port of the [essay-drafter-with-reflection](https://github.com/Walid-Ahmed/essay-drafter-with-reflection) repo. The original was three sequential API calls in plain Python. Here it becomes a three-node prompt chain in LangGraph.
+
+```mermaid
+flowchart LR
+    START([START]) --> DRAFT["draft_essay"]
+    DRAFT --> REFLECT["reflect_on_essay"]
+    REFLECT --> REVISE["revise_essay"]
+    REVISE --> END([END])
+```
+
+### State
+
+| Field | Written by | Read by |
+|---|---|---|
+| `topic` | caller | `draft_essay` |
+| `draft` | `draft_essay` | `reflect_on_essay`, `revise_essay` |
+| `reflection` | `reflect_on_essay` | `revise_essay` |
+| `revised_essay` | `revise_essay` | final output |
+
+### How it maps to the original code
+
+| Original (`run.py`) | LangGraph node |
+|---|---|
+| `call_model(prompt_drafter)` | `draft_essay` |
+| `call_model(reflection_prompt)` | `reflect_on_essay` |
+| `call_model(revision_prompt)` | `revise_essay` |
+
+The prompts are identical. The only change is that intermediate results are stored in graph state instead of local variables, and the three calls are wired as nodes with edges rather than sequential lines of code.
+
+### Why use LangGraph here?
+
+In the original script, if you want to inspect the draft before the revision runs, you have to add print statements. In the LangGraph version, every intermediate output (`draft`, `reflection`, `revised_essay`) is in state and readable after the graph finishes — no extra instrumentation needed.
+
+Run from the repo root:
+
+```bash
+python "5-Workflows/01_prompt_chaining_essay_drafter.py"
+```
+
+### How this differs from the evaluator-optimizer
+
+The essay drafter always runs exactly 3 steps. The reflection does not decide whether to loop — it just produces feedback that the reviser uses once. To turn this into an evaluator-optimizer you would need the reflection to emit a verdict (`good enough` / `needs revision`) and a conditional edge that loops back to the drafter on rejection.
+
 ## What You Learned
 
 - Prompt chaining turns one large task into smaller LLM steps
 - Each node reads previous state and writes the next field
 - Intermediate fields make the workflow easier to debug
 - Normal edges are enough when every step should always run
+- A plain sequential script (like essay-drafter) maps directly to a prompt chain — nodes replace function calls, state replaces local variables

@@ -1,4 +1,4 @@
-# 00. Tool-Calling Agent
+# 01. Tool-Calling Agent — Full (ToolNode + External APIs)
 
 This tutorial shows a simple **tool-calling agent** in LangGraph.
 

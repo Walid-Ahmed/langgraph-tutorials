@@ -9,6 +9,7 @@ After this section, you should be able to:
 - Explain how an agent differs from a workflow
 - Recognize the `llm -> tool -> llm` loop
 - Understand how `ToolNode` and `add_messages` support tool-calling agents
+- See what `ToolNode` does internally by reading the manual version first
 
 ## Prerequisites
 
@@ -25,7 +26,7 @@ In an agent, the model can keep deciding what to do next. A common tool-calling 
 LLM call -> should we use a tool? -> tool node -> LLM call
 ```
 
-The loop repeats until the model stops requesting tool calls. In `00_tool_calling_agent.py`, those roles are named `llm`, `should_use_tools`, and `tools`.
+The loop repeats until the model stops requesting tool calls.
 
 ![Agent tool loop](figures/agent-tool-loop.png)
 
@@ -33,7 +34,10 @@ The loop repeats until the model stops requesting tool calls. In `00_tool_callin
 
 | File | Concept | Purpose |
 |---|---|---|
-| `00_tool_calling_agent.md` + `00_tool_calling_agent.py` | Tool-calling agent | Let the model decide when to call tools and when to stop |
+| `00_tool_calling_agent_simple.md` + `00_tool_calling_agent_simple.py` | Tool-calling agent (manual) | Same loop with the tool node written out manually — start here |
+| `01_tool_calling_agent.md` + `01_tool_calling_agent.py` | Tool-calling agent (full) | Realistic example with `ToolNode`, external APIs, and optional web search |
+
+**Start with `00_tool_calling_agent_simple.py`** — it writes the tool node loop by hand so the mechanics are visible. Then read `01_tool_calling_agent.py` to see how `ToolNode` replaces that manual loop.
 
 ## How This Relates To Workflows
 

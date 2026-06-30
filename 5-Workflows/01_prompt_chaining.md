@@ -272,7 +272,7 @@ If the joke fails the gate, the graph continues through two more LLM calls befor
 
 File: `01_prompt_chaining_essay_drafter.py`
 
-This example is a LangGraph port of the [essay-drafter-with-reflection](https://github.com/Walid-Ahmed/essay-drafter-with-reflection) repo. The original was three sequential API calls in plain Python. Here it becomes a three-node prompt chain in LangGraph.
+This example is a LangGraph port of [essay-drafter-with-reflection](https://github.com/Walid-Ahmed/essay-drafter-with-reflection) — a standalone script that runs the same draft → reflect → revise flow as three sequential API calls in plain Python, with no graph framework. Here the same logic becomes a three-node prompt chain in LangGraph.
 
 ```mermaid
 flowchart LR

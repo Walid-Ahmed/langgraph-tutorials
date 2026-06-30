@@ -131,6 +131,10 @@ def create_research_workers(state: OverallState) -> list[Send]:
 
 > Run this node with this worker-specific state.
 
+LangGraph has built-in support for this orchestrator-worker pattern. The `Send` API lets the graph create worker executions dynamically and pass each one a specific input. In this example, the graph loops over the generated research sources and sends one source to each worker.
+
+Each worker receives its own `WorkerState`, but the worker results are written back into the shared `worker_findings` key on `OverallState`. Because that key has a reducer, the orchestrator graph can collect all worker outputs and make them available to the synthesizer for the final report.
+
 The conditional edge connects the orchestrator to this dynamic dispatch function:
 
 ```python

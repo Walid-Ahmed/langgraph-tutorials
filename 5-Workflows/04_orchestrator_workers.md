@@ -6,6 +6,10 @@ An orchestrator-worker workflow uses one central node to plan or delegate work t
 
 ![Orchestrator worker workflow](figures/workflow-05-orchestrator-workers.png)
 
+The hand-drawn view below shows the same pattern in plain language: one orchestrator receives the input, creates worker calls, and a synthesizer combines their outputs.
+
+![Orchestrator-workers hand-drawn flow](figures/workflow-11-orchestrator-workers-flow.png)
+
 ```mermaid
 flowchart TD
     TASK["task"] --> ORCH["orchestrator"]

@@ -17,3 +17,4 @@ Source: [Workflow types deck](https://docs.google.com/presentation/d/1SuUtO_OCcg
 | `workflow-08-augmented-llm-capabilities.png` | Augmented LLM capabilities: retrieval, memory, and tools |
 | `workflow-09-prompt-chaining-joke-gate.png` | Prompt chaining joke gate concept |
 | `workflow-10-parallelization-fan-out-fan-in.png` | Parallelization fan-out/fan-in concept |
+| `workflow-11-orchestrator-workers-flow.png` | Orchestrator-workers hand-drawn flow |

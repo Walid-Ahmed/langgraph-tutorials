@@ -11,3 +11,4 @@ This folder stores generated graph plots from runnable workflow examples.
 | `03_parallelization_graph.png` | `../03_parallelization.py` |
 | `03_parallelization_creative_graph.png` | `../03_parallelization_creative.py` |
 | `03_parallelization_translation_graph.png` | `../03_parallelization_translation.py` |
+| `04_orchestrator_workers_graph.png` | `../04_orchestrator_workers.py` |

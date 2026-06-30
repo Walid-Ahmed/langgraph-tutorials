@@ -24,6 +24,22 @@ Earlier folders teach the building blocks:
 
 This folder uses those building blocks to explain larger workflow patterns. The goal is not to memorize names; it is to recognize the shape of the problem and pick the simplest graph that fits.
 
+## Workflow vs Agent
+
+A **workflow** has edges that you define in code. The route is mostly fixed when you build the graph. Even when a workflow uses conditional edges, routing, or evaluator-optimizer loops, it is still choosing among paths you already defined.
+
+An **agent** gives more control to the LLM at runtime. A common agent loop is:
+
+```text
+llm_call -> should_continue -> tool_node -> llm_call
+```
+
+That loop repeats until the model stops requesting tool calls. The number of iterations is not known ahead of time; the model decides whether to keep using tools or stop.
+
+So the practical difference is:
+
+- **workflow**: code controls the path
+- **agent**: the model controls more of the path
 
 ## Visual Workflow Map
 

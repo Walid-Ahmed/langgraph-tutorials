@@ -31,8 +31,8 @@ weather_api_key = os.getenv("OPENWEATHER_API_KEY")
 # ---------------------------------------------------------
 # 1. Tools
 #
-# An augmented LLM can use tools instead of only answering
-# from its internal model knowledge.
+# A tool-calling agent can use external tools instead of only
+# answering from its internal model knowledge.
 # ---------------------------------------------------------
 @tool
 def get_weather(destination_city: str) -> str:
@@ -136,13 +136,13 @@ def should_use_tools(state: AgentState) -> str:
 
 
 # ---------------------------------------------------------
-# 6. Build The Graph
+# 6. Build The Agent Graph
 #
-# Flow:
-# llm -> tools -> llm -> END
+# Agent loop:
+# llm -> should_use_tools -> tools -> llm -> ... -> END
 #
-# The graph loops back to the LLM after tools run so the model can
-# turn tool results into a final answer.
+# The number of tool iterations is not fixed ahead of time.
+# The model decides whether to keep calling tools or stop.
 # ---------------------------------------------------------
 graph_builder = StateGraph(AgentState)
 
@@ -172,7 +172,7 @@ def main() -> None:
     graph_image_path = (
         Path(__file__).resolve().parent
         / "diagrams"
-        / "00_augmented_llm_graph.png"
+        / "00_tool_calling_agent_graph.png"
     )
     graph_image_path.parent.mkdir(exist_ok=True)
     plot_graph(graph, graph_image_path)

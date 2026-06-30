@@ -8,7 +8,7 @@ This repo is meant to feel like a guided path, not a code dump. Each folder intr
 
 - Python 3.10 or newer
 - Basic Python (functions, dictionaries, classes)
-- An OpenAI API key for LLM examples in tutorials 3 and 5
+- An OpenAI API key for LLM examples in tutorials 3, 5, and 6
 
 For deeper reference, see the [official LangGraph documentation](https://docs.langchain.com/oss/python/langgraph/overview).
 
@@ -39,6 +39,7 @@ flowchart TD
     B --> C["3. LLM Messages"]
     C --> D["4. Conditional Edges"]
     D --> E["5. Workflows"]
+    E --> F["6. Agents"]
 ```
 
 Each tutorial follows the same rhythm:
@@ -55,7 +56,8 @@ Each tutorial follows the same rhythm:
 | `2-Reducer/` | Compare state updates with and without reducers | Understand how LangGraph preserves or combines state |
 | `3_LLM_Messages/` | Store chat history in graph state | Learn how LLM conversations fit into LangGraph |
 | `4-Conditional Edges/` | Route to different nodes | Learn how graphs make decisions |
-| `5-Workflows/` | Workflow patterns | Larger LLM designs such as tool use, routing, parallel work, and evaluation loops |
+| `5-Workflows/` | Workflow patterns | Larger LLM designs such as routing, parallel work, orchestration, and evaluation loops |
+| `6-Agents/` | Agent patterns | Dynamic loops where the LLM decides whether to call tools and continue |
 
 ## Setup
 
@@ -73,7 +75,7 @@ For LLM examples, create a local `.env` file in the repo root:
 OPENAI_API_KEY=your_api_key_here
 ```
 
-For the augmented LLM workflow, optionally add API keys for live weather and web search:
+For the tool-calling agent, optionally add API keys for live weather and web search:
 
 ```bash
 OPENWEATHER_API_KEY=your_openweather_key_here
@@ -89,6 +91,7 @@ Read and run the folders in order:
 3. [`3_LLM_Messages/`](3_LLM_Messages/)
 4. [`4-Conditional Edges/`](4-Conditional%20Edges/)
 5. [`5-Workflows/`](5-Workflows/)
+6. [`6-Agents/`](6-Agents/)
 
 Each folder has its own README that works like a mini tutorial.
 
@@ -97,7 +100,7 @@ Each folder has its own README that works like a mini tutorial.
 | Problem | Fix |
 |---|---|
 | `ModuleNotFoundError: No module named 'langgraph'` | Activate the virtual environment and run `pip install -r requirements.txt` |
-| `OpenAI` authentication error in tutorials 3 or 5 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
+| `OpenAI` authentication error in tutorials 3, 5, or 6 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
 | Run commands fail with "file not found" | Run commands from the repo root, not from inside a tutorial folder |
 
 ## Official References Used

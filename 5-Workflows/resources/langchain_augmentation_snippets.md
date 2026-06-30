@@ -187,7 +187,7 @@ Important distinction:
 - `bind_tools()` lets the LLM **request** a tool call.
 - A `ToolNode` in LangGraph can **execute** that tool call.
 
-That is why this snippet connects directly to the augmented LLM workflow example in this folder.
+That is why this snippet connects directly to the tool-calling agent example in `6-Agents/`.
 
 ---
 
@@ -206,7 +206,7 @@ A simple mental model:
 
 ```text
 LangChain augments the LLM.
-LangGraph decides where that augmented LLM fits in the workflow.
+LangGraph decides whether that augmented LLM fits in a workflow or an agent.
 ```
 
 For example:

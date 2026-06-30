@@ -1,16 +1,17 @@
-# 00. Augmented LLM With Tools
+# 00. LLM Augmentations
 
-This tutorial shows an **augmented LLM**: an LLM that can use tools before giving a final answer.
+This page explains **LLM augmentations**: ways to give a model extra capabilities beyond plain text generation.
 
-In this example, the LLM can:
+Common augmentations include:
 
-- fetch live weather with OpenWeatherMap
-- calculate a tip
-- optionally search the web with Tavily
+- **tools**: Python functions or external APIs the model can request
+- **structured output**: a schema that shapes the model response
+- **retrieval**: external knowledge pulled into context
+- **memory**: saved context from previous interactions
 
 ![Augmented LLM concept](figures/workflow-01-augmented-llm.png)
 
-Another helpful mental model: an augmented LLM is still an LLM in the middle, but it can be connected to retrieval, memory, and tools.
+Another helpful mental model: the LLM is still in the middle, but it can be connected to retrieval, memory, and tools.
 
 ![Augmented LLM capabilities](figures/workflow-08-augmented-llm-capabilities.png)
 
@@ -18,213 +19,77 @@ Another helpful mental model: an augmented LLM is still an LLM in the middle, bu
 
 A normal LLM answers directly from the prompt.
 
-An augmented LLM can do something more useful: it can decide, “I need a tool for this,” request that tool with structured arguments, read the result, and then answer the user. In LangChain, tools are normal functions with names, descriptions, and typed inputs that the model can choose from.
+An augmented LLM can use extra capabilities. For example:
 
-```mermaid
-flowchart TD
-    USER["user prompt"] --> LLM["LLM"]
-    LLM --> DECIDE{"does the LLM need a tool?"}
-    DECIDE -->|no| FINAL["final answer"]
-    DECIDE -->|yes| TOOL["ToolNode runs tool"]
-    TOOL --> RESULT["tool result"]
-    RESULT --> LLM
-    LLM --> FINAL
-```
+- a calculator tool for math
+- a weather API for live weather
+- a Pydantic schema for structured JSON-like output
+- a retriever for private documents
 
-The important idea is that the LLM does **not** execute Python functions by itself. Instead:
-
-1. the LLM returns a message that contains a tool call
-2. LangGraph routes the graph to `ToolNode`
-3. `ToolNode` executes the real Python function
-4. the tool result is appended to `messages`
-5. the graph loops back to the LLM
-6. the LLM uses the tool result to write the final answer
-
-That is the augmented loop:
+The important distinction:
 
 ```text
-LLM -> tool call -> ToolNode -> tool result -> LLM -> final answer
+augmentation = capability added to the model
+agent = loop where the model decides what to do next
 ```
 
-## Tools In This Example
-
-| Tool | What It Does | Needs API Key? |
-|---|---|---|
-| `get_weather` | Calls OpenWeatherMap and returns live weather like `Scattered clouds with 15.98°C` | `OPENWEATHER_API_KEY` |
-| `calculate_tip` | Calculates a tip from bill amount and percentage | No |
-| `TavilySearch` | Searches the web for current information | `TAVILY_API_KEY` |
-
-## Graph Shape
-
-```mermaid
-flowchart TD
-    LLM["llm node"] --> ROUTER{"tool calls?"}
-    ROUTER -->|yes| TOOLS["tools node"]
-    TOOLS --> LLM
-    ROUTER -->|no| END([END])
-```
-
-Source workflow figure:
-
-![Augmented LLM loop](figures/workflow-07-augmented-llm-flow.png)
-
-Generated LangGraph plot from the code:
-
-![Augmented LLM graph](diagrams/00_augmented_llm_graph.png)
-
-Why the graph loops back:
-
-- first LLM call decides whether a tool is needed
-- tools node runs the tool
-- second LLM call turns the tool result into a human-friendly answer
-
-## What To Look For In The Code Example
-
-| Concept | Code Name |
-|---|---|
-| Tool definitions | `@tool` functions |
-| Live weather tool | `get_weather(destination_city)` |
-| Tool list | `tools = [get_weather, calculate_tip]` |
-| Optional search tool | `TavilySearch` |
-| LLM tool binding | `llm.bind_tools(tools)` |
-| Message state | `messages: Annotated[list, add_messages]` |
-| LLM node | `call_llm()` |
-| Tool execution node | `ToolNode(tools)` |
-| Router | `should_use_tools()` |
-| Tool loop | `graph_builder.add_edge("tools", "llm")` |
-| Graph plot | `plot_graph(graph)` |
-
-The key split:
-
-- `call_llm()` asks the model what to do next
-- `should_use_tools()` checks whether the model requested a tool
-- `ToolNode(tools)` runs the tool
-- `tools -> llm` sends the tool result back to the model
-
-## Part 2 — Code Example That Reinforces The Concept
-
-File:
-
-```text
-00_augmented_llm.py
-```
-
-The example runs prompts like:
+For tools specifically:
 
 ```python
-"What's the weather in London?"
-"Calculate a 20% tip on a $50 bill"
-"Search for the latest news about AI agents"
-```
-
-What happens for each prompt:
-
-| Prompt | Expected Tool Path |
-|---|---|
-| Weather in London | LLM calls `get_weather`, then writes final answer |
-| 20% tip on $50 | LLM calls `calculate_tip`, then writes final answer |
-| Latest AI agents news | LLM calls `TavilySearch` if Tavily is configured |
-
-The search prompt only runs when both are true:
-
-- `langchain-tavily` is installed
-- `TAVILY_API_KEY` exists in `.env`
-
-## Setup
-
-This example needs an OpenAI API key:
-
-```bash
-OPENAI_API_KEY=your_api_key_here
-```
-
-For live weather, add:
-
-```bash
-OPENWEATHER_API_KEY=your_openweather_key_here
-```
-
-For web search, also add:
-
-```bash
-TAVILY_API_KEY=your_tavily_key_here
-```
-
-Run from the repo root:
-
-```bash
-python "5-Workflows/00_augmented_llm.py"
-```
-
-## Code Explanation
-
-```python
-@tool
-def get_weather(destination_city: str) -> str:
-    ...
-```
-
-`@tool` exposes the Python function to the LLM with a tool name, description, and argument schema. The LLM can request this tool when the user asks about weather.
-
-```python
-response = requests.get(url, params=params, timeout=10)
-```
-
-The weather tool calls OpenWeatherMap and returns a short string such as:
-
-```text
-Scattered clouds with 15.98°C
-```
-
-```python
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
 llm_with_tools = llm.bind_tools(tools)
 ```
 
-`bind_tools()` tells the model which tools are available and what arguments each tool expects. It does not run the tool by itself; it lets the model produce a tool call that `ToolNode` can execute.
+`bind_tools()` tells the model which tools exist and what arguments they accept. It does **not** execute tools by itself. It only allows the model to produce a tool call.
 
-```python
-class AgentState(TypedDict):
-    messages: Annotated[list, add_messages]
+A full tool-calling loop belongs in the Agents section:
+
+```text
+llm -> should_use_tools -> ToolNode -> llm
 ```
 
-The graph stores conversation history in `messages`. `add_messages` appends LLM messages, tool calls, and tool results.
+See [`6-Agents/00_tool_calling_agent.md`](../6-Agents/00_tool_calling_agent.md) for the runnable agent loop.
+
+## Why This Still Lives In Workflows
+
+The official workflows-and-agents mental model treats augmentations as building blocks. Workflows and agents can both use them.
+
+Examples:
+
+| Augmentation | Used In |
+|---|---|
+| Tool binding | Tool-calling agents, tool-using workflows |
+| Structured output | Routing, planning, extraction, report sections |
+| Retrieval | RAG workflows, agents with search/context |
+| Memory | Chatbots, long-running agents |
+
+So this page introduces the capability, while the Agents folder shows the dynamic tool loop.
+
+## Part 2 — Related Examples
+
+| Example | What It Shows |
+|---|---|
+| [`00_augmented_llm_structured_output.py`](00_augmented_llm_structured_output.py) | Augmenting an LLM with a Pydantic output schema |
+| [`../6-Agents/00_tool_calling_agent.py`](../6-Agents/00_tool_calling_agent.py) | Letting an LLM call tools in an agent loop |
+| [`resources/langchain_augmentation_snippets.md`](resources/langchain_augmentation_snippets.md) | Small snippets for tool binding and structured output |
+
+## Code Explanation
+
+The structured-output example uses this pattern:
 
 ```python
-def call_llm(state: AgentState) -> dict:
-    response = llm_with_tools.invoke(state["messages"])
-    return {"messages": [response]}
+structured_llm = llm.with_structured_output(ProductReview)
 ```
 
-The LLM node reads the current messages and returns a new AI message. Sometimes that message contains tool calls instead of a final answer.
+That tells the model to return data matching the `ProductReview` schema.
+
+The tool-calling agent uses this pattern:
 
 ```python
-tool_node = ToolNode(tools)
+llm_with_tools = llm.bind_tools(tools)
 ```
 
-`ToolNode` reads the tool call from the latest AI message and runs the matching Python tool.
+That tells the model which tools it may request.
 
-```python
-def should_use_tools(state: AgentState) -> str:
-    last_message = state["messages"][-1]
-    if getattr(last_message, "tool_calls", None):
-        return "tools"
-    return END
-```
+The key lesson is:
 
-The router checks whether the latest AI message contains tool calls.
-
-- If yes, go to `tools`
-- If no, end the graph
-
-```python
-graph_builder.add_edge("tools", "llm")
-```
-
-After tools run, the graph returns to the LLM. This is what lets the model turn raw tool output into a final response.
-
-```python
-plot_graph(graph)
-```
-
-The example reuses the shared `plot_graph()` helper from `util.py` to print the Mermaid graph and save `diagrams/00_augmented_llm_graph.png`.
+> Augmentations give the model capabilities. Graph structure decides whether those capabilities are used inside a fixed workflow or inside a dynamic agent loop.

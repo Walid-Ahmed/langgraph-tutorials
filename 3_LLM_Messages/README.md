@@ -2,6 +2,12 @@
 
 This tutorial shows how LangGraph can carry chat history through a graph.
 
+## Prerequisites
+
+- Complete [2. Reducers](../2-Reducer/README.md) first — specifically the `add_messages` reducer
+- **OpenAI API key required**: create a `.env` file in the repo root with `OPENAI_API_KEY=your_key_here`
+- You should know: reducers, `Annotated`, `add_messages`
+
 ## What You'll Learn
 
 After this tutorial, you will be able to:
@@ -139,6 +145,36 @@ AIMessage: RAG stands for Retrieval-Augmented Generation. ...
 ```
 
 The exact AI reply will vary, but the structure is always: one human message in, one AI message appended.
+
+### Exercises
+
+**Exercise 1 — Multi-turn conversation**
+
+Start with two messages instead of one:
+
+```python
+HumanMessage(content="My name is Alex."),
+HumanMessage(content="What is my name?"),
+```
+
+Run the graph and check whether the AI correctly answers "Alex". This shows that the LLM receives the full history, not just the last message.
+
+**Exercise 2 — Add a system prompt**
+
+Import `SystemMessage` from `langchain_core.messages` and add it as the first message in the initial state:
+
+```python
+SystemMessage(content="You are a helpful assistant who always answers in one sentence."),
+HumanMessage(content="What is RAG?"),
+```
+
+Re-run and observe how the AI's style changes. This demonstrates the role of system-level instructions in the message history.
+
+**Exercise 3 — Extend with MessagesState**
+
+Replace `ChatState` with a subclass of `MessagesState` that adds a `turn_count: int` field. Update `chatbot_node` to increment `turn_count` on every call and return it alongside the new message. Verify the final state contains both `messages` and `turn_count: 1`.
+
+*Hint:* `from langgraph.graph import MessagesState` — then `class MyChatState(MessagesState): turn_count: int`.
 
 ## Code Explanation
 

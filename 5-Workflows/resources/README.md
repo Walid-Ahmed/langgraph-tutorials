@@ -1,8 +1,8 @@
 # Workflow Resources
 
-Supporting LangChain and LangGraph notes used by the workflow tutorials.
+Supporting LangChain and LangGraph notes used by workflow and agent tutorials.
 
-These files are not full tutorials by themselves. They explain small building blocks that later appear inside LangGraph workflows.
+These files are not full tutorials by themselves. They explain small building blocks that later appear inside LangGraph workflows or agents.
 
 ## Resources
 

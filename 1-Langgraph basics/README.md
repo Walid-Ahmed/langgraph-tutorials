@@ -2,6 +2,12 @@
 
 This tutorial starts with the smallest useful LangGraph: one state, one node, and one path.
 
+## Prerequisites
+
+- Basic Python (functions, classes, dictionaries)
+- No LangGraph or LangChain experience needed — this is the starting point
+- Install dependencies: `pip install -r requirements.txt`
+
 ## What You'll Learn
 
 After this tutorial, you will be able to:
@@ -106,6 +112,26 @@ You should see the graph result with uppercase text and an incremented step:
 ### Try It Yourself
 
 Change the initial `input` value from `"hello"` to another word, then run the script again. The graph flow stays the same, but the output changes.
+
+### Exercises
+
+**Exercise 1 — Add a second node**
+
+Add a `reverse_node` that runs after `process` and reverses the `output` string. Wire it so the path becomes `START → process → reverse → END`. The final `output` for `"hello"` should be `"OLLEH"`.
+
+*Hint:* `add_node` and `add_edge` are the only new calls you need.
+
+**Exercise 2 — Track visited nodes**
+
+Add a `visited` field (a list of strings) to `SimpleState`. Each node should append its own name to `visited` when it runs. After the graph finishes, the state should contain `"visited": ["process"]` (or `["process", "reverse"]` if you did Exercise 1).
+
+*Hint:* Without a reducer, a node that returns `{"visited": ["process"]}` will replace any existing list. How do you fix that?
+
+**Exercise 3 — Add an input validation node**
+
+Add a `validate_node` that runs before `process`. If `input` is an empty string, set `output` to `"error: empty input"` and route directly to `END` (skipping `process`). If `input` is valid, continue to `process` as normal.
+
+*Hint:* You will need a conditional edge after `validate_node`.
 
 ### Graph Visualization
 

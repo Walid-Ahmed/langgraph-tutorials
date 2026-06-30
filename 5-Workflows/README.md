@@ -2,7 +2,13 @@
 
 This folder teaches common LangGraph workflow patterns: how an LLM system can use augmentations, chain steps, route work, run tasks in parallel, delegate to workers, and improve its own output.
 
-This folder mixes runnable examples with concise concept pages. The runnable examples come first, and the remaining pages mark patterns that will get code later.
+## Prerequisites
+
+- Complete tutorials 1–4 before starting here
+- You should know: state, nodes, reducers, `add_messages`, and conditional edges
+- **OpenAI API key required** for all runnable examples: add `OPENAI_API_KEY=your_key_here` to a `.env` file in the repo root
+
+This folder mixes runnable examples with concise concept pages. Some patterns are fully runnable now; others are concept guides you can implement after the core idea is clear.
 
 Reference: [LangGraph Workflows and Agents](https://docs.langchain.com/oss/python/langgraph/workflows-agents#llms-and-augmentations)
 
@@ -31,10 +37,10 @@ A **workflow** has edges that you define in code. The route is mostly fixed when
 An **agent** gives more control to the LLM at runtime. A common agent loop is:
 
 ```text
-llm_call -> should_continue -> tool_node -> llm_call
+LLM call -> should we use a tool? -> tool node -> LLM call
 ```
 
-That loop repeats until the model stops requesting tool calls. The number of iterations is not known ahead of time; the model decides whether to keep using tools or stop.
+That loop repeats until the model stops requesting tool calls. In the agent code later, those same roles are named `llm`, `should_use_tools`, and `tools`. The number of iterations is not known ahead of time; the model decides whether to keep using tools or stop.
 
 So the practical difference is:
 
@@ -59,10 +65,10 @@ So the practical difference is:
 | `00_augmented_llm.md` | LLM augmentations | Tools, structured output, retrieval, and memory as building blocks |
 | `00_augmented_llm_structured_output.md` + `00_augmented_llm_structured_output.py` | Augmented LLM with structured output | LLM output constrained by a Pydantic schema |
 | `01_prompt_chaining.md` + `01_prompt_chaining.py` + `01_prompt_chaining_joke_gate.py` | Prompt chaining | Break tasks into ordered LLM steps, with an optional quality gate |
-| `02_routing.md` | Routing | Send work to different paths based on input or state |
+| `02_routing.md` | Routing | Concept guide for sending work to different paths based on input or state |
 | `03_parallelization.md` + `03_parallelization_creative.py` + `03_parallelization_translation.py` + `03_parallelization.py` | Parallelization | Run independent LLM calls side by side, then combine them |
 | `04_orchestrator_workers.md` + `04_orchestrator_workers.py` + `04_orchestrator_workers_report_sections.py` | Orchestrator-workers | One controller dynamically delegates work to specialized workers |
-| `05_evaluator_optimizer.md` | Evaluator-optimizer | Generate, evaluate, and improve outputs iteratively |
+| `05_evaluator_optimizer.md` | Evaluator-optimizer | Concept guide for generate, evaluate, improve loops |
 
 ## Supporting Resources
 
@@ -83,7 +89,7 @@ Start with the runnable examples:
 7. `04_orchestrator_workers.py` for dynamic worker dispatch with `Send`
 8. `04_orchestrator_workers_report_sections.py` for assigning one report section per worker
 
-Then read the concept pages for routing and evaluator-optimizer. Those pages explain the pattern before code is added.
+Then read the concept pages for routing and evaluator-optimizer. Those pages explain the pattern before code is added. After workflows, continue to [`6-Agents`](../6-Agents/) to see a dynamic tool-calling loop.
 
 Each tutorial should make clear:
 
@@ -92,3 +98,17 @@ Each tutorial should make clear:
 3. how edges connect the workflow
 4. where conditional edges or reducers are used
 5. what output to expect
+
+## Exercises
+
+**Exercise 1 — Extend the prompt chain with a tone step**
+
+Open `01_prompt_chaining.py`. Add a new node after `improve_content` that rewrites `improved_content` in a more casual, conversational tone. Add a `casual_version` field to the state to store the result. The final state should contain both `improved_content` and `casual_version`.
+
+**Exercise 2 — Parallelize a new task**
+
+Open `03_parallelization_creative.py`. Add a fourth parallel branch that generates a haiku on the same topic. You will need to add a `haiku` field to the state and a `haiku_node` that fans out alongside the existing joke/story/poem nodes.
+
+**Exercise 3 — Build a structured-output router**
+
+Combine `00_augmented_llm_structured_output.py` with `02_routing.md`. Create a graph where the first node uses a Pydantic schema to classify an input question into one of three categories (`"factual"`, `"creative"`, `"technical"`). Use a conditional edge to route to a different LLM prompt node for each category. Print the category and the category-specific response.

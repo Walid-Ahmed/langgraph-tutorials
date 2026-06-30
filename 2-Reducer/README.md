@@ -2,6 +2,12 @@
 
 This tutorial teaches reducers by showing the same idea in two worlds: first without reducers, then with reducers.
 
+## Prerequisites
+
+- Complete [1. LangGraph Basics](../1-Langgraph%20basics/README.md) first
+- You should know: `StateGraph`, `add_node`, `add_edge`, `compile`, `invoke`
+- No API key needed — these examples use no LLM
+
 ## What You'll Learn
 
 After this tutorial, you will be able to:
@@ -177,6 +183,24 @@ python "2-Reducer/03_messages_reducer.py"
 ### Try It Yourself
 
 In `02_custom_reducer.py`, change the node update from `"count": 1` to `"count": 10`. The final count should become `15` because the reducer adds the old and new values.
+
+### Exercises
+
+**Exercise 1 — Write a max reducer**
+
+Create a new state field `high_score: int` with a custom reducer that always keeps whichever value is higher. Start with `high_score: 42`, have a node return `{"high_score": 10}`, and verify the final value is still `42`. Then try returning `{"high_score": 100}` and verify it becomes `100`.
+
+*Hint:* Your reducer function receives `(current, new)` and returns one value.
+
+**Exercise 2 — Deduplicate a list**
+
+Add an `animals` field with a reducer that appends new items but skips duplicates. If the state already contains `["lion", "tiger"]` and a node returns `{"animals": ["tiger", "cat"]}`, the final list should be `["lion", "tiger", "cat"]`.
+
+*Hint:* Convert to a set inside the reducer, then back to a list — but sets don't preserve order if that matters to you.
+
+**Exercise 3 — Run two nodes in sequence and watch the reducer accumulate**
+
+In `02_custom_reducer.py`, add a second node that also increments `count`. Wire the graph as `START → node_a → node_b → END`. Start with `count: 0`, have each node return `{"count": 5}`, and confirm the final count is `10`. This shows that reducers work across every node in the graph, not just the last one.
 
 ## Code Explanation
 

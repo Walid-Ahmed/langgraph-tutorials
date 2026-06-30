@@ -2,6 +2,12 @@
 
 This tutorial teaches how a LangGraph workflow can choose different paths.
 
+## Prerequisites
+
+- Complete [1. LangGraph Basics](../1-Langgraph%20basics/README.md) first
+- You should know: `StateGraph`, nodes, and normal edges
+- No API key needed — this example uses no LLM
+
 ## What You'll Learn
 
 After this tutorial, you will be able to:
@@ -121,6 +127,24 @@ Open `05_conditional_edges.py` and change the `answer` field to something that d
 ```
 
 Run the script again. The score will be `50`, the graph will route to `retry_node`, and the result will be `"Retry needed 🔁"`.
+
+### Exercises
+
+**Exercise 1 — Add a third branch**
+
+Add a `"needs_review"` branch for scores between `60` and `69`. Update `grade_node` to return `65` for partial answers (e.g., answers containing `"retrieval"` but not `"generation"`). Update the router and add a `review_node` that sets `result` to `"Needs human review 👀"`.
+
+*Hint:* The router just needs one more `elif` and `add_conditional_edges` needs one more entry in its mapping dict.
+
+**Exercise 2 — Loop on retry**
+
+Instead of routing `retry_node` directly to `END`, loop it back to `grade_node`. Add a `attempts: int` field to the state and increment it on each pass through `grade_node`. Add a second conditional edge after `grade_node` that routes to `END` if `attempts >= 3`, regardless of the score.
+
+This is the foundation of evaluator-optimizer loops.
+
+**Exercise 3 — LLM-based router**
+
+Replace the keyword-matching in `grade_node` with an actual LLM call. Send the answer to `gpt-4o` with the prompt: `"Score this answer from 0–100. Respond with only the number."` Parse the response and use it as the score. You will need an OpenAI API key (see Tutorial 3 setup).
 
 ## Code Explanation
 

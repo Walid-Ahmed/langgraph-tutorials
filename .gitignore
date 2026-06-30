@@ -13,6 +13,9 @@ __pycache__/
 # macOS files
 .DS_Store
 
+# Local assistant/tool settings
+.claude/
+
 # Generated graph images
 graph.png
 **/graph.png

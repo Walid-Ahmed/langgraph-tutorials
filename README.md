@@ -8,7 +8,7 @@ This repo is meant to feel like a guided path, not a code dump. Each folder intr
 
 - Python 3.10 or newer
 - Basic Python (functions, dictionaries, classes)
-- An OpenAI API key for LLM examples in tutorials 3, 5, and 6
+- An OpenAI API key for LLM examples in tutorials 3, 5, 6, and some exercise solutions
 
 For deeper reference, see the [official LangGraph documentation](https://docs.langchain.com/oss/python/langgraph/overview).
 
@@ -40,6 +40,7 @@ flowchart TD
     C --> D["4. Conditional Edges"]
     D --> E["5. Workflows"]
     E --> F["6. Agents"]
+    F --> G["7. Exercise Solutions"]
 ```
 
 Each tutorial follows the same rhythm:
@@ -58,6 +59,7 @@ Each tutorial follows the same rhythm:
 | `4-Conditional Edges/` | Route to different nodes | Learn how graphs make decisions |
 | `5-Workflows/` | Workflow patterns | Larger LLM designs such as routing, parallel work, orchestration, and evaluation loops |
 | `6-Agents/` | Agent patterns | Dynamic loops where the LLM decides whether to call tools and continue |
+| `7-Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
 
 ## Setup
 
@@ -93,7 +95,9 @@ Read and run the folders in order:
 5. [`5-Workflows/`](5-Workflows/)
 6. [`6-Agents/`](6-Agents/)
 
-Each folder has its own README that works like a mini tutorial.
+Then use [`7-Exercise-Solutions/`](7-Exercise-Solutions/) after trying the exercises yourself.
+
+Each tutorial folder has its own README that works like a mini lesson.
 
 ## Troubleshooting
 

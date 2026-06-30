@@ -26,10 +26,16 @@ Examples:
 - code review assistant
 - answer quality checker
 
-## Part 2 — Code Example That Reinforces The Concept
+## Part 2 — Concept Example That Reinforces The Pattern
 
-No runnable code yet. This page is the concept guide for a future evaluator-optimizer example.
+This page is concept-only for now. The core implementation idea is a loop with a stopping rule:
+
+```text
+generate -> evaluate -> accept or improve -> evaluate again
+```
+
+The evaluator should return a clear decision, such as `accept` or `revise`, plus feedback for the optimizer.
 
 ## Code Explanation
 
-Future code should show a generator node, an evaluator node that returns a grade or feedback, a conditional edge that decides retry vs accept, and a maximum iteration count.
+To turn this into a runnable graph, add a generator node, an evaluator node that returns feedback, a conditional edge that decides `revise` vs `accept`, and a maximum iteration count so the graph cannot loop forever.

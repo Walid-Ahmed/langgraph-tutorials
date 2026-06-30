@@ -24,10 +24,23 @@ Examples:
 - billing issue vs technical issue
 - pass vs retry
 
-## Part 2 — Code Example That Reinforces The Concept
+## Part 2 — Concept Example That Reinforces The Pattern
 
-No runnable code yet. This page is the concept guide for a future routing example.
+This page is concept-only for now. The important implementation idea is the same one you already saw in `4-Conditional Edges`: a router reads state and returns a route label.
+
+A routing workflow usually looks like this:
+
+```python
+def route_request(state):
+    if state["intent"] == "billing":
+        return "billing"
+    if state["intent"] == "technical":
+        return "technical"
+    return "general"
+```
+
+Then `add_conditional_edges()` maps those labels to destination nodes.
 
 ## Code Explanation
 
-Future code should show a router node or router function that returns a label, then `add_conditional_edges()` mapping labels to destination nodes. Keep the labels simple, such as `billing`, `technical`, or `general`.
+To turn this into a runnable graph, add destination nodes such as `billing`, `technical`, and `general`, then use `add_conditional_edges()` to map each route label to its node. Keep labels short and explicit so the graph stays easy to read.

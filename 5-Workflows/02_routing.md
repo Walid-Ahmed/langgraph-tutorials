@@ -2,45 +2,89 @@
 
 ## Part 1 — Core Tutorial
 
-Routing sends work to different paths depending on the input or current state. In real LLM workflows, the router often uses structured output so the graph receives a reliable routing label.
+Routing sends work to different paths depending on the input. The router uses structured output so the graph receives a reliable label — no free-text parsing needed.
 
 ![Routing workflow](figures/workflow-03-routing.png)
 
 ```mermaid
-flowchart TD
-    INPUT["input"] --> ROUTER["router"]
-    ROUTER --> A["path A"]
-    ROUTER --> B["path B"]
-    ROUTER --> C["path C"]
+flowchart LR
+    START --> llm_call_router
+    llm_call_router -->|story| llm_call_1
+    llm_call_router -->|joke| llm_call_2
+    llm_call_router -->|poem| llm_call_3
+    llm_call_1 --> END
+    llm_call_2 --> END
+    llm_call_3 --> END
 ```
 
 ## When To Use
 
-Use this pattern when different inputs need different handling. The important design question is: what small set of destinations can the router choose from?
+Use this pattern when different inputs need different handling and you can define a small fixed set of destinations upfront.
 
 Examples:
 
 - easy question vs hard question
 - billing issue vs technical issue
-- pass vs retry
+- story vs joke vs poem
 
-## Part 2 — Concept Example That Reinforces The Pattern
+## Part 2 — Code Example
 
-This page is concept-only for now. The important implementation idea is the same one you already saw in `4-Conditional Edges`: a router reads state and returns a route label.
+File: `02_routing.py`
 
-A routing workflow usually looks like this:
+### How it works
+
+**Router node** — classifies the input using structured output and writes the decision to state:
 
 ```python
-def route_request(state):
-    if state["intent"] == "billing":
-        return "billing"
-    if state["intent"] == "technical":
-        return "technical"
-    return "general"
+class Route(BaseModel):
+    step: Literal["poem", "story", "joke"]
+
+router = llm.with_structured_output(Route)
+
+def llm_call_router(state: State):
+    decision = router.invoke([SystemMessage(...), HumanMessage(content=state["input"])])
+    return {"decision": decision.step}
 ```
 
-Then `add_conditional_edges()` maps those labels to destination nodes.
+**Conditional edge** — reads `decision` from state and returns the worker node name:
 
-## Code Explanation
+```python
+def route_decision(state: State):
+    if state["decision"] == "story":
+        return "llm_call_1"
+    elif state["decision"] == "joke":
+        return "llm_call_2"
+    elif state["decision"] == "poem":
+        return "llm_call_3"
+```
 
-To turn this into a runnable graph, add destination nodes such as `billing`, `technical`, and `general`, then use `add_conditional_edges()` to map each route label to its node. Keep labels short and explicit so the graph stays easy to read.
+**Worker nodes** — each handles one content type, all share the same structure:
+
+```python
+def llm_call_2(state: State):
+    """Write a joke"""
+    result = llm.invoke(state["input"])
+    return {"output": result.content}
+```
+
+### State
+
+| Field | Set by | Used by |
+|---|---|---|
+| `input` | caller | router + workers |
+| `decision` | router node | conditional edge |
+| `output` | worker node | caller |
+
+### Key idea
+
+Structured output is what makes routing reliable. Without it, the router returns free text that you'd have to parse. With it, `decision` is always exactly `"story"`, `"joke"`, or `"poem"` — the conditional edge reads it directly.
+
+## Exercises
+
+**Exercise 1 — Add a fourth route**
+
+Add a `"haiku"` option to the `Route` schema and a `llm_call_4` node that writes a haiku. Wire it into the graph and test with `"Write me a haiku about rain"`.
+
+**Exercise 2 — Shared prompt**
+
+The three worker nodes currently pass `state["input"]` directly to the LLM. Update each one to prepend a short system prompt that fits its content type (e.g. `"You are a comedian. Write only jokes."`). Verify the output style changes.

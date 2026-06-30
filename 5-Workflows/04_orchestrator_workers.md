@@ -21,12 +21,14 @@ flowchart TD
 The mental model is:
 
 1. the **orchestrator** looks at the big task
-2. it creates smaller subtasks
-3. LangGraph dispatches workers dynamically
+2. it breaks the task into smaller subtasks
+3. it delegates those subtasks to workers
 4. each **worker** handles one focused subtask
-5. the **synthesizer** combines the worker results
+5. the **synthesizer** combines worker outputs into a final result
 
-This pattern is more flexible than simple parallelization. In basic parallelization, the branches are usually known when you write the graph. In orchestrator-workers, the orchestrator can decide the number and type of workers at runtime.
+This pattern is more flexible than simple parallelization. In basic parallelization, the branches are usually known when you write the graph. In orchestrator-workers, the subtasks may not be known upfront, so the orchestrator decides the number and type of workers at runtime.
+
+This is useful for workflows that write code, edit content across multiple files, or need to update an unknown number of documents. For example, if a workflow needs to update installation instructions for several Python libraries across many documents, the orchestrator can first inspect the task, decide which documents or libraries need workers, then synthesize the final update.
 
 ## When To Use
 

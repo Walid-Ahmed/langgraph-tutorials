@@ -45,7 +45,7 @@ This folder uses those building blocks to explain larger workflow patterns. The 
 | `01_prompt_chaining.md` + `01_prompt_chaining.py` + `01_prompt_chaining_joke_gate.py` | Prompt chaining | Break tasks into ordered LLM steps, with an optional quality gate |
 | `02_routing.md` | Routing | Send work to different paths based on input or state |
 | `03_parallelization.md` + `03_parallelization_creative.py` + `03_parallelization_translation.py` + `03_parallelization.py` | Parallelization | Run independent LLM calls side by side, then combine them |
-| `04_orchestrator_workers.md` + `04_orchestrator_workers.py` | Orchestrator-workers | One controller dynamically delegates work to specialized workers |
+| `04_orchestrator_workers.md` + `04_orchestrator_workers.py` + `04_orchestrator_workers_report_sections.py` | Orchestrator-workers | One controller dynamically delegates work to specialized workers |
 | `05_evaluator_optimizer.md` | Evaluator-optimizer | Generate, evaluate, and improve outputs iteratively |
 
 ## Supporting Resources
@@ -66,6 +66,7 @@ Start with the runnable examples:
 6. `03_parallelization_translation.py` for translating one paragraph into three languages
 7. `03_parallelization.py` for a practical social-media content package
 8. `04_orchestrator_workers.py` for dynamic worker dispatch with `Send`
+9. `04_orchestrator_workers_report_sections.py` for assigning one report section per worker
 
 Then read the concept pages for routing and evaluator-optimizer. Those pages explain the pattern before code is added.
 

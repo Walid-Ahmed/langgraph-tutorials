@@ -48,9 +48,11 @@ Good examples:
 
 Avoid this pattern when the task always has a small fixed set of branches. In that case, normal parallelization is simpler.
 
-## Part 2 — Code Example That Reinforces The Concept
+## Part 2 — Code Examples That Reinforce The Concept
 
-The runnable example builds a research assistant:
+### Example A — Research Assistant
+
+The first runnable example builds a research assistant:
 
 - `orchestrator` creates a structured research plan
 - `research_worker` runs once per research source/aspect
@@ -74,9 +76,37 @@ Renewable energy adoption barriers in developing countries
 
 The graph first asks the LLM to create 3-5 research areas. Then LangGraph dynamically creates one worker call for each area.
 
+
+### Example B — Report Sections With `Send`
+
+The second runnable example creates a report by dynamically assigning one worker per section:
+
+- `orchestrator` creates a structured report plan
+- `assign_workers` sends each `Section` to a separate worker with `Send`
+- `write_section` writes one section in markdown
+- `synthesizer` joins all completed sections into `final_report`
+
+Generated LangGraph plot from the code:
+
+![Orchestrator-workers report sections graph](diagrams/04_orchestrator_workers_report_sections_graph.png)
+
+Run it:
+
+```bash
+python 5-Workflows/04_orchestrator_workers_report_sections.py
+```
+
+The example topic is:
+
+```text
+Create a report on LLM scaling laws
+```
+
+This is close to the common LangGraph example where an orchestrator plans report sections, then uses `Send` to kick off one worker for each section. The notebook-specific `display(Image(...))` and `Markdown(...)` calls were replaced with `plot_graph(...)` and normal terminal output so the example works as a regular Python script.
+
 ## Code Explanation
 
-The shared graph state stores the big task, the generated plan, all worker findings, and the final report:
+The research assistant example state stores the big task, the generated plan, all worker findings, and the final report:
 
 ```python
 class OverallState(TypedDict):
@@ -94,6 +124,18 @@ worker_findings: Annotated[List[dict], add]
 
 This uses a reducer. Multiple workers return `worker_findings` in parallel, so LangGraph needs to know how to combine them. The `add` reducer appends/merges the returned lists instead of letting one worker overwrite another worker.
 
+The report-sections example uses the same idea with different state keys:
+
+```python
+class State(TypedDict):
+    topic: str
+    sections: list[Section]
+    completed_sections: Annotated[list[str], operator.add]
+    final_report: str
+```
+
+Here, `completed_sections` is the shared reducer key. Every section worker writes one markdown section to that key, and the reducer collects all sections for the synthesizer.
+
 The orchestrator uses structured output to create a plan:
 
 ```python
@@ -110,7 +152,7 @@ def plan_research(state: OverallState) -> dict:
     return {"sources": research_plan.sources}
 ```
 
-The dynamic dispatch function creates one `Send` per source:
+The research assistant dynamic dispatch function creates one `Send` per source:
 
 ```python
 def create_research_workers(state: OverallState) -> list[Send]:
@@ -131,9 +173,9 @@ def create_research_workers(state: OverallState) -> list[Send]:
 
 > Run this node with this worker-specific state.
 
-LangGraph has built-in support for this orchestrator-worker pattern. The `Send` API lets the graph create worker executions dynamically and pass each one a specific input. In this example, the graph loops over the generated research sources and sends one source to each worker.
+LangGraph has built-in support for this orchestrator-worker pattern. The `Send` API lets the graph create worker executions dynamically and pass each one a specific input. In the research example, the graph loops over generated research sources. In the report example, it loops over generated report sections.
 
-Each worker receives its own `WorkerState`, but the worker results are written back into the shared `worker_findings` key on `OverallState`. Because that key has a reducer, the orchestrator graph can collect all worker outputs and make them available to the synthesizer for the final report.
+Each worker receives its own `WorkerState`, but worker results are written back into a shared reducer key on the orchestrator graph state, such as `worker_findings` or `completed_sections`. That gives the synthesizer access to all worker outputs when it creates the final report.
 
 The conditional edge connects the orchestrator to this dynamic dispatch function:
 
@@ -153,7 +195,7 @@ Each worker returns one finding:
 return {"worker_findings": [findings]}
 ```
 
-Because `worker_findings` has a reducer, all worker results are collected into one list.
+Because `worker_findings` has a reducer, all worker results are collected into one list. In the report-sections example, `completed_sections` plays the same role.
 
 Finally, the synthesizer reads the collected findings and writes the final report:
 

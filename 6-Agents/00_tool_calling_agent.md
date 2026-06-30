@@ -12,6 +12,10 @@ The agent can use:
 
 A tool-calling agent is different from a fixed workflow because the model controls whether the loop continues.
 
+The hand-drawn view below shows the loop: the LLM chooses an action, the tool returns feedback, and the LLM decides whether to continue or answer.
+
+![Agent tool loop](figures/agent-tool-loop.png)
+
 ```mermaid
 flowchart TD
     USER["user message"] --> LLM["llm"]

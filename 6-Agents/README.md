@@ -12,6 +12,8 @@ llm_call -> should_continue -> tool_node -> llm_call
 
 The loop repeats until the model stops requesting tool calls.
 
+![Agent tool loop](figures/agent-tool-loop.png)
+
 ## Tutorials
 
 | File | Concept | Purpose |

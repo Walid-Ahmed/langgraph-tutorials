@@ -49,7 +49,7 @@ This folder shows what happens when tool use becomes an agent loop: the model ca
 
 **Exercise 1 — Add a new tool**
 
-Open `00_tool_calling_agent.py` and add a `word_count(text: str) -> int` tool that counts the number of words in a string. Bind it alongside the existing tools and ask the agent: `"How many words are in the phrase 'the quick brown fox'?"` Verify the agent calls your tool rather than guessing.
+Open `00_tool_calling_agent_simple.py` and add a `word_count(text: str) -> int` tool that counts the number of words in a string. Bind it alongside the existing tools and ask the agent: `"How many words are in the phrase 'the quick brown fox'?"` Verify the agent calls your tool rather than guessing.
 
 **Exercise 2 — Cap the number of iterations**
 

@@ -47,7 +47,7 @@ A full tool-calling loop belongs in the Agents section:
 llm -> should_use_tools -> ToolNode -> llm
 ```
 
-See [`6-Agents/00_tool_calling_agent.md`](../6-Agents/00_tool_calling_agent.md) for the runnable agent loop.
+See [`6-Agents/01_tool_calling_agent.md`](../6-Agents/01_tool_calling_agent.md) for the runnable agent loop.
 
 ## Why This Still Lives In Workflows
 
@@ -69,7 +69,7 @@ So this page introduces the capability, while the Agents folder shows the dynami
 | Example | What It Shows |
 |---|---|
 | [`00_augmented_llm_structured_output.py`](00_augmented_llm_structured_output.py) | Augmenting an LLM with a Pydantic output schema |
-| [`../6-Agents/00_tool_calling_agent.py`](../6-Agents/00_tool_calling_agent.py) | Letting an LLM call tools in an agent loop |
+| [`../6-Agents/01_tool_calling_agent.py`](../6-Agents/01_tool_calling_agent.py) | Letting an LLM call tools in an agent loop |
 | [`resources/langchain_augmentation_snippets.md`](resources/langchain_augmentation_snippets.md) | Small snippets for tool binding and structured output |
 
 ## Code Explanation

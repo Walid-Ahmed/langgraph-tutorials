@@ -5,7 +5,7 @@ This tutorial shows four ways a LangGraph chatbot can remember (or forget) conve
 ## Prerequisites
 
 - Complete [6. Agents](../6-Agents/README.md) first
-- **OpenAI API key required** for Examples 2–4: create a `.env` file in the repo root with `OPENAI_API_KEY=your_key_here`
+- **OpenAI API key required** for Examples 2–5: create a `.env` file in the repo root with `OPENAI_API_KEY=your_key_here`
 - You should know: state, nodes, edges, `add_messages`
 
 ## What You'll Learn
@@ -16,6 +16,7 @@ After this tutorial, you will be able to:
 - Understand why a graph forgets by default between runs
 - Use `MemorySaver` and `thread_id` to persist state across runs automatically
 - Pass the full conversation history manually so the LLM remembers without a checkpointer
+- Read a full checkpoint history (`get_state_history`) through a real analyze/revise loop, and cap that loop with a `MAX_ITERATIONS` guard
 
 ## Part 1 — Core Tutorial
 
@@ -91,6 +92,17 @@ print(second_result)
 
 The second run uses the same `thread_id`, so the checkpointer restores the previous state before the graph runs again. `foo` is still overwritten by the latest node, but `bar` keeps growing because it has a reducer.
 
+The script also calls `graph.get_state_history(config)`, which returns one checkpoint per super-step — not just the final one. For a two-node graph that's `__start__` → after `node_a` → after `node_b`:
+
+```
+checkpoint 0 (next=('__start__',)): {'bar': []}
+checkpoint 1 (next=('node_a',)): {'foo': '', 'bar': []}
+checkpoint 2 (next=('node_b',)): {'foo': 'a', 'bar': ['a']}
+checkpoint 3 (next=done): {'foo': 'b', 'bar': ['a', 'b']}
+```
+
+`next` tells you which node is about to run from that checkpoint — this is the same mechanism time travel and human-in-the-loop rely on to resume a graph from any prior step.
+
 ### Example 2 — No memory (`02_no_memory.py`)
 
 No checkpointer. Each run starts fresh. The second run has no idea what happened in the first.
@@ -138,6 +150,44 @@ print(result["messages"][-1].content)
 # → "Your name is Walid!"
 ```
 
+### Example 5 — Checkpoint history through a real loop (`05_document_review_loop.py`)
+
+The earlier examples show a fixed number of checkpoints. This one shows why that count is actually *variable*: a document goes through an `analyze → revise → analyze` loop until the LLM scores it 8+ **or** a `MAX_ITERATIONS` cap is hit (the same loop-guard pattern as [`ex4_evaluator_loop_guard.py`](../7-Exercise-Solutions/5-workflows/ex4_evaluator_loop_guard.py) — without it, a stubborn low score could loop forever). Every node run — including every pass through the loop — writes its own checkpoint, so `get_state_history` ends up with as many entries as the loop actually took.
+
+```python
+def route_after_analysis(state: DocumentState) -> Literal["revise", "finalize"]:
+    if state["quality_score"] >= 8:
+        return "finalize"
+    if state["iterations"] >= MAX_ITERATIONS:
+        return "finalize"  # avoid an infinite loop
+    return "revise"
+```
+
+Running it prints the full checkpoint timeline (newest to oldest), each with its `checkpoint_id`, pending `next` node, and state snapshot — this is the same `StateSnapshot` data `get_state_history` returns in Example 1, just over a longer, branching run.
+
+### Example 6 — Resume after a failure (`06_resume_after_failure.py`)
+
+Example 5 only ever calls `invoke` once, so the checkpointer never gets to prove its main real-world value: surviving a crash. This example strips that down to three plain nodes (no LLM) so the fault-tolerance behavior is easy to see. `step_two` is rigged to raise an exception on its first call, simulating a flaky API or a crashed process.
+
+```python
+try:
+    graph.invoke({"log": []}, config)
+except RuntimeError as e:
+    print(f"Graph crashed: {e}")
+
+state = graph.get_state(config)
+print(state.values["log"])  # ['step_one'] — step_one's checkpoint was already saved
+print(state.next)           # ('step_two',) — this is where execution stopped
+
+# Resume with input=None: LangGraph continues from the last checkpoint
+# for this thread_id instead of starting over.
+result = graph.invoke(None, config)
+print(result["log"])
+# → ['step_one', 'step_two', 'step_three'] — step_one never re-ran
+```
+
+`step_one` only prints `Running step_one` once across both attempts — that's the checkpointer doing real work, not just bookkeeping. Without it, resuming would mean starting the whole graph from `START` again.
+
 ## Setup
 
 Run from the repo root:
@@ -147,6 +197,8 @@ python "8-Checkpointing/01_custom_state_reducer.py"
 python "8-Checkpointing/02_no_memory.py"
 python "8-Checkpointing/03_with_checkpointer.py"
 python "8-Checkpointing/04_manual_history.py"
+python "8-Checkpointing/05_document_review_loop.py"
+python "8-Checkpointing/06_resume_after_failure.py"
 ```
 
 ## Key Differences
@@ -166,6 +218,8 @@ To persist memory across script restarts, swap `MemorySaver` for a database-back
 - A graph forgets by default — each `invoke` starts with a blank state
 - `MemorySaver` + `thread_id` lets LangGraph save and restore state automatically
 - Passing the full message history manually is equally valid and requires no checkpointer
+- `get_state_history` returns one checkpoint per super-step, even across a conditional loop — always guard loops like this with a `MAX_ITERATIONS` cap
+- A checkpointer's real payoff is fault-tolerance: after a crash, `invoke(None, config)` resumes from the last successful node instead of re-running the whole graph
 
 ## Next Step
 

@@ -35,6 +35,15 @@ def build_graph():
     return workflow.compile(checkpointer=checkpointer)
 
 
+def print_checkpoint_history(graph, config: RunnableConfig, label: str) -> None:
+    """A checkpoint is saved after every super-step, i.e. after every node."""
+    print(f"\n=== Checkpoint history — {label} ===")
+    checkpoints = list(reversed(list(graph.get_state_history(config))))
+    for step, snapshot in enumerate(checkpoints):
+        pending = snapshot.next if snapshot.next else "done"
+        print(f"  checkpoint {step} (next={pending}): {snapshot.values}")
+
+
 def main() -> None:
     graph = build_graph()
     config: RunnableConfig = {"configurable": {"thread_id": "1"}}
@@ -47,6 +56,8 @@ def main() -> None:
     print("\n=== Stored checkpoint after first invoke ===")
     print(graph.get_state(config).values)
 
+    print_checkpoint_history(graph, config, "one entry per node run so far")
+
     print("\n=== Second invoke with the same thread_id ===")
     second_result = graph.invoke({"foo": "", "bar": []}, config)
     print(second_result)
@@ -54,6 +65,8 @@ def main() -> None:
 
     print("\n=== Stored checkpoint after second invoke ===")
     print(graph.get_state(config).values)
+
+    print_checkpoint_history(graph, config, "grows by two more entries (node_a, node_b) each invoke")
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ class State(TypedDict):
 def chat_node(state: State):
     messages = [{"role": m.type, "content": m.content} for m in state["messages"]]
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4o",
         messages=messages,
         max_tokens=256,
     )

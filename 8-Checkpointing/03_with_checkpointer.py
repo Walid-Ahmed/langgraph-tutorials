@@ -3,6 +3,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict
 from openai import OpenAI
+from langgraph.checkpoint.memory import MemorySaver
 
 client = OpenAI()
 
@@ -14,7 +15,7 @@ class State(TypedDict):
 def chat_node(state: State):
     messages = [{"role": m.type, "content": m.content} for m in state["messages"]]
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4o",
         messages=messages,
         max_tokens=256,
     )
@@ -26,12 +27,19 @@ builder.add_node("chat", chat_node)
 builder.add_edge(START, "chat")
 builder.add_edge("chat", END)
 
-graph = builder.compile()  # no checkpointer
+checkpointer = MemorySaver()
+graph = builder.compile(checkpointer=checkpointer)  # attach checkpointer
+
+config = {"configurable": {"thread_id": "walid-session"}}  # thread ties runs together
 
 # Run 1 — introduce yourself
-graph.invoke({"messages": [{"role": "user", "content": "Hi, my name is Walid"}]})
+graph.invoke({"messages": [{"role": "user", "content": "Hi, my name is Walid"}]}, config)
 
-# Run 2 — graph has NO memory of run 1, starts fresh
-result = graph.invoke({"messages": [{"role": "user", "content": "What is my name?"}]})
+# Run 2 — graph REMEMBERS run 1 via thread_id
+result = graph.invoke({"messages": [{"role": "user", "content": "What is my name?"}]}, config)
 print("Bot:", result["messages"][-1].content)
-# → "I don't know your name, you haven't told me."
+# → "Your name is Walid!"
+
+# Inspect what the checkpointer actually stored for this thread
+state = graph.get_state(config)
+print("Stored state:", state.values)

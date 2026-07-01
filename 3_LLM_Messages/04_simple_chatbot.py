@@ -17,7 +17,7 @@ load_dotenv()
 # ---------------------------------------------------------
 llm = ChatOpenAI(
     # Use a deterministic model response so repeated runs are easier to compare.
-    model="gpt-4.1",
+    model="gpt-4o",
     temperature=0
 )
 

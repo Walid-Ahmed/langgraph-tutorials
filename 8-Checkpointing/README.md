@@ -1,17 +1,18 @@
 # 8. Checkpointing
 
-This tutorial shows three ways a LangGraph chatbot can remember (or forget) conversation history across multiple `invoke` calls.
+This tutorial shows four ways a LangGraph chatbot can remember (or forget) conversation history and state across multiple `invoke` calls.
 
 ## Prerequisites
 
 - Complete [6. Agents](../6-Agents/README.md) first
-- **OpenAI API key required**: create a `.env` file in the repo root with `OPENAI_API_KEY=your_key_here`
+- **OpenAI API key required** for Examples 2–4: create a `.env` file in the repo root with `OPENAI_API_KEY=your_key_here`
 - You should know: state, nodes, edges, `add_messages`
 
 ## What You'll Learn
 
 After this tutorial, you will be able to:
 
+- Understand what a checkpointer actually stores, using reducers and `get_state`
 - Understand why a graph forgets by default between runs
 - Use `MemorySaver` and `thread_id` to persist state across runs automatically
 - Pass the full conversation history manually so the LLM remembers without a checkpointer
@@ -37,17 +38,60 @@ flowchart TD
     B["Option B: Manual history\nYou pass everything each time"]
 ```
 
+### Why Checkpointers Matter
+
+This tutorial focuses on memory, but the same checkpointer mechanism unlocks other features you'll see later:
+
+| Feature | What the checkpointer enables |
+|---|---|
+| **Memory** | Follow-up messages sent to the same `thread_id` retain earlier conversation state (what this tutorial covers) |
+| **Human-in-the-loop** | A person can inspect, interrupt, and approve a run, then resume it — the checkpointer is what lets execution pick back up |
+| **Time travel** | You can replay or fork a graph from any earlier checkpoint to debug a step or try an alternate path |
+| **Fault-tolerance** | If a node fails mid-run, LangGraph can resume from the last successful super-step instead of starting over — successful sibling nodes aren't re-run |
+
+### Threads and Checkpoints
+
+- **Thread** — the `thread_id` you pass in `config["configurable"]` is the primary key the checkpointer uses to store and load state. Same thread = same accumulated state across runs. Without a `thread_id`, the checkpointer has nothing to save to or restore from.
+- **Checkpoint** — a snapshot of graph state saved after each super-step (one full round of node execution), represented internally as a `StateSnapshot`. `graph.get_state(config)` — used in Example 1 — returns the latest one for a thread.
+
 ### The Three Pieces of Checkpointing
 
 | Piece | What it does |
 |---|---|
-| `MemorySaver()` | In-memory store that saves graph state after each run |
+| `MemorySaver()` / `InMemorySaver()` | In-memory store that saves graph state after each run |
 | `compile(checkpointer=...)` | Tells the graph to use that store |
 | `config = {"configurable": {"thread_id": "..."}}` | Links runs together — same thread = same memory |
 
 ## Part 2 — Code Examples
 
-### Example 1 — No memory (`01_no_memory.py`)
+### Example 1 — Custom state with a reducer (`01_custom_state_reducer.py`)
+
+Start here — no LLM involved, so it isolates what the checkpointer actually stores. `foo` has no reducer, so each run overwrites it. `bar` uses the `add` reducer, so values accumulate across nodes instead of being replaced. `graph.get_state(config)` shows exactly what's saved for the thread.
+
+```python
+class State(TypedDict):
+    foo: str
+    bar: Annotated[list[str], add]  # reducer: appends instead of overwriting
+
+checkpointer = InMemorySaver()
+graph = workflow.compile(checkpointer=checkpointer)
+config = {"configurable": {"thread_id": "1"}}
+
+first_result = graph.invoke({"foo": "", "bar": []}, config)
+print(first_result)
+# → {'foo': 'b', 'bar': ['a', 'b']}
+
+print(graph.get_state(config).values)
+# → {'foo': 'b', 'bar': ['a', 'b']}
+
+second_result = graph.invoke({"foo": "", "bar": []}, config)
+print(second_result)
+# → {'foo': 'b', 'bar': ['a', 'b', 'a', 'b']}
+```
+
+The second run uses the same `thread_id`, so the checkpointer restores the previous state before the graph runs again. `foo` is still overwritten by the latest node, but `bar` keeps growing because it has a reducer.
+
+### Example 2 — No memory (`02_no_memory.py`)
 
 No checkpointer. Each run starts fresh. The second run has no idea what happened in the first.
 
@@ -61,7 +105,7 @@ print(result["messages"][-1].content)
 # → "I don't know your name, you haven't told me."
 ```
 
-### Example 2 — With checkpointer (`02_with_checkpointer.py`)
+### Example 3 — With checkpointer (`03_with_checkpointer.py`)
 
 `MemorySaver` persists the state. The `thread_id` links the two runs so the graph remembers.
 
@@ -78,7 +122,7 @@ print(result["messages"][-1].content)
 # → "Your name is Walid!"
 ```
 
-### Example 3 — Manual history (`03_manual_history.py`)
+### Example 4 — Manual history (`04_manual_history.py`)
 
 No checkpointer. Memory works because you pass the full conversation on every run. `result["messages"]` always contains everything so far.
 
@@ -99,9 +143,10 @@ print(result["messages"][-1].content)
 Run from the repo root:
 
 ```bash
-python "8-Checkpointing/01_no_memory.py"
-python "8-Checkpointing/02_with_checkpointer.py"
-python "8-Checkpointing/03_manual_history.py"
+python "8-Checkpointing/01_custom_state_reducer.py"
+python "8-Checkpointing/02_no_memory.py"
+python "8-Checkpointing/03_with_checkpointer.py"
+python "8-Checkpointing/04_manual_history.py"
 ```
 
 ## Key Differences
@@ -117,6 +162,7 @@ To persist memory across script restarts, swap `MemorySaver` for a database-back
 
 ## What You Learned
 
+- A checkpointer stores whatever your reducers produce — plain fields get overwritten, reduced fields accumulate
 - A graph forgets by default — each `invoke` starts with a blank state
 - `MemorySaver` + `thread_id` lets LangGraph save and restore state automatically
 - Passing the full message history manually is equally valid and requires no checkpointer

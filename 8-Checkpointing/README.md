@@ -1,6 +1,6 @@
 # 8. Checkpointing
 
-This tutorial shows four ways a LangGraph chatbot can remember (or forget) conversation history and state across multiple `invoke` calls.
+This tutorial shows how LangGraph remembers (or forgets) state across multiple `invoke` calls — from simple reducer state, to chatbot memory, to failure recovery.
 
 ## Prerequisites
 

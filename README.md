@@ -60,6 +60,7 @@ Each tutorial follows the same rhythm:
 | `5-Workflows/` | Workflow patterns | Larger LLM designs such as routing, parallel work, orchestration, and evaluation loops |
 | `6-Agents/` | Agent patterns | Dynamic loops where the LLM decides whether to call tools and continue |
 | `7-Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
+| `8-Checkpointing/` | Persist state across runs | Learn how graphs remember conversation history using MemorySaver or manual history passing |
 
 ## Setup
 
@@ -94,6 +95,7 @@ Read and run the folders in order:
 4. [`4-Conditional Edges/`](4-Conditional%20Edges/)
 5. [`5-Workflows/`](5-Workflows/)
 6. [`6-Agents/`](6-Agents/)
+7. [`8-Checkpointing/`](8-Checkpointing/)
 
 Then use [`7-Exercise-Solutions/`](7-Exercise-Solutions/) after trying the exercises yourself.
 

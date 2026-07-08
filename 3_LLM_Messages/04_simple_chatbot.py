@@ -2,6 +2,8 @@
 # "messages" history to a real OpenAI model via ChatOpenAI and appends the
 # reply through the add_messages reducer. Requires OPENAI_API_KEY in .env.
 
+import sys
+from pathlib import Path
 from typing import Annotated
 from typing_extensions import TypedDict
 
@@ -11,6 +13,9 @@ from langgraph.graph.message import add_messages
 
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from util import plot_graph
 
 # Load environment variables from a local .env file.
 # ChatOpenAI expects the OpenAI API key to be available in the environment.
@@ -89,6 +94,9 @@ def main():
 
     # Compile the graph into an executable app.
     app = graph.compile()
+
+    # Print and save the graph visualization.
+    plot_graph(app)
 
     # User starts the conversation
     initial_state = {

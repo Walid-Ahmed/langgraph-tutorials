@@ -2,12 +2,17 @@
 # just ONE new HumanMessage, and add_messages appends it to the existing
 # "messages" list rather than replacing the whole conversation history.
 
+import sys
+from pathlib import Path
 from typing import Annotated, List
 from typing_extensions import TypedDict
 # HumanMessage is a class from LangChain. It represents a message sent by a human user.
 from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from util import plot_graph
 
 
 # ---------------------------------------------------------
@@ -69,6 +74,9 @@ def main():
 
     # Compile graph
     app = graph.compile()
+
+    # Print and save the graph visualization.
+    plot_graph(app)
 
     # Initial conversation history
     initial_state = {

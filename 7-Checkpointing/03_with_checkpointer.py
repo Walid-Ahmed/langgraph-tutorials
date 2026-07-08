@@ -3,12 +3,17 @@
 # thread remembers the first turn, proving the checkpointer is what
 # provides conversational memory.
 
+import sys
+from pathlib import Path
 from typing import Annotated
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict
 from openai import OpenAI
 from langgraph.checkpoint.memory import MemorySaver
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from util import plot_graph
 
 client = OpenAI()
 
@@ -40,6 +45,8 @@ builder.add_edge("chat", END)
 
 checkpointer = MemorySaver()
 graph = builder.compile(checkpointer=checkpointer)  # attach checkpointer
+
+plot_graph(graph)
 
 config = {"configurable": {"thread_id": "walid-session"}}  # thread ties runs together
 

@@ -2,11 +2,16 @@
 # Each graph.invoke() starts from a clean slate, so a second run has no idea
 # what was said in the first — demonstrates why checkpointing is needed.
 
+import sys
+from pathlib import Path
 from typing import Annotated
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict
 from openai import OpenAI
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from util import plot_graph
 
 client = OpenAI()
 
@@ -37,6 +42,8 @@ builder.add_edge(START, "chat")
 builder.add_edge("chat", END)
 
 graph = builder.compile()  # no checkpointer
+
+plot_graph(graph)
 
 # Run 1 — introduce yourself
 graph.invoke({"messages": [{"role": "user", "content": "Hi, my name is Walid"}]})

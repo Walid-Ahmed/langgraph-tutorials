@@ -12,6 +12,8 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
+from util import plot_graph
+
 load_dotenv()
 
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
@@ -67,6 +69,7 @@ def main() -> None:
 
     graph.add_edge("aggregator", END)
     app = graph.compile()
+    plot_graph(app)
 
     result = app.invoke({
         "topic": "cats",

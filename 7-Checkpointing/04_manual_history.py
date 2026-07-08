@@ -3,11 +3,16 @@
 # invoke() calls (result["messages"] + [new turn]), showing memory can be
 # managed by the caller instead of LangGraph's persistence layer.
 
+import sys
+from pathlib import Path
 from typing import Annotated
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict
 from openai import OpenAI
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from util import plot_graph
 
 client = OpenAI()
 
@@ -38,6 +43,8 @@ builder.add_edge(START, "chat")
 builder.add_edge("chat", END)
 
 graph = builder.compile()  # no checkpointer needed
+
+plot_graph(graph)
 
 # Run 1 — introduce yourself
 result = graph.invoke({

@@ -1,3 +1,8 @@
+# Contrasts with 01_state_without_reducer.py: here each state field is
+# Annotated with a reducer (a custom increment function for "count", and
+# Python's operator.add for "animals"), so a node's return value is MERGED
+# into the existing state instead of overwriting it.
+
 from typing import Annotated, List
 from typing_extensions import TypedDict
 from operator import add

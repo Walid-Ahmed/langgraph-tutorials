@@ -1,3 +1,7 @@
+# Evaluator-optimizer variant: same generate -> evaluate -> retry loop as
+# 05_evaluator_optimizer.py, but adds an iteration counter so the router
+# force-exits after MAX_ITERATIONS instead of retrying forever.
+
 import sys
 from pathlib import Path
 from typing import Literal, TypedDict, cast

@@ -1,3 +1,7 @@
+# Prompt chaining with a quality gate: after generate_joke, a router
+# function (check_punchline) inspects the output and either ends the chain
+# early ("Pass") or routes through improve_joke -> polish_joke ("Fail").
+
 import sys
 from pathlib import Path
 from typing_extensions import TypedDict

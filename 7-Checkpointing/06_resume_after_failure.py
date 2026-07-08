@@ -1,3 +1,8 @@
+# Demonstrates crash recovery via checkpointing: step_two raises on its
+# first run, so the graph invoke() fails after step_one's checkpoint was
+# already saved. Calling invoke(None, config) then resumes from that
+# checkpoint — step_one is not re-run, only step_two and step_three are.
+
 from operator import add
 from typing import Annotated
 

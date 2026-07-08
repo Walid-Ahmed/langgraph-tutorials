@@ -1,3 +1,8 @@
+# Same chatbot as 02_no_memory.py, but compiled WITH a MemorySaver
+# checkpointer and a fixed thread_id. Now a second invoke() on the same
+# thread remembers the first turn, proving the checkpointer is what
+# provides conversational memory.
+
 from typing import Annotated
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages

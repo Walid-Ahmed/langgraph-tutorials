@@ -1,3 +1,8 @@
+# A realistic checkpointed workflow: intake -> analyze -> (revise -> analyze)*
+# -> finalize, where an LLM scores a document and loops it through revisions
+# until the quality score is high enough or MAX_ITERATIONS is hit. Each node
+# is its own checkpoint, and the full checkpoint history is printed at the end.
+
 import sys
 from pathlib import Path
 from typing import Literal, TypedDict, cast

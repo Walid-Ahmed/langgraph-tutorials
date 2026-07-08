@@ -1,3 +1,7 @@
+# Parallelization variant: START fans out into three independent translation
+# nodes (Arabic, French, Italian) for the same English paragraph, then an
+# aggregator node joins all three translations once they finish.
+
 import sys
 from pathlib import Path
 from typing import TypedDict

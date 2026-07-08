@@ -1,3 +1,8 @@
+# Shows how a checkpointer's saved state interacts with reducers: with an
+# InMemorySaver attached, invoking the same thread_id twice shows that a
+# plain field ("foo") is overwritten each run while a reduced field ("bar")
+# keeps accumulating across both runs. Also prints the full checkpoint history.
+
 from operator import add
 from typing import Annotated
 

@@ -1,3 +1,8 @@
+# An alternative to checkpointing: no checkpointer at all — instead the
+# caller manually carries the growing "messages" list forward between
+# invoke() calls (result["messages"] + [new turn]), showing memory can be
+# managed by the caller instead of LangGraph's persistence layer.
+
 from typing import Annotated
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages

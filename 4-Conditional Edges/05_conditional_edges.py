@@ -1,3 +1,7 @@
+# Demonstrates conditional routing: grade_node scores a fake "answer", then
+# a router function (not a graph node) inspects the score and picks between
+# two branches (pass_node vs retry_node) using add_conditional_edges.
+
 import sys
 from pathlib import Path
 from typing import TypedDict

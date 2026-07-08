@@ -1,3 +1,8 @@
+# A tool-calling agent built by hand: the LLM is bound to three arithmetic
+# tools, and a manually-written tool_node executes whichever tools the model
+# requests. Shows what LangGraph's prebuilt ToolNode does internally,
+# looping llm_call -> tool_node -> llm_call until the model stops calling tools.
+
 import sys
 from pathlib import Path
 

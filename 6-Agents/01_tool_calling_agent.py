@@ -1,3 +1,7 @@
+# A more complete tool-calling agent using LangGraph's prebuilt ToolNode:
+# the LLM can call a live weather tool, a tip calculator, and (if a Tavily
+# key is set) a web search tool, looping until it has a final answer.
+
 import os
 import sys
 from pathlib import Path

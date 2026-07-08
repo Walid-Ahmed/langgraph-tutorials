@@ -1,3 +1,7 @@
+# Routing workflow: a router node classifies the user's request into one of
+# three literals ("poem", "story", "joke") via structured output, then a
+# conditional edge dispatches to the matching worker node.
+
 import sys
 from pathlib import Path
 from typing import TypedDict, cast

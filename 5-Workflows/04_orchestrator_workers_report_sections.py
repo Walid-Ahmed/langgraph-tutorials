@@ -1,3 +1,8 @@
+# Orchestrator-workers variant: an orchestrator plans a report's sections
+# via structured output, dynamically dispatches one worker per section with
+# Send(), and a synthesizer stitches the completed sections into one
+# markdown report.
+
 import operator
 import sys
 from pathlib import Path

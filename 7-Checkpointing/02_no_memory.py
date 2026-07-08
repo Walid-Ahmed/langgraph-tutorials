@@ -1,3 +1,7 @@
+# Baseline "no memory" example: a graph compiled WITHOUT a checkpointer.
+# Each graph.invoke() starts from a clean slate, so a second run has no idea
+# what was said in the first — demonstrates why checkpointing is needed.
+
 from typing import Annotated
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages

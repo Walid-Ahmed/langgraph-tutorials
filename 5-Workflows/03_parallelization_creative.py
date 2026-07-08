@@ -1,3 +1,7 @@
+# Parallelization variant: START fans out into three independent creative
+# writing nodes (joke, story, poem) for the same topic, then an aggregator
+# node joins all three once they finish.
+
 import sys
 from pathlib import Path
 from typing import TypedDict

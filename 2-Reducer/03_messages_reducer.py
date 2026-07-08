@@ -1,3 +1,7 @@
+# Demonstrates LangGraph's built-in add_messages reducer: a node returns
+# just ONE new HumanMessage, and add_messages appends it to the existing
+# "messages" list rather than replacing the whole conversation history.
+
 from typing import Annotated, List
 from typing_extensions import TypedDict
 # HumanMessage is a class from LangChain. It represents a message sent by a human user.

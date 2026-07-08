@@ -1,4 +1,4 @@
-# 8. Checkpointing
+# 7. Checkpointing
 
 This tutorial shows how LangGraph remembers (or forgets) state across multiple `invoke` calls — from simple reducer state, to chatbot memory, to failure recovery.
 
@@ -152,7 +152,7 @@ print(result["messages"][-1].content)
 
 ### Example 5 — Checkpoint history through a real loop (`05_document_review_loop.py`)
 
-The earlier examples show a fixed number of checkpoints. This one shows why that count is actually *variable*: a document goes through an `analyze → revise → analyze` loop until the LLM scores it 8+ **or** a `MAX_ITERATIONS` cap is hit (the same loop-guard pattern as [`ex4_evaluator_loop_guard.py`](../7-Exercise-Solutions/5-workflows/ex4_evaluator_loop_guard.py) — without it, a stubborn low score could loop forever). Every node run — including every pass through the loop — writes its own checkpoint, so `get_state_history` ends up with as many entries as the loop actually took.
+The earlier examples show a fixed number of checkpoints. This one shows why that count is actually *variable*: a document goes through an `analyze → revise → analyze` loop until the LLM scores it 8+ **or** a `MAX_ITERATIONS` cap is hit (the same loop-guard pattern as [`ex4_evaluator_loop_guard.py`](../8-Exercise-Solutions/5-workflows/ex4_evaluator_loop_guard.py) — without it, a stubborn low score could loop forever). Every node run — including every pass through the loop — writes its own checkpoint, so `get_state_history` ends up with as many entries as the loop actually took.
 
 ```python
 def route_after_analysis(state: DocumentState) -> Literal["revise", "finalize"]:
@@ -193,12 +193,12 @@ print(result["log"])
 Run from the repo root:
 
 ```bash
-python "8-Checkpointing/01_custom_state_reducer.py"
-python "8-Checkpointing/02_no_memory.py"
-python "8-Checkpointing/03_with_checkpointer.py"
-python "8-Checkpointing/04_manual_history.py"
-python "8-Checkpointing/05_document_review_loop.py"
-python "8-Checkpointing/06_resume_after_failure.py"
+python "7-Checkpointing/01_custom_state_reducer.py"
+python "7-Checkpointing/02_no_memory.py"
+python "7-Checkpointing/03_with_checkpointer.py"
+python "7-Checkpointing/04_manual_history.py"
+python "7-Checkpointing/05_document_review_loop.py"
+python "7-Checkpointing/06_resume_after_failure.py"
 ```
 
 ## Key Differences

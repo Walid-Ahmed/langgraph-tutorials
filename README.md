@@ -8,7 +8,7 @@ This repo is meant to feel like a guided path, not a code dump. Each folder intr
 
 - Python 3.10 or newer
 - Basic Python (functions, dictionaries, classes)
-- An OpenAI API key for LLM examples in tutorials 3, 5, 6, 8, and some exercise solutions
+- An OpenAI API key for LLM examples in tutorials 3, 5, 6, 7, and some exercise solutions
 
 For deeper reference, see the [official LangGraph documentation](https://docs.langchain.com/oss/python/langgraph/overview).
 
@@ -40,8 +40,8 @@ flowchart TD
     C --> D["4. Conditional Edges"]
     D --> E["5. Workflows"]
     E --> F["6. Agents"]
-    F --> G["8. Checkpointing"]
-    G --> H["7. Exercise Solutions"]
+    F --> G["7. Checkpointing"]
+    G --> H["8. Exercise Solutions"]
 ```
 
 Each tutorial follows the same rhythm:
@@ -60,8 +60,8 @@ Each tutorial follows the same rhythm:
 | `4-Conditional Edges/` | Route to different nodes | Learn how graphs make decisions |
 | `5-Workflows/` | Workflow patterns | Larger LLM designs such as routing, parallel work, orchestration, and evaluation loops |
 | `6-Agents/` | Agent patterns | Dynamic loops where the LLM decides whether to call tools and continue |
-| `8-Checkpointing/` | Persist state across runs | Learn how graphs remember conversation history using MemorySaver or manual history passing |
-| `7-Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
+| `7-Checkpointing/` | Persist state across runs | Learn how graphs remember conversation history using MemorySaver or manual history passing |
+| `8-Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
 
 ## Setup
 
@@ -96,9 +96,8 @@ Read and run the folders in order:
 4. [`4-Conditional Edges/`](4-Conditional%20Edges/)
 5. [`5-Workflows/`](5-Workflows/)
 6. [`6-Agents/`](6-Agents/)
-7. [`8-Checkpointing/`](8-Checkpointing/)
-
-Then use [`7-Exercise-Solutions/`](7-Exercise-Solutions/) after trying the exercises yourself.
+7. [`7-Checkpointing/`](7-Checkpointing/)
+8. [`8-Exercise-Solutions/`](8-Exercise-Solutions/) — after trying the exercises yourself
 
 Each tutorial folder has its own README that works like a mini lesson.
 
@@ -107,7 +106,7 @@ Each tutorial folder has its own README that works like a mini lesson.
 | Problem | Fix |
 |---|---|
 | `ModuleNotFoundError: No module named 'langgraph'` | Activate the virtual environment and run `pip install -r requirements.txt` |
-| `OpenAI` authentication error in tutorials 3, 5, 6, or 8 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
+| `OpenAI` authentication error in tutorials 3, 5, 6, or 7 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
 | Run commands fail with "file not found" | Run commands from the repo root, not from inside a tutorial folder |
 
 ## Official References Used

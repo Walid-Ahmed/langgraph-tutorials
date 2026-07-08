@@ -3,13 +3,18 @@
 # plain field ("foo") is overwritten each run while a reduced field ("bar")
 # keeps accumulating across both runs. Also prints the full checkpoint history.
 
+import sys
 from operator import add
+from pathlib import Path
 from typing import Annotated
 
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from typing_extensions import TypedDict
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from util import plot_graph
 
 
 class State(TypedDict):
@@ -51,6 +56,8 @@ def print_checkpoint_history(graph, config: RunnableConfig, label: str) -> None:
 
 def main() -> None:
     graph = build_graph()
+    plot_graph(graph)
+
     config: RunnableConfig = {"configurable": {"thread_id": "1"}}
 
     print("=== First invoke ===")

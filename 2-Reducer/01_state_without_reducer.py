@@ -2,8 +2,14 @@
 # to a field, a node's return value REPLACES the existing value instead of
 # merging with it. A single node overwrites "count" and "animals" outright.
 
+import sys
+from pathlib import Path
+
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from util import plot_graph
 
 
 # Define the structure (schema) of the graph state.
@@ -41,6 +47,9 @@ def main() -> None:
 
     # Compile the graph into an executable application.
     app = graph.compile()
+
+    # Print and save the graph visualization.
+    plot_graph(app)
 
     # Initial state passed to the graph.
     initial_state = {

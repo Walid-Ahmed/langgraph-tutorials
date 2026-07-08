@@ -18,6 +18,8 @@ from langgraph.prebuilt import ToolNode
 from typing_extensions import TypedDict
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
+from util import plot_graph
+
 load_dotenv()
 
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
@@ -63,6 +65,7 @@ graph.set_entry_point("llm")
 graph.add_conditional_edges("llm", should_use_tools, {"tools": "tools", END: END})
 graph.add_edge("tools", "llm")
 app = graph.compile()
+plot_graph(app)
 
 
 def main() -> None:

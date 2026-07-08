@@ -16,6 +16,8 @@ from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
+from util import plot_graph
+
 load_dotenv()
 
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
@@ -97,6 +99,7 @@ def main() -> None:
     graph.add_edge("technical", END)
 
     app = graph.compile()
+    plot_graph(app)
 
     questions = [
         "What year did the Berlin Wall fall?",

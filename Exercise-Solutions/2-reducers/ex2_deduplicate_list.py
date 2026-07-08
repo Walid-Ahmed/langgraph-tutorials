@@ -3,10 +3,15 @@
 # animals appends new items but skips ones already in the list.
 # ["lion", "tiger"] + ["tiger", "cat"] => ["lion", "tiger", "cat"]
 
+import sys
+from pathlib import Path
 from typing import Annotated, List
 from typing_extensions import TypedDict
 
 from langgraph.graph import StateGraph, START, END
+
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+from util import plot_graph
 
 
 def append_unique(current: List[str], new: List[str]) -> List[str]:
@@ -29,6 +34,7 @@ def main() -> None:
     graph.add_edge(START, "update")
     graph.add_edge("update", END)
     app = graph.compile()
+    plot_graph(app)
 
     result = app.invoke({"animals": ["lion", "tiger"]})
     print(f"Final animals: {result['animals']}")

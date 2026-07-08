@@ -4,10 +4,15 @@
 # The custom_increment reducer adds values, so the final count is 10.
 # This shows reducers apply across every node update, not just the last one.
 
+import sys
+from pathlib import Path
 from typing import Annotated
 from typing_extensions import TypedDict
 
 from langgraph.graph import StateGraph, START, END
+
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+from util import plot_graph
 
 
 def custom_increment(current: int, new: int) -> int:
@@ -38,6 +43,7 @@ def main() -> None:
     graph.add_edge("node_b", END)
 
     app = graph.compile()
+    plot_graph(app)
 
     result = app.invoke({"count": 0})
     print(f"Final count: {result['count']}")

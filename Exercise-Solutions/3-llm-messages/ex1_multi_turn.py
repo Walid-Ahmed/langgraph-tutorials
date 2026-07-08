@@ -16,6 +16,8 @@ from langgraph.graph.message import add_messages
 from dotenv import load_dotenv
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
+from util import plot_graph
+
 load_dotenv()
 
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
@@ -36,6 +38,7 @@ def main() -> None:
     graph.add_edge(START, "chatbot")
     graph.add_edge("chatbot", END)
     app = graph.compile()
+    plot_graph(app)
 
     initial_state = {
         "messages": [

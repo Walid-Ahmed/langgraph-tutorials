@@ -3,11 +3,16 @@
 # Python's operator.add for "animals"), so a node's return value is MERGED
 # into the existing state instead of overwriting it.
 
+import sys
+from pathlib import Path
 from typing import Annotated, List
 from typing_extensions import TypedDict
 from operator import add
 
 from langgraph.graph import StateGraph, START, END
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from util import plot_graph
 
 
 # ---------------------------------------------------------
@@ -82,6 +87,9 @@ def main():
 
     # Compile the graph
     app = graph.compile()
+
+    # Print and save the graph visualization.
+    plot_graph(app)
 
     # Initial state
     initial_state = {

@@ -4,10 +4,15 @@
 # Starting at 42, a node returning 10 leaves it at 42.
 # A node returning 100 updates it to 100.
 
+import sys
+from pathlib import Path
 from typing import Annotated
 from typing_extensions import TypedDict
 
 from langgraph.graph import StateGraph, START, END
+
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+from util import plot_graph
 
 
 def keep_max(current: int, new: int) -> int:
@@ -35,6 +40,7 @@ def main() -> None:
     graph.add_edge(START, "update")
     graph.add_edge("update", END)
     app = graph.compile()
+    plot_graph(app)
 
     result = app.invoke({"high_score": 42})
     print(f"After low_score_node: high_score = {result['high_score']}")

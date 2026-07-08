@@ -3,13 +3,18 @@
 # already saved. Calling invoke(None, config) then resumes from that
 # checkpoint — step_one is not re-run, only step_two and step_three are.
 
+import sys
 from operator import add
+from pathlib import Path
 from typing import Annotated
 
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from typing_extensions import TypedDict
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from util import plot_graph
 
 
 class State(TypedDict):
@@ -53,6 +58,8 @@ builder.add_edge("step_three", END)
 
 checkpointer = InMemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
+
+plot_graph(graph)
 
 config: RunnableConfig = {"configurable": {"thread_id": "resume-demo"}}
 

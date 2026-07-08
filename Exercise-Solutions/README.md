@@ -1,4 +1,4 @@
-# 8. Exercise Solutions
+# Exercise Solutions
 
 Solutions to the exercises from tutorials 1–6. Each file is self-contained and runnable from the repo root.
 
@@ -16,7 +16,7 @@ Solutions to the exercises from tutorials 1–6. Each file is self-contained and
 ## Running a solution
 
 ```bash
-python "8-Exercise-Solutions/1-basics/ex1_second_node.py"
+python "Exercise-Solutions/1-basics/ex1_second_node.py"
 ```
 
 Solutions that call the OpenAI API require a `.env` file in the repo root:

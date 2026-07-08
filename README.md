@@ -41,7 +41,7 @@ flowchart TD
     D --> E["5. Workflows"]
     E --> F["6. Agents"]
     F --> G["7. Checkpointing"]
-    G --> H["8. Exercise Solutions"]
+    G -.-> H["Exercise Solutions"]
 ```
 
 Each tutorial follows the same rhythm:
@@ -61,7 +61,7 @@ Each tutorial follows the same rhythm:
 | `5-Workflows/` | Workflow patterns | Larger LLM designs such as routing, parallel work, orchestration, and evaluation loops |
 | `6-Agents/` | Agent patterns | Dynamic loops where the LLM decides whether to call tools and continue |
 | `7-Checkpointing/` | Persist state across runs | Learn how graphs remember conversation history using MemorySaver or manual history passing |
-| `8-Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
+| `Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
 
 ## Setup
 
@@ -97,7 +97,8 @@ Read and run the folders in order:
 5. [`5-Workflows/`](5-Workflows/)
 6. [`6-Agents/`](6-Agents/)
 7. [`7-Checkpointing/`](7-Checkpointing/)
-8. [`8-Exercise-Solutions/`](8-Exercise-Solutions/) — after trying the exercises yourself
+
+Use [`Exercise-Solutions/`](Exercise-Solutions/) after trying the exercises yourself.
 
 Each tutorial folder has its own README that works like a mini lesson.
 

@@ -7,13 +7,19 @@ from langgraph.checkpoint.memory import MemorySaver
 
 client = OpenAI()
 
+# LangChain messages use type "human"/"ai", but the OpenAI API expects "user"/"assistant".
+ROLE_MAP = {"human": "user", "ai": "assistant"}
+
 
 class State(TypedDict):
     messages: Annotated[list, add_messages]
 
 
 def chat_node(state: State):
-    messages = [{"role": m.type, "content": m.content} for m in state["messages"]]
+    messages = [
+        {"role": ROLE_MAP.get(m.type, m.type), "content": m.content}
+        for m in state["messages"]
+    ]
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=messages,

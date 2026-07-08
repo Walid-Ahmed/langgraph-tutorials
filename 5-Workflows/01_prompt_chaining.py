@@ -1,3 +1,7 @@
+# Prompt chaining workflow: a 4-step linear pipeline (draft -> fact_check ->
+# improve -> format) where each node's LLM output becomes the next node's
+# input. Also saves an HTML report of every intermediate stage.
+
 import html
 import sys
 from pathlib import Path

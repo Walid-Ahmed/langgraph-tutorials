@@ -1,3 +1,8 @@
+# Orchestrator-workers workflow: an orchestrator LLM plans a variable-length
+# list of research sources, then dynamically dispatches one worker per
+# source via Send(), and a synthesizer merges all worker findings into a
+# single report. Worker count is decided at runtime, not hardcoded.
+
 import sys
 from operator import add
 from pathlib import Path

@@ -1,3 +1,7 @@
+# A more elaborate prompt-chaining example: a 3-step draft -> reflect ->
+# revise pipeline. An essay is drafted, an LLM reviewer critiques it, then
+# a reviser rewrites the essay addressing every point of that feedback.
+
 import sys
 from pathlib import Path
 from typing import TypedDict

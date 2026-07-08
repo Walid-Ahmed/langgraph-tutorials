@@ -1,3 +1,6 @@
+# Shared helper imported by tutorial scripts to print a compiled graph's
+# Mermaid diagram to the console and save it as a PNG for the README/docs.
+
 def plot_graph(app, output_path="graph.png"):
     # Visualize the graph
     print("\n--- Mermaid Graph ---")

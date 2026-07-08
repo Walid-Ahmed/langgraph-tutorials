@@ -1,3 +1,7 @@
+# Augmented LLM workflow: a Pydantic schema (ProductReview) is bound to the
+# model via with_structured_output(), so a single node turns free-text
+# review input into a validated, structured object instead of raw text.
+
 import json
 import sys
 from pathlib import Path

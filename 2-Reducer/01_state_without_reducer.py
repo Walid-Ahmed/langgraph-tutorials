@@ -1,3 +1,7 @@
+# Shows LangGraph's default state-update behavior: with no reducer attached
+# to a field, a node's return value REPLACES the existing value instead of
+# merging with it. A single node overwrites "count" and "animals" outright.
+
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
 

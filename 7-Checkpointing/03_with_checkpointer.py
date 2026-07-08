@@ -1,3 +1,8 @@
+# Same chatbot as 02_no_memory.py, but compiled WITH a MemorySaver
+# checkpointer and a fixed thread_id. Now a second invoke() on the same
+# thread remembers the first turn, proving the checkpointer is what
+# provides conversational memory.
+
 from typing import Annotated
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
@@ -7,13 +12,19 @@ from langgraph.checkpoint.memory import MemorySaver
 
 client = OpenAI()
 
+# LangChain messages use type "human"/"ai", but the OpenAI API expects "user"/"assistant".
+ROLE_MAP = {"human": "user", "ai": "assistant"}
+
 
 class State(TypedDict):
     messages: Annotated[list, add_messages]
 
 
 def chat_node(state: State):
-    messages = [{"role": m.type, "content": m.content} for m in state["messages"]]
+    messages = [
+        {"role": ROLE_MAP.get(m.type, m.type), "content": m.content}
+        for m in state["messages"]
+    ]
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=messages,

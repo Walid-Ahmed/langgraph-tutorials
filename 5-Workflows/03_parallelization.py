@@ -1,3 +1,7 @@
+# Parallelization (fan-out/fan-in): START branches into three independent
+# LLM nodes that each write a different social-media post for the same
+# topic, then all three branches converge on one aggregator node.
+
 import sys
 from pathlib import Path
 from typing import TypedDict

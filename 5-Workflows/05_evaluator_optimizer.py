@@ -1,3 +1,7 @@
+# Evaluator-optimizer workflow: a generator writes a joke, an evaluator LLM
+# grades it via structured output, and a router loops back to the generator
+# with feedback until the joke is judged "funny" — an unbounded retry loop.
+
 import sys
 from pathlib import Path
 from typing import Literal, TypedDict, cast

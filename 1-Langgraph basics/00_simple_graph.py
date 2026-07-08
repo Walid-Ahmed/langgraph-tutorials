@@ -1,3 +1,7 @@
+# The smallest possible LangGraph program: one state schema, one node, one
+# edge in and one edge out. Builds a graph that upper-cases an input string
+# and increments a step counter, then compiles and runs it once.
+
 import sys
 from pathlib import Path
 from typing import TypedDict

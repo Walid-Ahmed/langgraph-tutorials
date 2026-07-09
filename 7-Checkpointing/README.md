@@ -187,6 +187,8 @@ flowchart TD
 
 The earlier examples show a fixed number of checkpoints. This one shows why that count is actually *variable*: a document goes through an `analyze → revise → analyze` loop until the LLM scores it 8+ **or** a `MAX_ITERATIONS` cap is hit (the same loop-guard pattern as [`ex4_evaluator_loop_guard.py`](../Exercise-Solutions/5-workflows/ex4_evaluator_loop_guard.py) — without it, a stubborn low score could loop forever). Every node run — including every pass through the loop — writes its own checkpoint, so `get_state_history` ends up with as many entries as the loop actually took.
 
+> In this example, checkpointing is mainly used for **inspection and debugging**. The document review loop could run without a checkpointer, but the checkpointer lets you inspect the saved state after each stage and understand exactly how the workflow reached its final output.
+
 ```python
 def route_after_analysis(state: DocumentState) -> Literal["revise", "finalize"]:
     if state["quality_score"] >= 8:

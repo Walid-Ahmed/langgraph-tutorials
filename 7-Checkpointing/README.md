@@ -242,12 +242,12 @@ Graph from the code:
 
 ![Human review approval graph](diagrams/07_human_review_approval_graph.png)
 
-This example combines three ideas: checkpointing, human-in-the-loop, and conditional routing. The graph starts normally: an LLM writes a draft. Then it pauses **before** the review-decision node, prints the actual draft, and asks the user in the terminal whether to approve it or request changes.
+This example combines three ideas: checkpointing, human-in-the-loop, and conditional routing. The script first asks what you want drafted. Then the graph starts: an LLM writes the draft and LangGraph pauses **before** the `review_decision` node. While the graph is paused, the terminal shows the actual draft and asks the user whether to approve it or request changes.
 
 ```mermaid
 flowchart LR
     START([START]) --> DRAFT["create_draft"]
-    DRAFT --> REVIEW["human_review"]
+    DRAFT --> REVIEW["review_decision"]
     REVIEW --> ROUTE{"approved?"}
     ROUTE -->|yes| FINALIZE["finalize"]
     ROUTE -->|no| REVISE["revise"]
@@ -255,23 +255,26 @@ flowchart LR
     REVISE --> END
 ```
 
-The important idea is that the human decision happens **after** the draft exists. The user reads the generated draft, types approval or feedback, and that decision is written into the saved checkpoint for the same `thread_id`.
+The important idea is that the human is **outside the graph** during the pause. The user reads the generated draft, types approval or feedback in the terminal, and that decision is written into the saved checkpoint for the same `thread_id`. The `review_decision` node runs only after resume; it does not collect input itself.
 
 ```python
-decision = input("Approve this draft? (y/n): ")
+result = graph.invoke(initial_input, config)  # pauses after create_draft
 
+print(result["draft"])  # human reviews the real draft outside the graph
+
+decision = input("Approve this draft? (y/n): ")
 if decision == "y":
     graph.update_state(config, {"approved": True, "feedback": ""})
 else:
     feedback = input("What should be improved? ")
     graph.update_state(config, {"approved": False, "feedback": feedback})
 
-final_state = graph.invoke(None, config)
+final_state = graph.invoke(None, config)  # resumes at review_decision
 ```
 
-`update_state(...)` edits the saved checkpoint. `invoke(None, config)` means “resume this same thread from its saved checkpoint; do not start from `START` with fresh input.” Because the checkpoint was paused before the review-decision node, the graph continues there, reads the updated `approved` and `feedback` values, then routes to either `finalize` or `revise`.
+`update_state(...)` edits the saved checkpoint. `invoke(None, config)` means “resume this same thread from its saved checkpoint; do not start from `START` with fresh input.” Because the checkpoint was paused before `review_decision`, the graph continues there, reads the updated `approved` and `feedback` values, then routes to either `finalize` or `revise`.
 
-This is the reason the interrupt matters: the feedback is not known before the graph starts. It depends on the exact draft the LLM generated. In a real app, the same decision could come from a UI button, Slack approval, email review, or any human approval step.
+This is the reason the interrupt matters: the feedback is not known before the graph starts. It depends on the exact draft the LLM generated, so the graph must stop long enough for the user to inspect that draft. In a real app, the same decision could come from a UI button, Slack approval, email review, or any human approval step.
 
 ## Setup
 

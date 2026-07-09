@@ -1,7 +1,7 @@
 # Demonstrates human-in-the-loop checkpointing with approval routing:
-# an LLM creates a draft, the graph pauses before the review decision node,
-# the user reviews the actual draft in the terminal, then update_state()
-# saves that decision before invoke(None, config) resumes the graph.
+# an LLM creates a draft, the graph pauses before a review_decision node,
+# the user reviews the actual draft outside the graph in the terminal,
+# then update_state() saves that decision before invoke(None, config) resumes.
 
 import sys
 from pathlib import Path
@@ -48,11 +48,13 @@ def create_draft(state: ApprovalState) -> dict:
     return {"draft": response.content}
 
 
-def human_review(state: ApprovalState) -> dict:
-    """Runs after the user decision has been saved into state."""
+def review_decision(state: ApprovalState) -> dict:
+    """Process the decision the user made outside the graph during the pause."""
     step_print("👁️", "REVIEW DECISION NODE", "Using the user's saved decision.")
     decision = "APPROVED ✅" if state["approved"] else "REJECTED ❌"
     print(f"   Decision: {decision}")
+    if state["feedback"]:
+        print(f"   Feedback: {state['feedback']}")
     return {}
 
 
@@ -88,14 +90,14 @@ def build_graph():
     builder = StateGraph(ApprovalState)
 
     builder.add_node("create_draft", create_draft)
-    builder.add_node("human_review", human_review)
+    builder.add_node("review_decision", review_decision)
     builder.add_node("finalize", finalize)
     builder.add_node("revise", revise)
 
     builder.add_edge(START, "create_draft")
-    builder.add_edge("create_draft", "human_review")
+    builder.add_edge("create_draft", "review_decision")
     builder.add_conditional_edges(
-        "human_review",
+        "review_decision",
         route_human_decision,
         {"finalize": "finalize", "revise": "revise"},
     )
@@ -104,14 +106,31 @@ def build_graph():
 
     checkpointer = MemorySaver()
 
-    # `interrupt_before=["human_review"]` means the graph stops after
-    # `create_draft` and saves a checkpoint before `human_review` runs.
-    # This gives a person time to inspect the draft and update the state.
-    return builder.compile(checkpointer=checkpointer, interrupt_before=["human_review"])
+    # `interrupt_before=["review_decision"]` means the graph stops after
+    # `create_draft` and saves a checkpoint before the decision node runs.
+    # The human can now inspect the real draft outside the graph, then
+    # update the saved state with approval or feedback before resuming.
+    return builder.compile(checkpointer=checkpointer, interrupt_before=["review_decision"])
 
 
-def ask_for_review_decision() -> dict:
-    """Collect the real human decision from the terminal."""
+def ask_for_request() -> str:
+    """Collect the real task the user wants drafted."""
+    request = input(
+        "What should the assistant draft?\n"
+        "Example: Write a thank-you email after a job interview.\n> "
+    ).strip()
+    if request:
+        return request
+    return "Write a thank-you email after a job interview"
+
+
+def ask_for_review_decision(draft: str) -> dict:
+    """Collect the real human decision from the terminal after showing the draft."""
+    print("\nDraft to review:")
+    print("-" * 55)
+    print(draft)
+    print("-" * 55)
+
     while True:
         decision = input("\nApprove this draft? (y/n): ").strip().lower()
         if decision in {"y", "yes"}:
@@ -137,10 +156,13 @@ def main() -> None:
     print("START → create_draft → ⏸ review_decision ──approve──→ finalize → END")
     print("                                         ╚──reject──→ revise   → END")
 
-    phase_banner(1, "RUN UNTIL INTERRUPT")
+    phase_banner(1, "USER ENTERS A REAL DRAFTING REQUEST")
+    user_request = ask_for_request()
+
+    phase_banner(2, "RUN UNTIL INTERRUPT")
     result = graph.invoke(
         {
-            "request": "Write a thank-you email after a job interview",
+            "request": user_request,
             "draft": "",
             "approved": False,
             "feedback": "",
@@ -150,13 +172,9 @@ def main() -> None:
     )
 
     step_print("⏸️", "PAUSED", "Graph frozen before the review decision node.")
-    print("\nDraft to review:")
-    print("-" * 55)
-    print(result["draft"])
-    print("-" * 55)
 
-    phase_banner(2, "USER REVIEWS THE DRAFT")
-    decision_update = ask_for_review_decision()
+    phase_banner(3, "USER REVIEWS THE ACTUAL DRAFT")
+    decision_update = ask_for_review_decision(result["draft"])
 
     # update_state() edits the saved checkpoint for this thread. The next
     # invoke(None, config) resumes from that checkpoint with the user's values.
@@ -164,7 +182,7 @@ def main() -> None:
     print(f"   Saved approved: {decision_update['approved']}")
     print(f"   Saved feedback: {decision_update['feedback']!r}")
 
-    phase_banner(3, "RESUME FROM CHECKPOINT")
+    phase_banner(4, "RESUME FROM CHECKPOINT")
     print("   Resuming graph with invoke(None, config)...")
     final_state = graph.invoke(None, config)
 

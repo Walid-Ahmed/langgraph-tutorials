@@ -2,6 +2,8 @@
 
 Solutions to the exercises from tutorials 1–6. Each file is self-contained and runnable from the repo root.
 
+Attempt each exercise yourself before opening its solution — the exercises are designed so that the gap between "I read the tutorial" and "I can build it" is exactly what you practice here. When you do read a solution, compare its approach with yours rather than just confirming it runs: most exercises have more than one valid wiring.
+
 ## Structure
 
 | Folder | Tutorial |
@@ -61,6 +63,9 @@ OPENAI_API_KEY=your_key_here
 | `5-workflows/ex1_tone_step.py` | Extend prompt chain with a casual tone step |
 | `5-workflows/ex2_parallel_haiku.py` | Add a haiku branch to the parallelization example |
 | `5-workflows/ex3_structured_router.py` | Classify input and route to a specialist node |
+| `5-workflows/ex4_evaluator_loop_guard.py` | Add a MAX_ITERATIONS guard to the evaluator-optimizer loop |
+| `5-workflows/ex5_evaluator_headline_writer.py` | Swap the domain: headline writer graded clear/unclear |
+| `5-workflows/ex6_evaluator_strict_score.py` | Stricter evaluator with a numeric 1–10 score, accept ≥ 8 |
 
 ### 6. Agents
 | File | Exercise |

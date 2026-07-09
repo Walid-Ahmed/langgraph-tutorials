@@ -1,226 +1,45 @@
-# 2. Reducers
+# 2. Reducers — Controlling How State Updates Merge
 
-This tutorial teaches reducers by showing the same idea in two worlds: first without reducers, then with reducers.
+**Example files:**
+- [`01_state_without_reducer.py`](01_state_without_reducer.py) — the default: updates overwrite
+- [`02_custom_reducer.py`](02_custom_reducer.py) — custom merge rules per field
+- [`03_messages_reducer.py`](03_messages_reducer.py) — the built-in `add_messages` reducer
 
-## Prerequisites
+Tutorial 1 said "LangGraph merges the node's return value into the state." This tutorial answers the question that statement hides: **merges *how*?** The answer is per-field, and you control it with reducers. No LLM or API key is needed for any of these examples.
 
-- Complete [1. LangGraph Basics](../1-Langgraph%20basics/README.md) first
-- You should know: `StateGraph`, `add_node`, `add_edge`, `compile`, `invoke`
-- No API key needed — these examples use no LLM
+## The Concept: A Merge Rule Per Field
 
-## What You'll Learn
-
-After this tutorial, you will be able to:
-
-- Explain the difference between replacing and merging state updates
-- Attach custom reducers to state fields with `Annotated`
-- Use `add_messages` to append conversation history instead of replacing it
-
-## Part 1 — Core Tutorial
-
-A node usually returns a partial state update. LangGraph then has to answer an important question:
+**What is it?** A reducer is a function attached to a single state field that decides how a node's update combines with the field's existing value. Its signature is always the same shape:
 
 ```text
-Should this update replace the old value, or should it be combined with the old value?
+reducer(current_value, new_value) → merged_value
 ```
 
-That combining rule is called a **reducer**.
+**What problem does it solve?** When a node returns `{"count": 1}`, LangGraph must choose between two interpretations: *"set count to 1"* or *"combine 1 with what's already there."* Both are legitimate — it depends on the field. A `status` field should be overwritten; a conversation history should never be. Reducers let each field declare its own answer, so nodes can stay simple (return what you produced) while the schema handles accumulation.
+
+**When do you need one?** Any field that *accumulates* across nodes: message histories, collected results, counters, logs. Reducers become non-negotiable in two situations you'll hit later in this series:
+- **Loops** (tutorials 4–5): a node that runs multiple times would erase its own previous output.
+- **Parallel branches** (tutorial 5): several nodes write the same field in the same step — without a reducer, LangGraph has no way to combine the concurrent writes, and you get either lost data or an error.
+
+**When is the default fine?** Fields that hold "the current value of something" — the latest draft, a routing decision, a flag. Overwriting is exactly right there. Don't reflexively add reducers to every field; overwrite semantics are the correct choice more often than not.
+
+**Intuition:** think of each state field as a ledger with its own posting rule. Some ledgers record only the latest balance (overwrite). Some append every transaction (list concat). Some keep a running total (sum). The node just submits an entry; the ledger's rule decides what the page looks like afterward.
+
+## Architecture
+
+All three examples deliberately use the *same* trivial graph:
 
 ```mermaid
 flowchart LR
-    OLD["old state"] --> RULE["reducer rule"]
-    NEW["node update"] --> RULE
-    RULE --> FINAL["final state"]
+    START([START]) --> U["update_node"]
+    U --> END([END])
 ```
 
-Without a reducer, the update usually replaces the old value. With a reducer, you choose how values are merged. In LangGraph, reducer rules live on individual state fields, so one field can replace while another field appends.
+That's the point of the design: since the wiring never changes, any difference in output must come from the state schema alone. The experiment isolates one variable.
 
-All examples use the same graph shape:
+## Code Highlights
 
-```mermaid
-flowchart LR
-    START([START]) --> UPDATE["update_node"]
-    UPDATE --> END([END])
-```
-
-The interesting part is not the graph path. The interesting part is what happens to state after `update_node` returns.
-
-### What To Look For In The Code Example
-
-Part 2 is the practical version of the reducer concept. It uses three files to show the same idea step by step:
-
-| Concept | Code To Watch |
-|---|---|
-| No reducer | `StateWithoutReducer` |
-| Node update | `node_to_update()` returns `{"count": 1, "animals": ["cat"]}` |
-| Custom reducer | `custom_increment(current, new)` |
-| Attach reducer | `Annotated[int, custom_increment]` |
-| Message reducer | `Annotated[List[HumanMessage], add_messages]` |
-
-So when you read the code, focus on the state schema first. That is where reducer behavior is defined.
-
-## Part 2 — Code Example That Reinforces The Concept
-
-### Example A: Without A Reducer
-
-File:
-
-```text
-01_state_without_reducer.py
-```
-
-Graph from the code:
-
-```mermaid
-flowchart LR
-    START([START]) --> UPDATE["update_node"]
-    UPDATE --> END([END])
-```
-
-Initial state:
-
-```python
-{
-    "count": 5,
-    "animals": ["lion", "tiger"]
-}
-```
-
-Node update:
-
-```python
-{
-    "count": 1,
-    "animals": ["cat"]
-}
-```
-
-Because there is no reducer, the old values are replaced:
-
-```mermaid
-flowchart TD
-    A["count = 5"] --> B["update count = 1"]
-    B --> C["final count = 1"]
-
-    D["animals = lion, tiger"] --> E["update animals = cat"]
-    E --> F["final animals = cat"]
-```
-
-Final state:
-
-```python
-{
-    "count": 1,
-    "animals": ["cat"]
-}
-```
-
-What to notice: `5` disappeared, and `["lion", "tiger"]` disappeared. That is replacement behavior.
-
-### Example B: With Reducers
-
-File:
-
-```text
-02_custom_reducer.py
-```
-
-Now the state tells LangGraph how to merge updates:
-
-```python
-count: Annotated[int, custom_increment]
-animals: Annotated[List[str], add]
-```
-
-So the same style of update behaves differently:
-
-```mermaid
-flowchart TD
-    A["old count = 5"] --> R1["custom_increment"]
-    B["new count = 1"] --> R1
-    R1 --> C["final count = 6"]
-
-    D["old animals = lion, tiger"] --> R2["add"]
-    E["new animals = cat"] --> R2
-    R2 --> F["final animals = lion, tiger, cat"]
-```
-
-Final state:
-
-```python
-{
-    "count": 6,
-    "animals": ["lion", "tiger", "cat"]
-}
-```
-
-What to notice: the old values stayed, and the new values were combined with them. That is reducer behavior.
-
-### Example C: Message Reducer
-
-File:
-
-```text
-03_messages_reducer.py
-```
-
-Graph from the code:
-
-```mermaid
-flowchart LR
-    START([START]) --> MESSAGE["message_node"]
-    MESSAGE --> END([END])
-```
-
-Conversation history should not be replaced every time a new message appears. For that, LangGraph provides `add_messages`, the message-focused reducer used throughout chat and tool-calling graphs.
-
-```mermaid
-flowchart TD
-    A["Initial message"] --> R["add_messages"]
-    B["Hello from the node!"] --> R
-    R --> C["Initial message + Hello from the node!"]
-```
-
-Final messages:
-
-```text
-Initial message.
-Hello from the node!
-```
-
-Run the examples from the repo root:
-
-```bash
-python "2-Reducer/01_state_without_reducer.py"
-python "2-Reducer/02_custom_reducer.py"
-python "2-Reducer/03_messages_reducer.py"
-```
-
-### Try It Yourself
-
-In `02_custom_reducer.py`, change the node update from `"count": 1` to `"count": 10`. The final count should become `15` because the reducer adds the old and new values.
-
-### Exercises
-
-**Exercise 1 — Write a max reducer**
-
-Create a new state field `high_score: int` with a custom reducer that always keeps whichever value is higher. Start with `high_score: 42`, have a node return `{"high_score": 10}`, and verify the final value is still `42`. Then try returning `{"high_score": 100}` and verify it becomes `100`.
-
-*Hint:* Your reducer function receives `(current, new)` and returns one value.
-
-**Exercise 2 — Deduplicate a list**
-
-Add an `animals` field with a reducer that appends new items but skips duplicates. If the state already contains `["lion", "tiger"]` and a node returns `{"animals": ["tiger", "cat"]}`, the final list should be `["lion", "tiger", "cat"]`.
-
-*Hint:* Convert to a set inside the reducer, then back to a list — but sets don't preserve order if that matters to you.
-
-**Exercise 3 — Run two nodes in sequence and watch the reducer accumulate**
-
-In `02_custom_reducer.py`, add a second node that also increments `count`. Wire the graph as `START → node_a → node_b → END`. Start with `count: 0`, have each node return `{"count": 5}`, and confirm the final count is `10`. This shows that reducers work across every node in the graph, not just the last one.
-
-## Code Explanation
-
-Without a reducer:
+### Example A — no reducer, so updates replace
 
 ```python
 class StateWithoutReducer(TypedDict):
@@ -228,38 +47,126 @@ class StateWithoutReducer(TypedDict):
     animals: list[str]
 ```
 
-There is no merge rule attached to `count` or `animals`, so returned values replace old values.
+Plain type hints, no merge rules. The node returns `{"count": 1, "animals": ["cat"]}` against an initial state of `{"count": 5, "animals": ["lion", "tiger"]}`. Result: `5` is gone, the lions and tigers are gone. The update didn't *combine* — it *won*.
 
-With a custom reducer:
+### Example B — `Annotated` attaches the merge rule to the type
 
 ```python
 def custom_increment(current: int, new: int) -> int:
     return current + new
+
+class StateWithCustomReducer(TypedDict):
+    count: Annotated[int, custom_increment]
+    animals: Annotated[List[str], add]   # operator.add concatenates lists
 ```
 
-This function receives the current value and the new update, then returns the merged value.
+`Annotated[type, reducer]` is the entire mechanism. Note what did **not** change between examples A and B: the node function is byte-for-byte the same return statement. Where the update lands differently is decided by the schema, not the node. This is deliberate separation of concerns — nodes describe *what happened*, the schema describes *how history is kept*.
+
+Also note the reducer for `animals` is just `operator.add` from the standard library. Any `(current, new) → merged` function qualifies; nothing about reducers is LangGraph-specific magic.
+
+### Example C — `add_messages`, the reducer you'll use most
 
 ```python
-count: Annotated[int, custom_increment]
-animals: Annotated[List[str], add]
+from langgraph.graph.message import add_messages
+
+class StateWithMessages(TypedDict):
+    messages: Annotated[List[HumanMessage], add_messages]
 ```
 
-`Annotated` attaches a reducer to a field. `custom_increment` adds numbers. `add` concatenates lists.
+The node returns a list containing **one** new `HumanMessage`, and the final state contains the initial message *plus* the new one. `add_messages` is LangGraph's built-in reducer for conversation history — it appends new messages, and (beyond simple appending) it also understands message identity, so a message re-sent with the same ID updates in place rather than duplicating. Every chat example in tutorials 3, 6, and 7 relies on this one line.
 
-For messages:
+## Execution Walkthrough
+
+State evolution for each example, same node behavior, three different schemas:
+
+```text
+Example A (no reducer — overwrite):
+  {"count": 5, "animals": ["lion", "tiger"]}
+      ↓  node returns {"count": 1, "animals": ["cat"]}
+  {"count": 1, "animals": ["cat"]}                       ← old values destroyed
+
+Example B (custom reducers — combine):
+  {"count": 5, "animals": ["lion", "tiger"]}
+      ↓  node returns {"count": 1, "animals": ["cat"]}
+      ↓  custom_increment(5, 1) → 6 ; add(["lion","tiger"], ["cat"]) → all three
+  {"count": 6, "animals": ["lion", "tiger", "cat"]}      ← old values preserved
+
+Example C (add_messages — append):
+  messages: [Initial message.]
+      ↓  node returns one new HumanMessage
+  messages: [Initial message., Hello from the node!]
+```
+
+The key mental model: **the node's return value is not a state assignment — it is an *argument* passed to each field's reducer.** With no reducer declared, the "reducer" is effectively `lambda current, new: new`.
+
+Same node return, two schemas, two outcomes:
+
+```mermaid
+flowchart TB
+    subgraph NR["01 — no reducer: update WINS"]
+        direction LR
+        O1["count: 5<br/>animals: [lion, tiger]"] -->|"node returns<br/>count: 1, animals: [cat]"| O2["count: 1<br/>animals: [cat]<br/>(old values destroyed)"]
+    end
+    subgraph WR["02 — with reducers: update COMBINES"]
+        direction LR
+        W1["count: 5<br/>animals: [lion, tiger]"] -->|"identical node return"| W2["count: 6 = custom_increment(5, 1)<br/>animals: [lion, tiger, cat] = add(...)"]
+    end
+```
+
+## Overwrite vs. Reducer at a Glance
+
+| | Without reducer | With reducer |
+|---|---|---|
+| Node returns `{"count": 1}` means | "count is now 1" | "apply 1 to count via the rule" |
+| Old value | discarded | passed into the reducer |
+| Safe in loops? | node erases its own history | accumulates correctly |
+| Safe with parallel writers? | conflicting writes | writes merge deterministically |
+| Right for | current status, latest draft, flags | histories, collections, counters, logs |
+
+## Running the Examples
+
+From the repo root:
+
+```bash
+python "2-Reducer/01_state_without_reducer.py"
+python "2-Reducer/02_custom_reducer.py"
+python "2-Reducer/03_messages_reducer.py"
+```
+
+Expected final states, respectively:
 
 ```python
-messages: Annotated[List[HumanMessage], add_messages]
+{'count': 1, 'animals': ['cat']}                          # A: replaced
+{'count': 6, 'animals': ['lion', 'tiger', 'cat']}         # B: merged
+# C prints both message contents: "Initial message." then "Hello from the node!"
 ```
 
-`add_messages` preserves existing message history and appends new messages. This is why message state can grow turn by turn instead of being overwritten.
+Quick experiment: in `02_custom_reducer.py`, change the node's return to `"count": 10` — the final count becomes `15`, because the reducer computes `5 + 10` rather than assigning.
 
-## What You Learned
+## Design Questions Worth Asking
 
-- Without a reducer, node updates **replace** existing values
-- With `Annotated[field, reducer]`, you control how updates are **merged**
-- `add_messages` is the standard reducer for growing conversation history
+- **Why put the merge rule on the field instead of inside the node?** Because multiple nodes may write the same field. If accumulation logic lived in nodes, every writer would have to re-implement it identically — and parallel writers couldn't coordinate at all. One rule on the schema governs all writers.
+- **What happens if you remove `Annotated[..., add]` from `animals` in example B?** It silently reverts to overwrite behavior — no error, just lost data. Reducer bugs are usually *silent*, which is why it pays to decide overwrite-vs-accumulate explicitly for every field when designing a schema.
+- **Why does the node in example C return a *list* with one message rather than a bare message?** The field's type is a list; the reducer combines list-with-list. Returning a one-element list keeps the contract uniform whether a node produces one message or several.
+
+## Exercises
+
+**Exercise 1 — Write a max reducer.** Field `high_score: int` whose reducer keeps whichever value is higher. Start at `42`, return `{"high_score": 10}` → still `42`; return `{"high_score": 100}` → `100`.
+
+**Exercise 2 — Deduplicate a list.** An `animals` reducer that appends but skips duplicates: `["lion", "tiger"]` + `["tiger", "cat"]` → `["lion", "tiger", "cat"]`. *Hint: sets deduplicate but lose order — decide whether that matters.*
+
+**Exercise 3 — Two nodes accumulating.** Wire `START → node_a → node_b → END`, each returning `{"count": 5}`, starting from `0`. Confirm the result is `10` — reducers apply at *every* node's update, not just the last.
+
+Solutions live in [`Exercise-Solutions/2-reducers/`](../Exercise-Solutions/2-reducers/).
+
+## Key Takeaways
+
+1. A node's return value is an **input to each field's reducer**, not a direct assignment.
+2. Default behavior (no reducer) is **overwrite** — correct for "current value" fields, destructive for histories.
+3. `Annotated[type, fn]` attaches any `(current, new) → merged` function as a field's merge rule; standard-library functions like `operator.add` work fine.
+4. `add_messages` is the standard reducer for conversation history and underpins every chat graph later in this series.
+5. Choose overwrite vs. accumulate **per field, at schema design time** — reducer mistakes fail silently.
 
 ## Next Step
 
-Continue to [3. LLM Messages](../3_LLM_Messages/README.md) to connect an LLM to a graph with message history.
+[Tutorial 3 — LLM Messages](../3_LLM_Messages/README.md): put `add_messages` to work in a real chatbot node that calls an LLM.

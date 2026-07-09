@@ -46,9 +46,11 @@ flowchart TD
 
 Each tutorial follows the same rhythm:
 
-1. Part 1 teaches the core concept in plain language
-2. Part 2 uses a small code example to make that concept concrete
-3. the final Code Explanation connects important code lines back to the concept
+1. the concept and the problem it solves, in plain language with an intuition-building analogy
+2. the architecture of the example — a diagram and a table of what each stage reads and writes
+3. code highlights explaining *why* the important lines are designed the way they are
+4. a step-by-step execution walkthrough showing how state evolves
+5. exercises (with solutions in `Exercise-Solutions/`) and key takeaways
 
 ## Folder Guide
 

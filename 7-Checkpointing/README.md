@@ -1,289 +1,215 @@
-# 7. Checkpointing
+# 7. Checkpointing — Graphs That Remember
 
-This tutorial shows how LangGraph remembers (or forgets) state across multiple `invoke` calls — from simple reducer state, to chatbot memory, to failure recovery.
+**Example files (in reading order):**
 
-## Prerequisites
+| File | Demonstrates | LLM? |
+|---|---|---|
+| [`01_custom_state_reducer.py`](01_custom_state_reducer.py) | what a checkpointer stores; snapshot history | no |
+| [`02_no_memory.py`](02_no_memory.py) | the default: total amnesia between runs | yes |
+| [`03_with_checkpointer.py`](03_with_checkpointer.py) | `MemorySaver` + `thread_id` = automatic memory | yes |
+| [`04_manual_history.py`](04_manual_history.py) | the alternative: caller carries the history | yes |
+| [`05_document_review_loop.py`](05_document_review_loop.py) | checkpoint history through a real revise loop | yes |
+| [`06_resume_after_failure.py`](06_resume_after_failure.py) | crash mid-graph, resume without re-running | no |
+| [`07_human_review_approval.py`](07_human_review_approval.py) | pause → human reviews → update → resume | yes |
 
-- Complete [6. Agents](../6-Agents/README.md) first
-- **OpenAI API key required** for Examples 2–5 and 7: create a `.env` file in the repo root with `OPENAI_API_KEY=your_key_here`
-- You should know: state, nodes, edges, `add_messages`
+**Requires:** `OPENAI_API_KEY` for examples 2, 3, 4, 5, and 7. Examples 1 and 6 are pure Python — start with those to see the mechanism without model noise.
 
-## What You'll Learn
+Every graph in tutorials 1–6 had the same lifespan: `invoke()` starts with the state you pass in, and when it returns, everything is gone. This tutorial adds the missing layer — **persistence** — and shows the four things it unlocks: conversational memory, inspectable history, crash recovery, and human-in-the-loop pauses.
 
-After this tutorial, you will be able to:
+## The Concept: Checkpoints and Threads
 
-- Understand what a checkpointer actually stores, using reducers and `get_state`
-- Understand why a graph forgets by default between runs
-- Use `MemorySaver` and `thread_id` to persist state across runs automatically
-- Pass the full conversation history manually so the LLM remembers without a checkpointer
-- Read a full checkpoint history (`get_state_history`) through a real analyze/revise loop, and cap that loop with a `MAX_ITERATIONS` guard
-- Pause a graph for human review, update the saved state, and resume from the checkpoint
+**What is it?** A **checkpointer** is a storage backend attached at compile time. Once attached, LangGraph saves a **checkpoint** — a full snapshot of the state, plus which node runs next — after every super-step (every node execution). Snapshots are grouped into **threads**: the `thread_id` you pass in the config is the key under which a conversation's checkpoints accumulate.
 
-## Part 1 — Core Tutorial
+```text
+The memory lifecycle, per invoke:
 
-By default, every `graph.invoke(...)` call starts with a blank state. The graph processes the input, returns a result, and then discards everything.
-
-```mermaid
-flowchart LR
-    RUN1["invoke #1\n(state lives here)"] -->|discarded| RUN2["invoke #2\n(fresh state)"]
+invoke(input, config with thread_id)
+      ↓
+load latest checkpoint for that thread   ← (empty thread? start fresh)
+      ↓
+merge input into restored state (via the fields' reducers)
+      ↓
+run node → save checkpoint → run node → save checkpoint → …
+      ↓
+return final state (which is also the newest checkpoint)
 ```
 
-To make the graph remember, you have two options:
+**What problem does it solve?** Three at once:
+1. **Memory** — a second `invoke` on the same thread starts from where the first ended, so a chatbot remembers earlier turns without the caller shipping history around.
+2. **Fault-tolerance** — the graph's progress is durable per node, so a crash at node 5 doesn't cost you nodes 1–4.
+3. **Interruptibility** — because "current position + state" is saved externally, execution can *stop on purpose*, let a human look and edit, and continue later.
 
-**Option A — Checkpointer**: LangGraph saves the state for you after each run and restores it on the next run, linked by a `thread_id`.
+**When is it appropriate?** Multi-turn anything, long-running pipelines with flaky steps, and any flow needing approval gates. **When is it overkill?** One-shot stateless transformations — a checkpointer there is pure overhead. And note the examples use in-memory savers (`MemorySaver` / `InMemorySaver`): memory survives *between invokes in one process*, not across script restarts. Production persistence means a database-backed saver (`SqliteSaver`, `PostgresSaver`) — same API, durable storage.
 
-**Option B — Manual history**: You carry the conversation yourself by passing all previous messages on every invoke call.
+**Intuition:** a checkpointer is autosave in a video game. Each node completed writes a save slot; the `thread_id` is the save file's name. Quit and reload (crash recovery), keep playing tomorrow (memory), or hand the controller to a friend mid-level and let them change the loadout before continuing (human-in-the-loop).
 
-```mermaid
-flowchart TD
-    A["Option A: MemorySaver\nLangGraph saves state automatically"] 
-    B["Option B: Manual history\nYou pass everything each time"]
+## The Three Pieces
+
+```python
+checkpointer = MemorySaver()                              # 1. a store
+graph = builder.compile(checkpointer=checkpointer)        # 2. attached at compile
+config = {"configurable": {"thread_id": "walid-session"}} # 3. a thread key per invoke
+graph.invoke(input, config)
 ```
 
-### Why Checkpointers Matter
+All three are required. Forget the `thread_id` and the checkpointer has nowhere to file the snapshots; two invokes with *different* thread_ids are two independent conversations — that isolation is a feature (one saver, many users).
 
-This tutorial focuses on memory, but the same checkpointer mechanism unlocks other features you'll see later:
+## Walkthrough 1 — What Actually Gets Stored (`01_custom_state_reducer.py`)
 
-| Feature | What the checkpointer enables |
-|---|---|
-| **Memory** | Follow-up messages sent to the same `thread_id` retain earlier conversation state (what this tutorial covers) |
-| **Human-in-the-loop** | A person can inspect, interrupt, and approve a run, then resume it — the checkpointer is what lets execution pick back up |
-| **Time travel** | You can replay or fork a graph from any earlier checkpoint to debug a step or try an alternate path |
-| **Fault-tolerance** | If a node fails mid-run, LangGraph can resume from the last successful super-step instead of starting over — successful sibling nodes aren't re-run |
-
-### Threads and Checkpoints
-
-- **Thread** — the `thread_id` you pass in `config["configurable"]` is the primary key the checkpointer uses to store and load state. Same thread = same accumulated state across runs. Without a `thread_id`, the checkpointer has nothing to save to or restore from.
-- **Checkpoint** — a snapshot of graph state saved after each super-step (one full round of node execution), represented internally as a `StateSnapshot`. `graph.get_state(config)` — used in Example 1 — returns the latest one for a thread.
-
-### The Three Pieces of Checkpointing
-
-| Piece | What it does |
-|---|---|
-| `MemorySaver()` / `InMemorySaver()` | In-memory store that saves graph state after each run |
-| `compile(checkpointer=...)` | Tells the graph to use that store |
-| `config = {"configurable": {"thread_id": "..."}}` | Links runs together — same thread = same memory |
-
-## Part 2 — Code Examples
-
-### Example 1 — Custom state with a reducer (`01_custom_state_reducer.py`)
-
-
-Graph from the code:
-
-```mermaid
-flowchart LR
-    START([START]) --> A["node_a"]
-    A --> B["node_b"]
-    B --> END([END])
-```
-
-Start here — no LLM involved, so it isolates what the checkpointer actually stores. `foo` has no reducer, so each run overwrites it. `bar` uses the `add` reducer, so values accumulate across nodes instead of being replaced. `graph.get_state(config)` shows exactly what's saved for the thread.
+Two plain nodes, no LLM. The state deliberately mixes both update semantics from tutorial 2:
 
 ```python
 class State(TypedDict):
-    foo: str
-    bar: Annotated[list[str], add]  # reducer: appends instead of overwriting
-
-checkpointer = InMemorySaver()
-graph = workflow.compile(checkpointer=checkpointer)
-config = {"configurable": {"thread_id": "1"}}
-
-first_result = graph.invoke({"foo": "", "bar": []}, config)
-print(first_result)
-# → {'foo': 'b', 'bar': ['a', 'b']}
-
-print(graph.get_state(config).values)
-# → {'foo': 'b', 'bar': ['a', 'b']}
-
-second_result = graph.invoke({"foo": "", "bar": []}, config)
-print(second_result)
-# → {'foo': 'b', 'bar': ['a', 'b', 'a', 'b']}
+    foo: str                            # no reducer → overwritten
+    bar: Annotated[list[str], add]      # reducer → accumulates
 ```
 
-The second run uses the same `thread_id`, so the checkpointer restores the previous state before the graph runs again. `foo` is still overwritten by the latest node, but `bar` keeps growing because it has a reducer.
+Invoke the same thread twice with `{"foo": "", "bar": []}` and:
 
-The script also calls `graph.get_state_history(config)`, which returns one checkpoint per super-step — not just the final one. For a two-node graph that's `__start__` → after `node_a` → after `node_b`:
-
+```text
+after invoke #1:  {'foo': 'b', 'bar': ['a', 'b']}
+after invoke #2:  {'foo': 'b', 'bar': ['a', 'b', 'a', 'b']}
 ```
+
+This is the subtlest point in the whole tutorial: **on a resumed thread, your `invoke` input is merged into the restored state through the reducers** — it does not reset the thread. `bar` doubles because the restored `['a', 'b']` keeps accumulating; `foo` looks the same only because it's overwritten anyway. Checkpointing and reducers are one system, not two.
+
+The script also prints `get_state_history(config)` — one `StateSnapshot` per super-step, each recording the values *and* what was about to run:
+
+```text
 checkpoint 0 (next=('__start__',)): {'bar': []}
-checkpoint 1 (next=('node_a',)): {'foo': '', 'bar': []}
-checkpoint 2 (next=('node_b',)): {'foo': 'a', 'bar': ['a']}
-checkpoint 3 (next=done): {'foo': 'b', 'bar': ['a', 'b']}
+checkpoint 1 (next=('node_a',)):    {'foo': '', 'bar': []}
+checkpoint 2 (next=('node_b',)):    {'foo': 'a', 'bar': ['a']}
+checkpoint 3 (next=done):           {'foo': 'b', 'bar': ['a', 'b']}
 ```
 
-`next` tells you which node is about to run from that checkpoint — this is the same mechanism time travel and human-in-the-loop rely on to resume a graph from any prior step.
+That `next` field is the hinge for everything later in this tutorial: resuming, time travel, and human-in-the-loop all mean "load a snapshot and continue from its `next`."
 
-### Example 2 — No memory (`02_no_memory.py`)
+## Walkthrough 2 — Memory: Without, With, and Manual (examples 02 / 03 / 04)
 
+Three scripts, one identical chat graph (`START → chat → END`), three memory strategies:
 
-Graph from the code:
+**02 — no checkpointer.** Run 1: "Hi, my name is Walid." Run 2: "What is my name?" → *"I don't know your name."* Each `invoke` starts blank. This is the baseline that motivates everything else.
 
-```mermaid
-flowchart LR
-    START([START]) --> CHAT["chat"]
-    CHAT --> END([END])
-```
+**03 — checkpointer.** Same code plus the three pieces. Run 2 on thread `"walid-session"` → *"Your name is Walid!"* The caller passed only the new message; LangGraph restored the old turn from the checkpoint and `add_messages` appended the new one.
 
-No checkpointer. Each run starts fresh. The second run has no idea what happened in the first.
+**04 — manual history.** No checkpointer — instead the *caller* threads the transcript forward:
 
 ```python
-graph = builder.compile()  # no checkpointer
-
-graph.invoke({"messages": [{"role": "user", "content": "Hi, my name is Walid"}]})
-
-result = graph.invoke({"messages": [{"role": "user", "content": "What is my name?"}]})
-print(result["messages"][-1].content)
-# → "I don't know your name, you haven't told me."
+result = graph.invoke({"messages": result["messages"] + [new_user_turn]})
 ```
 
-### Example 3 — With checkpointer (`03_with_checkpointer.py`)
+Also works. This is exactly what tutorial 6's Exercise 3 had you do, and it's a legitimate pattern — the point of comparing them side by side:
 
-`MemorySaver` persists the state. The `thread_id` links the two runs so the graph remembers.
+| | No memory (02) | Checkpointer (03) | Manual history (04) |
+|---|---|---|---|
+| Remembers across invokes | no | yes | yes |
+| Who owns the transcript | nobody | LangGraph, keyed by thread | your calling code |
+| Caller passes per turn | new message | new message + `thread_id` | *entire* history + new message |
+| Multiple concurrent users | n/a | trivial (one thread each) | you build the bookkeeping |
+| Also gets crash-resume & pauses | no | **yes** | no |
+
+Manual history covers *memory only*. The checkpointer's real dividend is everything below.
+
+## Walkthrough 3 — History Through a Real Loop (`05_document_review_loop.py`)
+
+A realistic pipeline: `intake → analyze → (revise → analyze)* → finalize`. An LLM scores a deliberately weak Q4 report via structured output (`score`, `issues`, `recommendation`); the router loops through revision until the score reaches 8 **or** an iteration cap fires:
 
 ```python
-checkpointer = MemorySaver()
-graph = builder.compile(checkpointer=checkpointer)
-
-config = {"configurable": {"thread_id": "walid-session"}}
-
-graph.invoke({"messages": [{"role": "user", "content": "Hi, my name is Walid"}]}, config)
-
-result = graph.invoke({"messages": [{"role": "user", "content": "What is my name?"}]}, config)
-print(result["messages"][-1].content)
-# → "Your name is Walid!"
-```
-
-### Example 4 — Manual history (`04_manual_history.py`)
-
-No checkpointer. Memory works because you pass the full conversation on every run. `result["messages"]` always contains everything so far.
-
-```python
-graph = builder.compile()  # no checkpointer needed
-
-result = graph.invoke({"messages": [{"role": "user", "content": "Hi, my name is Walid"}]})
-
-result = graph.invoke({
-    "messages": result["messages"] + [{"role": "user", "content": "What is my name?"}]
-})
-print(result["messages"][-1].content)
-# → "Your name is Walid!"
-```
-
-### Example 5 — Checkpoint history through a real loop (`05_document_review_loop.py`)
-
-
-Graph from the code:
-
-```mermaid
-flowchart TD
-    START([START]) --> INTAKE["intake"]
-    INTAKE --> ANALYZE["analyze"]
-    ANALYZE --> ROUTE{"score >= 8 or max iterations?"}
-    ROUTE -->|revise| REVISE["revise"]
-    REVISE --> ANALYZE
-    ROUTE -->|finalize| FINALIZE["finalize"]
-    FINALIZE --> END([END])
-```
-
-The earlier examples show a fixed number of checkpoints. This one shows why that count is actually *variable*: a document goes through an `analyze → revise → analyze` loop until the LLM scores it 8+ **or** a `MAX_ITERATIONS` cap is hit (the same loop-guard pattern as [`ex4_evaluator_loop_guard.py`](../Exercise-Solutions/5-workflows/ex4_evaluator_loop_guard.py) — without it, a stubborn low score could loop forever). Every node run — including every pass through the loop — writes its own checkpoint, so `get_state_history` ends up with as many entries as the loop actually took.
-
-> In this example, checkpointing is mainly used for **inspection and debugging**. The document review loop could run without a checkpointer, but the checkpointer lets you inspect the saved state after each stage and understand exactly how the workflow reached its final output.
-
-```python
-def route_after_analysis(state: DocumentState) -> Literal["revise", "finalize"]:
-    if state["quality_score"] >= 8:
-        return "finalize"
-    if state["iterations"] >= MAX_ITERATIONS:
-        return "finalize"  # avoid an infinite loop
+def route_after_analysis(state) -> Literal["revise", "finalize"]:
+    if state["quality_score"] >= 8:      return "finalize"
+    if state["iterations"] >= MAX_ITERATIONS: return "finalize"  # never loop forever
     return "revise"
 ```
 
-Running it prints the full checkpoint timeline (newest to oldest), each with its `checkpoint_id`, pending `next` node, and state snapshot — this is the same `StateSnapshot` data `get_state_history` returns in Example 1, just over a longer, branching run.
+(The same loop-guard discipline as tutorial 5's evaluator-optimizer — note `iterations` is incremented *inside* `analyze_quality`, so the evidence for the cap lives in state like every other routing signal.)
 
-### Example 6 — Resume after a failure (`06_resume_after_failure.py`)
+What checkpointing adds here: the loop runs a *variable* number of times, and `get_state_history` captures **every** pass — each analyze, each revise, with its score and pending `next` node. The script prints the whole timeline, newest first. Nothing in this graph *needs* a checkpointer to produce its output; it needs one to let you *reconstruct how the output happened*. That audit trail is a production feature in its own right.
 
+## Walkthrough 4 — Crash and Resume (`06_resume_after_failure.py`)
 
-Graph from the code:
+Three plain nodes; `step_two` is rigged to raise on its first call (a stand-in for a flaky API). The choreography:
+
+```text
+Attempt 1: step_one runs → checkpoint saved → step_two raises → invoke() throws
+           get_state(config).values["log"] == ['step_one']
+           get_state(config).next          == ('step_two',)   ← frozen at the failure point
+
+Attempt 2: graph.invoke(None, config)
+           step_two runs (succeeds now) → step_three runs
+           final log: ['step_one', 'step_two', 'step_three']  ← step_one ran exactly ONCE
+```
 
 ```mermaid
 flowchart LR
-    START([START]) --> ONE["step_one"]
-    ONE --> TWO["step_two"]
-    TWO --> THREE["step_three"]
-    THREE --> END([END])
+    subgraph A1["attempt 1 — invoke(input, config)"]
+        direction LR
+        P1["step_one ✓<br/>checkpoint saved"] --> P2["step_two ✗<br/>raises before saving"]
+    end
+    subgraph A2["attempt 2 — invoke(None, config)"]
+        direction LR
+        P2b["step_two ✓"] --> P3["step_three ✓"]
+    end
+    A1 -. "checkpoint remembers:<br/>next = ('step_two',)<br/>step_one is NOT re-run" .-> A2
 ```
 
-Example 5 only ever calls `invoke` once, so the checkpointer never gets to prove its main real-world value: surviving a crash. This example strips that down to three plain nodes (no LLM) so the fault-tolerance behavior is easy to see. `step_two` is rigged to raise an exception on its first call, simulating a flaky API or a crashed process.
+Two things to internalize:
+
+- **`invoke(None, config)` is the resume idiom.** `None` means "no fresh input — don't start from START"; the `thread_id` identifies which saved position to continue from. LangGraph reads the checkpoint's `next` and picks up there.
+- **Completed work is never repeated.** If `step_one` charged a credit card or sent an email, resuming doesn't do it twice. Without a checkpointer, your only option after the crash is re-running the whole graph — side effects included.
+
+## Walkthrough 5 — Human-in-the-Loop (`07_human_review_approval.py`)
+
+The capstone: an LLM drafts a response, a *human* approves or rejects it, and the graph routes accordingly. The pause-inspect-modify-resume cycle:
+
+```text
+invoke #1        → create_draft runs → graph pauses (checkpoint saved)
+   ⏸ paused      → terminal shows the REAL draft; user types y/n (+ feedback)
+update_state()   → decision written into the saved checkpoint
+invoke #2 (None) → review_decision reads the decision → finalize or revise → END
+```
+
+The mechanics, in code:
 
 ```python
-try:
-    graph.invoke({"log": []}, config)
-except RuntimeError as e:
-    print(f"Graph crashed: {e}")
+graph = builder.compile(checkpointer=checkpointer,
+                        interrupt_before=["review_decision"])   # planned pause
 
-state = graph.get_state(config)
-print(state.values["log"])  # ['step_one'] — step_one's checkpoint was already saved
-print(state.next)           # ('step_two',) — this is where execution stopped
-
-# Resume with input=None: LangGraph continues from the last checkpoint
-# for this thread_id instead of starting over.
-result = graph.invoke(None, config)
-print(result["log"])
-# → ['step_one', 'step_two', 'step_three'] — step_one never re-ran
+result = graph.invoke(initial_input, config)      # runs create_draft, then freezes
+decision = ask_for_review_decision(result["draft"])  # ordinary Python, graph not running
+graph.update_state(config, decision)              # edit the checkpoint in place
+final_state = graph.invoke(None, config)          # resume: review_decision → route
 ```
 
-`step_one` only prints `Running step_one` once across both attempts — that's the checkpointer doing real work, not just bookkeeping. Without it, resuming would mean starting the whole graph from `START` again.
-
-
-### Example 7 — Human review with terminal input (`07_human_review_approval.py`)
-
-Graph from the code:
-
-![Human review approval graph](diagrams/07_human_review_approval_graph.png)
-
-This example combines three ideas: checkpointing, human-in-the-loop, and conditional routing. The script first asks what you want drafted. Then the graph starts: an LLM writes the draft and LangGraph pauses **before** the `review_decision` node. While the graph is paused, the terminal shows the actual draft and asks the user whether to approve it or request changes.
+The full choreography as a sequence — notice the graph is *not running* while the human decides:
 
 ```mermaid
-flowchart LR
-    START([START]) --> DRAFT["create_draft"]
-    DRAFT --> REVIEW["review_decision"]
-    REVIEW --> ROUTE{"approved?"}
-    ROUTE -->|yes| FINALIZE["finalize"]
-    ROUTE -->|no| REVISE["revise"]
-    FINALIZE --> END([END])
-    REVISE --> END
+sequenceDiagram
+    participant H as human (terminal)
+    participant P as plain Python (main)
+    participant G as graph
+    participant C as checkpointer
+    P->>G: invoke #35;1 (request)
+    G->>C: checkpoint after create_draft
+    Note over G: interrupt_before=["review_decision"]<br/>graph pauses here
+    G-->>P: returns — draft is in state
+    P->>H: prints the ACTUAL generated draft
+    H-->>P: y / n (+ feedback)
+    P->>C: update_state(approved, feedback)
+    P->>G: invoke #35;2 — invoke(None, config)
+    C-->>G: load checkpoint, resume at review_decision
+    Note over G: router reads approved →<br/>finalize or revise
+    G-->>P: final state
 ```
 
-The important idea is that the human is **outside the graph** during the pause. The example has two `invoke` calls: the first one creates the draft and pauses; normal Python code then shows the draft to the user and writes the user's approval/feedback into the checkpoint with `update_state`; the second `invoke(None, config)` resumes the graph. The `review_decision` node runs only after resume; it does not collect input itself.
+Design points that make this example worth studying closely:
 
-```python
-# INVOKE #1: run the graph until the interrupt.
-result = graph.invoke(initial_input, config)
-# Runs: START → create_draft → pause before review_decision
+- **The human is *outside* the graph.** `review_decision` doesn't call `input()` — it just reads `approved`/`feedback` from state. The blocking, UI-specific part lives between the two invokes, in ordinary code. Swap the terminal prompt for a Slack button or web form and the graph is untouched.
+- **Why interrupt at all?** Because the human's decision depends on output that doesn't exist until mid-run. You can't collect approval of a draft before the draft is generated. `interrupt_before` is a *planned* stop at exactly that point — same machinery as example 6's *unplanned* stop, deliberate this time.
+- **`update_state` is the third state-writing mechanism** you've now seen: nodes write during execution, reducers merge, and `update_state` edits a saved checkpoint from outside while nothing is running.
 
-# OUTSIDE THE GRAPH: LangGraph is paused here.
-print(result["draft"])  # human reviews the real generated draft
+## Running the Examples
 
-decision = input("Approve this draft? (y/n): ")
-if decision == "y":
-    graph.update_state(config, {"approved": True, "feedback": ""})
-else:
-    feedback = input("What should be improved? ")
-    graph.update_state(config, {"approved": False, "feedback": feedback})
-
-# INVOKE #2: resume from the checkpoint, not from START.
-final_state = graph.invoke(None, config)
-# Continues: review_decision → finalize/revise → END
-```
-
-`update_state(...)` edits the saved checkpoint. `invoke(None, config)` means “resume this same thread from its saved checkpoint; do not start from `START` with fresh input.” Because the checkpoint was paused before `review_decision`, the graph continues there, reads the updated `approved` and `feedback` values, then routes to either `finalize` or `revise`.
-
-This is the reason the interrupt matters: the feedback is not known before the graph starts. It depends on the exact draft the LLM generated, so the graph must stop long enough for the user to inspect that draft. In a real app, the same decision could come from a UI button, Slack approval, email review, or any human approval step.
-
-## Setup
-
-Run from the repo root:
+From the repo root, in order:
 
 ```bash
 python "7-Checkpointing/01_custom_state_reducer.py"
@@ -292,30 +218,24 @@ python "7-Checkpointing/03_with_checkpointer.py"
 python "7-Checkpointing/04_manual_history.py"
 python "7-Checkpointing/05_document_review_loop.py"
 python "7-Checkpointing/06_resume_after_failure.py"
-python "7-Checkpointing/07_human_review_approval.py"
+python "7-Checkpointing/07_human_review_approval.py"   # interactive — it will prompt you
 ```
 
-## Key Differences
+## Design Questions Worth Asking
 
-| | No checkpoint | With checkpoint | Manual history |
-|---|---|---|---|
-| Remembers across runs | No | Yes | Yes |
-| Who carries the memory | Nobody | LangGraph | You |
-| Extra setup | None | `MemorySaver` + `thread_id` | Accumulate `result["messages"]` |
-| Survives script restart | No | No (MemorySaver is in-memory) | No |
+- **What happens if you pass real input (not `None`) when resuming a thread?** It's merged into the restored state through the reducers — that's example 1's doubling `bar`. Resume-in-place is `None`; "continue the conversation with a new turn" is real input. Know which one you mean.
+- **Why does the checkpoint save after every node rather than every invoke?** Per-node granularity is what makes mid-run recovery (example 6) and mid-run pauses (example 7) possible at the exact step needed. Per-invoke saves could only replay whole runs.
+- **When would you still choose manual history over a checkpointer?** When the surrounding application already owns conversation storage (e.g., history lives in your database and is passed per request), or you want zero framework state. You give up resume and interrupts.
+- **What's the production gap in these examples?** `MemorySaver` dies with the process. The graph code doesn't change — swap in `SqliteSaver`/`PostgresSaver` and threads survive restarts and can be shared across workers.
 
-To persist memory across script restarts, swap `MemorySaver` for a database-backed checkpointer like `SqliteSaver` or `PostgresSaver`.
+## Key Takeaways
 
-## What You Learned
+1. Persistence = **checkpointer at compile + `thread_id` at invoke**. Snapshots save after every node; threads keep users' histories isolated.
+2. On a resumed thread, input merges into restored state **through the reducers** — checkpointing and tutorial 2 are one system.
+3. `invoke(None, config)` resumes from the saved position without re-running completed nodes — that's crash recovery, and side effects don't repeat.
+4. Human-in-the-loop is checkpointing plus a *planned* interrupt: pause before the decision node, let ordinary code collect the human's verdict, `update_state`, resume. The graph never blocks on a human.
+5. In-memory savers teach the API; production durability is a one-line swap to a database-backed saver.
 
-- A checkpointer stores whatever your reducers produce — plain fields get overwritten, reduced fields accumulate
-- A graph forgets by default — each `invoke` starts with a blank state
-- `MemorySaver` + `thread_id` lets LangGraph save and restore state automatically
-- Passing the full message history manually is equally valid and requires no checkpointer
-- `get_state_history` returns one checkpoint per super-step, even across a conditional loop — always guard loops like this with a `MAX_ITERATIONS` cap
-- A checkpointer's real payoff is fault-tolerance: after a crash, `invoke(None, config)` resumes from the last successful node instead of re-running the whole graph
-- Human-in-the-loop uses the same mechanism: interrupt, inspect, `update_state`, then `invoke(None, config)` to continue from the saved checkpoint
+## Where to Go Next
 
-## Next Step
-
-For production persistence across restarts, explore `SqliteSaver` from `langgraph.checkpoint.sqlite`.
+You've now covered the full arc: state → reducers → messages → branching → workflow patterns → agents → persistence. Two natural continuations: work through the [`Exercise-Solutions/`](../Exercise-Solutions/) folders you haven't attempted, and explore `SqliteSaver` (`langgraph.checkpoint.sqlite`) to make example 3's chatbot survive a restart.

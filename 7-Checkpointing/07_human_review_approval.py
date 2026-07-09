@@ -49,7 +49,12 @@ def create_draft(state: ApprovalState) -> dict:
 
 
 def review_decision(state: ApprovalState) -> dict:
-    """Process the decision the user made outside the graph during the pause."""
+    """Process the decision the user made outside the graph during the pause.
+
+    Important: this node does NOT ask the human for input. The human already
+    reviewed the draft between invoke #1 and invoke #2, and update_state()
+    saved that decision into the checkpoint before this node runs.
+    """
     step_print("👁️", "REVIEW DECISION NODE", "Using the user's saved decision.")
     decision = "APPROVED ✅" if state["approved"] else "REJECTED ❌"
     print(f"   Decision: {decision}")
@@ -159,7 +164,11 @@ def main() -> None:
     phase_banner(1, "USER ENTERS A REAL DRAFTING REQUEST")
     user_request = ask_for_request()
 
-    phase_banner(2, "RUN UNTIL INTERRUPT")
+    phase_banner(2, "INVOKE #1 — RUN UNTIL INTERRUPT")
+    # INVOKE #1:
+    # Start the graph normally. It runs create_draft, saves the generated
+    # draft in the checkpoint, then pauses BEFORE review_decision because
+    # we compiled with interrupt_before=["review_decision"].
     result = graph.invoke(
         {
             "request": user_request,
@@ -173,17 +182,26 @@ def main() -> None:
 
     step_print("⏸️", "PAUSED", "Graph frozen before the review decision node.")
 
-    phase_banner(3, "USER REVIEWS THE ACTUAL DRAFT")
+    phase_banner(3, "OUTSIDE THE GRAPH — USER REVIEWS THE ACTUAL DRAFT")
+    # OUTSIDE THE GRAPH:
+    # LangGraph is not running here. The saved checkpoint contains the draft,
+    # and regular Python code shows it to the user and collects a decision.
+    # This is the human-in-the-loop part: the human reacts to the actual
+    # generated draft, not to a guessed draft before the graph starts.
     decision_update = ask_for_review_decision(result["draft"])
 
-    # update_state() edits the saved checkpoint for this thread. The next
-    # invoke(None, config) resumes from that checkpoint with the user's values.
+    # update_state() edits the saved checkpoint for this thread. It adds the
+    # user's approval/feedback so the graph can use those values when resumed.
     graph.update_state(config, decision_update)
     print(f"   Saved approved: {decision_update['approved']}")
     print(f"   Saved feedback: {decision_update['feedback']!r}")
 
-    phase_banner(4, "RESUME FROM CHECKPOINT")
+    phase_banner(4, "INVOKE #2 — RESUME FROM CHECKPOINT")
     print("   Resuming graph with invoke(None, config)...")
+    # INVOKE #2:
+    # input=None means "do not start from START with new input."
+    # The same thread_id in config tells LangGraph to load the paused
+    # checkpoint and continue at review_decision.
     final_state = graph.invoke(None, config)
 
     routed_to = "finalize" if decision_update["approved"] else "revise"

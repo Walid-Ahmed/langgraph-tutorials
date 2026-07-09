@@ -255,12 +255,15 @@ flowchart LR
     REVISE --> END
 ```
 
-The important idea is that the human is **outside the graph** during the pause. The user reads the generated draft, types approval or feedback in the terminal, and that decision is written into the saved checkpoint for the same `thread_id`. The `review_decision` node runs only after resume; it does not collect input itself.
+The important idea is that the human is **outside the graph** during the pause. The example has two `invoke` calls: the first one creates the draft and pauses; normal Python code then shows the draft to the user and writes the user's approval/feedback into the checkpoint with `update_state`; the second `invoke(None, config)` resumes the graph. The `review_decision` node runs only after resume; it does not collect input itself.
 
 ```python
-result = graph.invoke(initial_input, config)  # pauses after create_draft
+# INVOKE #1: run the graph until the interrupt.
+result = graph.invoke(initial_input, config)
+# Runs: START → create_draft → pause before review_decision
 
-print(result["draft"])  # human reviews the real draft outside the graph
+# OUTSIDE THE GRAPH: LangGraph is paused here.
+print(result["draft"])  # human reviews the real generated draft
 
 decision = input("Approve this draft? (y/n): ")
 if decision == "y":
@@ -269,7 +272,9 @@ else:
     feedback = input("What should be improved? ")
     graph.update_state(config, {"approved": False, "feedback": feedback})
 
-final_state = graph.invoke(None, config)  # resumes at review_decision
+# INVOKE #2: resume from the checkpoint, not from START.
+final_state = graph.invoke(None, config)
+# Continues: review_decision → finalize/revise → END
 ```
 
 `update_state(...)` edits the saved checkpoint. `invoke(None, config)` means “resume this same thread from its saved checkpoint; do not start from `START` with fresh input.” Because the checkpoint was paused before `review_decision`, the graph continues there, reads the updated `approved` and `feedback` values, then routes to either `finalize` or `revise`.

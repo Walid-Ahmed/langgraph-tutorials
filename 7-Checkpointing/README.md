@@ -5,7 +5,7 @@ This tutorial shows how LangGraph remembers (or forgets) state across multiple `
 ## Prerequisites
 
 - Complete [6. Agents](../6-Agents/README.md) first
-- **OpenAI API key required** for Examples 2–5: create a `.env` file in the repo root with `OPENAI_API_KEY=your_key_here`
+- **OpenAI API key required** for Examples 2–5 and 7: create a `.env` file in the repo root with `OPENAI_API_KEY=your_key_here`
 - You should know: state, nodes, edges, `add_messages`
 
 ## What You'll Learn
@@ -17,6 +17,7 @@ After this tutorial, you will be able to:
 - Use `MemorySaver` and `thread_id` to persist state across runs automatically
 - Pass the full conversation history manually so the LLM remembers without a checkpointer
 - Read a full checkpoint history (`get_state_history`) through a real analyze/revise loop, and cap that loop with a `MAX_ITERATIONS` guard
+- Pause a graph for human review, update the saved state, and resume from the checkpoint
 
 ## Part 1 — Core Tutorial
 
@@ -234,6 +235,44 @@ print(result["log"])
 
 `step_one` only prints `Running step_one` once across both attempts — that's the checkpointer doing real work, not just bookkeeping. Without it, resuming would mean starting the whole graph from `START` again.
 
+
+### Example 7 — Human review with terminal input (`07_human_review_approval.py`)
+
+Graph from the code:
+
+![Human review approval graph](diagrams/07_human_review_approval_graph.png)
+
+This example combines three ideas: checkpointing, human-in-the-loop, and conditional routing. The graph starts normally: an LLM writes a draft. Then it pauses **before** the review-decision node, prints the actual draft, and asks the user in the terminal whether to approve it or request changes.
+
+```mermaid
+flowchart LR
+    START([START]) --> DRAFT["create_draft"]
+    DRAFT --> REVIEW["human_review"]
+    REVIEW --> ROUTE{"approved?"}
+    ROUTE -->|yes| FINALIZE["finalize"]
+    ROUTE -->|no| REVISE["revise"]
+    FINALIZE --> END([END])
+    REVISE --> END
+```
+
+The important idea is that the human decision happens **after** the draft exists. The user reads the generated draft, types approval or feedback, and that decision is written into the saved checkpoint for the same `thread_id`.
+
+```python
+decision = input("Approve this draft? (y/n): ")
+
+if decision == "y":
+    graph.update_state(config, {"approved": True, "feedback": ""})
+else:
+    feedback = input("What should be improved? ")
+    graph.update_state(config, {"approved": False, "feedback": feedback})
+
+final_state = graph.invoke(None, config)
+```
+
+`update_state(...)` edits the saved checkpoint. `invoke(None, config)` means “resume this same thread from its saved checkpoint; do not start from `START` with fresh input.” Because the checkpoint was paused before the review-decision node, the graph continues there, reads the updated `approved` and `feedback` values, then routes to either `finalize` or `revise`.
+
+This is the reason the interrupt matters: the feedback is not known before the graph starts. It depends on the exact draft the LLM generated. In a real app, the same decision could come from a UI button, Slack approval, email review, or any human approval step.
+
 ## Setup
 
 Run from the repo root:
@@ -245,6 +284,7 @@ python "7-Checkpointing/03_with_checkpointer.py"
 python "7-Checkpointing/04_manual_history.py"
 python "7-Checkpointing/05_document_review_loop.py"
 python "7-Checkpointing/06_resume_after_failure.py"
+python "7-Checkpointing/07_human_review_approval.py"
 ```
 
 ## Key Differences
@@ -266,6 +306,7 @@ To persist memory across script restarts, swap `MemorySaver` for a database-back
 - Passing the full message history manually is equally valid and requires no checkpointer
 - `get_state_history` returns one checkpoint per super-step, even across a conditional loop — always guard loops like this with a `MAX_ITERATIONS` cap
 - A checkpointer's real payoff is fault-tolerance: after a crash, `invoke(None, config)` resumes from the last successful node instead of re-running the whole graph
+- Human-in-the-loop uses the same mechanism: interrupt, inspect, `update_state`, then `invoke(None, config)` to continue from the saved checkpoint
 
 ## Next Step
 

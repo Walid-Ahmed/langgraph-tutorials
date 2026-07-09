@@ -66,6 +66,14 @@ File:
 00_simple_graph.py
 ```
 
+Graph from the code:
+
+```mermaid
+flowchart LR
+    START([START]) --> PROCESS["process"]
+    PROCESS --> END([END])
+```
+
 The graph starts with this state:
 
 ```python

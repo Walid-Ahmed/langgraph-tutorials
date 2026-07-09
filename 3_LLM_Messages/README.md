@@ -99,6 +99,14 @@ File:
 04_simple_chatbot.py
 ```
 
+Graph from the code:
+
+```mermaid
+flowchart LR
+    START([START]) --> CHATBOT["chatbot"]
+    CHATBOT --> END([END])
+```
+
 This example uses a manual `ChatState` on purpose — it shows the same pattern that `MessagesState` wraps for you: a `messages` field with the `add_messages` reducer attached.
 
 The example starts with one human message:

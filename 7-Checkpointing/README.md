@@ -67,6 +67,16 @@ This tutorial focuses on memory, but the same checkpointer mechanism unlocks oth
 
 ### Example 1 — Custom state with a reducer (`01_custom_state_reducer.py`)
 
+
+Graph from the code:
+
+```mermaid
+flowchart LR
+    START([START]) --> A["node_a"]
+    A --> B["node_b"]
+    B --> END([END])
+```
+
 Start here — no LLM involved, so it isolates what the checkpointer actually stores. `foo` has no reducer, so each run overwrites it. `bar` uses the `add` reducer, so values accumulate across nodes instead of being replaced. `graph.get_state(config)` shows exactly what's saved for the thread.
 
 ```python
@@ -104,6 +114,15 @@ checkpoint 3 (next=done): {'foo': 'b', 'bar': ['a', 'b']}
 `next` tells you which node is about to run from that checkpoint — this is the same mechanism time travel and human-in-the-loop rely on to resume a graph from any prior step.
 
 ### Example 2 — No memory (`02_no_memory.py`)
+
+
+Graph from the code:
+
+```mermaid
+flowchart LR
+    START([START]) --> CHAT["chat"]
+    CHAT --> END([END])
+```
 
 No checkpointer. Each run starts fresh. The second run has no idea what happened in the first.
 
@@ -152,6 +171,20 @@ print(result["messages"][-1].content)
 
 ### Example 5 — Checkpoint history through a real loop (`05_document_review_loop.py`)
 
+
+Graph from the code:
+
+```mermaid
+flowchart TD
+    START([START]) --> INTAKE["intake"]
+    INTAKE --> ANALYZE["analyze"]
+    ANALYZE --> ROUTE{"score >= 8 or max iterations?"}
+    ROUTE -->|revise| REVISE["revise"]
+    REVISE --> ANALYZE
+    ROUTE -->|finalize| FINALIZE["finalize"]
+    FINALIZE --> END([END])
+```
+
 The earlier examples show a fixed number of checkpoints. This one shows why that count is actually *variable*: a document goes through an `analyze → revise → analyze` loop until the LLM scores it 8+ **or** a `MAX_ITERATIONS` cap is hit (the same loop-guard pattern as [`ex4_evaluator_loop_guard.py`](../Exercise-Solutions/5-workflows/ex4_evaluator_loop_guard.py) — without it, a stubborn low score could loop forever). Every node run — including every pass through the loop — writes its own checkpoint, so `get_state_history` ends up with as many entries as the loop actually took.
 
 ```python
@@ -166,6 +199,17 @@ def route_after_analysis(state: DocumentState) -> Literal["revise", "finalize"]:
 Running it prints the full checkpoint timeline (newest to oldest), each with its `checkpoint_id`, pending `next` node, and state snapshot — this is the same `StateSnapshot` data `get_state_history` returns in Example 1, just over a longer, branching run.
 
 ### Example 6 — Resume after a failure (`06_resume_after_failure.py`)
+
+
+Graph from the code:
+
+```mermaid
+flowchart LR
+    START([START]) --> ONE["step_one"]
+    ONE --> TWO["step_two"]
+    TWO --> THREE["step_three"]
+    THREE --> END([END])
+```
 
 Example 5 only ever calls `invoke` once, so the checkpointer never gets to prove its main real-world value: surviving a crash. This example strips that down to three plain nodes (no LLM) so the fault-tolerance behavior is easy to see. `step_two` is rigged to raise an exception on its first call, simulating a flaky API or a crashed process.
 

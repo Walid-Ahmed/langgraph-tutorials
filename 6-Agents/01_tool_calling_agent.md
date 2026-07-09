@@ -54,7 +54,19 @@ So:
 File:
 
 ```text
-00_tool_calling_agent.py
+01_tool_calling_agent.py
+```
+
+
+Graph from the code:
+
+```mermaid
+flowchart TD
+    START([START]) --> LLM["llm"]
+    LLM --> ROUTER{"tool calls?"}
+    ROUTER -->|yes| TOOLS["ToolNode"]
+    TOOLS --> LLM
+    ROUTER -->|no| END([END])
 ```
 
 Generated LangGraph plot from the code:
@@ -64,7 +76,7 @@ Generated LangGraph plot from the code:
 Run from the repo root:
 
 ```bash
-python "6-Agents/00_tool_calling_agent.py"
+python "6-Agents/01_tool_calling_agent.py"
 ```
 
 The example runs prompts like:

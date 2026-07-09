@@ -30,6 +30,18 @@ The number of iterations is not fixed in code — **the LLM decides**.
 
 File: `00_tool_calling_agent_simple.py`
 
+
+Graph from the code:
+
+```mermaid
+flowchart TD
+    START([START]) --> LLM["llm"]
+    LLM --> ROUTER{"tool calls?"}
+    ROUTER -->|yes| TOOLS["manual_tool_node"]
+    TOOLS --> LLM
+    ROUTER -->|no| END([END])
+```
+
 ### Tools
 
 Three plain arithmetic tools decorated with `@tool`:

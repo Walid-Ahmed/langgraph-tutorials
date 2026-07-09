@@ -31,6 +31,21 @@ Examples:
 
 File: `02_routing.py`
 
+
+Graph from the code:
+
+```mermaid
+flowchart TD
+    START([START]) --> ROUTER["route_question"]
+    ROUTER --> DECIDE{"route"}
+    DECIDE -->|poem| POEM["llm_call_1"]
+    DECIDE -->|story| STORY["llm_call_2"]
+    DECIDE -->|joke| JOKE["llm_call_3"]
+    POEM --> END([END])
+    STORY --> END
+    JOKE --> END
+```
+
 ### How it works
 
 **Router node** — classifies the input using structured output and writes the decision to state:

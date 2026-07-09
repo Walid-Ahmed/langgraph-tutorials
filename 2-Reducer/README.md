@@ -69,6 +69,14 @@ File:
 01_state_without_reducer.py
 ```
 
+Graph from the code:
+
+```mermaid
+flowchart LR
+    START([START]) --> UPDATE["update_node"]
+    UPDATE --> END([END])
+```
+
 Initial state:
 
 ```python
@@ -154,6 +162,14 @@ File:
 
 ```text
 03_messages_reducer.py
+```
+
+Graph from the code:
+
+```mermaid
+flowchart LR
+    START([START]) --> MESSAGE["message_node"]
+    MESSAGE --> END([END])
 ```
 
 Conversation history should not be replaced every time a new message appears. For that, LangGraph provides `add_messages`, the message-focused reducer used throughout chat and tool-calling graphs.

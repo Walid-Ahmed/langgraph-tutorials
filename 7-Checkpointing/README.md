@@ -82,7 +82,7 @@ checkpoint 2 (next=('node_b',)):    {'foo': 'a', 'bar': ['a']}
 checkpoint 3 (next=done):           {'foo': 'b', 'bar': ['a', 'b']}
 ```
 
-That `next` field is the hinge for everything later in this tutorial: resuming, time travel, and human-in-the-loop all mean "load a snapshot and continue from its `next`."
+That `next` field is the hinge for everything later in this tutorial: resuming, time travel, and human-in-the-loop all mean "load a snapshot and continue from its `next`." ("**Time travel**" is the ecosystem's name for the extra trick history enables: since every snapshot carries its own `checkpoint_id`, you can invoke with a config pointing at an *older* checkpoint and re-run — or fork — the graph from that earlier point instead of the latest one. Handy for debugging a bad step without replaying the whole run.)
 
 ## Walkthrough 2 — Memory: Without, With, and Manual (examples 02 / 03 / 04)
 
@@ -227,6 +227,7 @@ python "7-Checkpointing/07_human_review_approval.py"   # interactive — it will
 - **Why does the checkpoint save after every node rather than every invoke?** Per-node granularity is what makes mid-run recovery (example 6) and mid-run pauses (example 7) possible at the exact step needed. Per-invoke saves could only replay whole runs.
 - **When would you still choose manual history over a checkpointer?** When the surrounding application already owns conversation storage (e.g., history lives in your database and is passed per request), or you want zero framework state. You give up resume and interrupts.
 - **What's the production gap in these examples?** `MemorySaver` dies with the process. The graph code doesn't change — swap in `SqliteSaver`/`PostgresSaver` and threads survive restarts and can be shared across workers.
+- **Is the checkpointer where *all* memory belongs?** No — and confusing the two scopes is a classic architecture mistake. A checkpointer is **thread-scoped**: everything it saves lives and dies with one `thread_id`. Store a fact there ("the user prefers concise answers") and it evaporates the moment the same user opens a new conversation thread. Cross-thread, long-lived facts belong in LangGraph's separate **`Store`** interface (e.g. `InMemoryStore`, passed to `compile(checkpointer=..., store=...)`), which namespaces data by keys like a user ID rather than by thread. Rule of thumb: checkpointer = *this conversation's* short-term memory; store = *this user's* long-term memory. This tutorial covers only the first; know the second exists before you architect around threads.
 
 ## Key Takeaways
 

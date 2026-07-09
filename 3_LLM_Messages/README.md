@@ -141,6 +141,7 @@ Always one human message in, one AI message appended — never a replaced list.
 - **Why does the node return `[response]` (a list) rather than `response`?** The reducer merges list-with-list. A one-element list keeps the same contract whether a node emits one message or several — you'll see multi-message returns in the agent tutorial when tool results come back.
 - **What happens if you swap `add_messages` for no reducer?** The returned one-element list *overwrites* the history: the final state would contain only the AI reply, and the next turn's LLM call would have no memory of the user's question. The bug is silent — the graph runs fine, the model just gets amnesia.
 - **Why keep the LLM outside the state?** State is data that changes per run and gets serialized (important for checkpointing later). The model client is configuration — shared, stateless, and not something you want in a snapshot.
+- **Why does the user stare at a blank screen until the whole reply is ready?** Because `invoke()` returns only the final state. Compiled graphs also offer `.stream()`, which yields results as execution progresses — per-node state updates, or with `stream_mode="messages"` the LLM's reply token by token, which is how chat UIs show text appearing live. This series uses `invoke()` to keep output easy to read; when you build a real chat interface, reach for `.stream()`.
 
 ## Exercises
 

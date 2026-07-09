@@ -172,6 +172,8 @@ orchestrator            plans N sources (structured output, max 5)
   └──→ research_worker (source N) ──┘
 ```
 
+If you've met **map-reduce** before, this is exactly that shape in LLM form — *map*: split the work and process pieces independently; *reduce*: merge the pieces into one result. Knowing the name helps when reading other material, since much of the LangGraph ecosystem discusses `Send` under that heading.
+
 Three mechanisms make this work, and they're the heart of the pattern:
 
 **`Send` — dynamic dispatch.** The dispatch function returns a list of `Send` objects instead of a node name:
@@ -230,7 +232,7 @@ else:
 
 First pass: plain generation. Every retry: the evaluator's critique is injected into the prompt. Meanwhile the evaluator uses structured output (`grade: Literal["funny", "not funny"]` plus a `feedback` string) so the router has a reliable branch signal — the same trick as the routing pattern, now powering a loop instead of a dispatch.
 
-**The stopping-criteria caveat — read this before copying the pattern:** the base script loops *until the evaluator says funny*, with no upper bound. That's fine for a demo and dangerous in production: a strict evaluator plus a weak generator means unbounded API spend. [`05_evaluator_optimizer_max_iterations.py`](05_evaluator_optimizer_max_iterations.py) shows the fix — an iteration counter in state and a router that force-exits after `MAX_ITERATIONS` regardless of the verdict. Always ship the bounded version.
+**The stopping-criteria caveat — read this before copying the pattern:** the base script loops *until the evaluator says funny*, with no upper bound of its own. (LangGraph's built-in recursion limit — 25 super-steps by default, then a `GraphRecursionError` — will eventually kill a runaway loop, but "crash after ~12 rejected jokes" is a safety net, not a stopping strategy.) That's fine for a demo and dangerous in production: a strict evaluator plus a weak generator means unbounded API spend up to that crash. [`05_evaluator_optimizer_max_iterations.py`](05_evaluator_optimizer_max_iterations.py) shows the fix — an iteration counter in state and a router that force-exits after `MAX_ITERATIONS` regardless of the verdict. Always ship the bounded version.
 
 **Good fit:** output quality is checkable (by rubric or judge-LLM) and worth extra latency/cost — copy that must meet criteria, code that must pass checks.
 **Poor fit:** no meaningful evaluation signal (the loop just burns tokens), or first-draft quality is already acceptable.

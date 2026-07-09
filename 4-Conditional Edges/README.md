@@ -151,7 +151,7 @@ The script also saves `graph.png` — look at it and note that *both* branches a
 
 - **What happens if the router returns a name not in the mapping?** A runtime error — the mapping is the contract of allowed destinations. Keep the router's possible return values and the mapping dict in sync.
 - **Could the router call an LLM?** Yes — a router is any function of state returning a label. But the cleaner pattern (used in tutorial 5's routing workflow) is: an LLM *node* writes a structured decision into state, then a plain-Python router reads it. That keeps expensive, fallible calls in nodes where their output is captured, and keeps routers trivial and testable.
-- **What if a run's branch never reaches END?** `compile()` validates reachability where it can, but a *logical* dead loop (a cycle with no exit condition) runs until the recursion limit. Every loop needs a counted or condition-based way out — Exercise 2 makes you build one.
+- **What if a run's branch never reaches END?** `compile()` validates reachability where it can, but a *logical* dead loop (a cycle with no exit condition) runs until LangGraph's recursion limit stops it: after **25 super-steps by default**, the run raises a `GraphRecursionError`. You can raise the ceiling per run — `app.invoke(state, config={"recursion_limit": 50})` — but treat that as headroom for legitimately long loops, not as a fix. Every loop still needs its own counted or condition-based exit — Exercise 2 makes you build one.
 
 ## Exercises
 

@@ -127,6 +127,8 @@ Change `"hello"` in `initial_state` to any other word and re-run: the flow is id
 - **Why is `process` a separate named node rather than inline code?** Because edges connect *names*. Naming the step is what lets you later insert a validator before it or a formatter after it without rewriting the step itself.
 - **What does the framework handle vs. you?** LangGraph handles: execution order, state merging, termination. You handle: the state schema, the node logic, and returning correct partial updates. Keeping that division in mind prevents most beginner bugs.
 - **What if a node returns a key not in the schema?** LangGraph state is schema-driven; stick to declared keys. Undeclared keys are not part of the contract and won't be carried reliably.
+- **Does state have to be a `TypedDict`?** No — `StateGraph` also accepts a Pydantic `BaseModel` (which adds runtime validation of inputs) or a dataclass. `TypedDict` is the lightest option and what this repo uses throughout; whichever you pick, use it consistently.
+- **What belongs in state at all?** Only data that must travel between nodes. Temporary values a single node computes and consumes should stay local variables — a lean schema keeps every checkpoint (tutorial 7) small and every node's contract obvious.
 
 ## Exercises
 

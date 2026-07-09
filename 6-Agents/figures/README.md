@@ -1,7 +1,11 @@
 # Agent Figures
 
-This folder stores concept figures used by the agent tutorials.
+Concept illustration embedded in the [agent tutorial](../README.md).
 
-| File | Used For |
+Unlike the auto-generated plot in [`diagrams/`](../diagrams/README.md), this is a **static teaching figure** — a fixed picture of the idea, not something a script regenerates. It's shown near the top of the tutorial to fix the shape of the tool-calling loop in the reader's mind before the code arrives.
+
+| File | Illustrates |
 |---|---|
-| `agent-tool-loop.png` | Tool-calling agent loop |
+| `agent-tool-loop.png` | The tool-calling agent loop: `llm → (needs a tool?) → tools → llm → … → END` |
+
+For the same loop shown *executing over time* — messages accumulating across iterations — see the sequence diagram in the [tutorial's execution walkthrough](../README.md#execution-walkthrough).

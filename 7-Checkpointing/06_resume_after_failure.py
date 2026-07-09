@@ -78,9 +78,10 @@ print(f"\nSaved log so far: {state.values['log']}")
 print(f"Next node to run: {state.next}")  # ('step_two',) — step_one is NOT re-run
 
 # ---------------------------------------------------------
-# 2. Resume: invoking with `None` as input tells LangGraph to continue
-#    from the last checkpoint for this thread_id instead of starting
-#    over. step_one does not run again — only step_two and step_three do.
+# 2. Resume: invoke with input=None AND the same thread_id.
+#    Because the saved checkpoint says the next node is step_two,
+#    LangGraph resumes from step_two instead of starting from START.
+#    step_one does not run again — only step_two and step_three do.
 # ---------------------------------------------------------
 print("\n=== Attempt 2 (resume) ===")
 result = graph.invoke(None, config)

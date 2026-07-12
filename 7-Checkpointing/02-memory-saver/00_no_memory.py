@@ -10,7 +10,7 @@ from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict
 from openai import OpenAI
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
+sys.path.append(str(Path(__file__).resolve().parents[2]))
 from util import plot_graph
 
 client = OpenAI()

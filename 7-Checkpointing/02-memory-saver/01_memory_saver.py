@@ -1,4 +1,4 @@
-# Same chatbot as 02_no_memory.py, but compiled WITH a MemorySaver
+# Same chatbot as 00_no_memory.py, but compiled WITH a MemorySaver
 # checkpointer and a fixed thread_id. Now a second invoke() on the same
 # thread remembers the first turn, proving the checkpointer is what
 # provides conversational memory.
@@ -12,7 +12,7 @@ from typing_extensions import TypedDict
 from openai import OpenAI
 from langgraph.checkpoint.memory import MemorySaver
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
+sys.path.append(str(Path(__file__).resolve().parents[2]))
 from util import plot_graph
 
 client = OpenAI()

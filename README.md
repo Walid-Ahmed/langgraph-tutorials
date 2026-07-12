@@ -62,8 +62,45 @@ Each tutorial follows the same rhythm:
 | `4-Conditional Edges/` | Route to different nodes | Learn how graphs make decisions |
 | `5-Workflows/` | Workflow patterns | Larger LLM designs such as routing, parallel work, orchestration, and evaluation loops |
 | `6-Agents/` | Agent patterns | Dynamic loops where the LLM decides whether to call tools and continue |
-| `7-Checkpointing/` | Persist state across runs | Learn how graphs remember conversation history using MemorySaver or manual history passing |
+| `7-Checkpointing/` | Persist state across runs | Learn thread memory with `MemorySaver`, durable checkpoints with `PostgresSaver`, and how this differs from long-term memory |
 | `Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
+
+
+## Memory Types in This Repo
+
+LangGraph uses the word "memory" in a few related ways. This repo separates them so the ideas do not blur together:
+
+| Memory Type | Scope | Stored In | Survives Python Restart? | Covered In |
+|---|---|---|---|---|
+| No memory | one isolated invoke | nowhere | no | `7-Checkpointing/02-memory-saver/00_no_memory.py` |
+| Manual history | caller-managed conversation | your Python variable / app code | only if your app saves it | `7-Checkpointing/02-memory-saver/02_manual_history.py` |
+| `MemorySaver` | one LangGraph thread | Python process memory | no | `7-Checkpointing/02-memory-saver/01_memory_saver.py` |
+| `PostgresSaver` | many durable LangGraph threads, each keyed by `thread_id` | PostgreSQL checkpoint tables | yes | `7-Checkpointing/08-postgres-saver/` |
+| Long-term memory / `Store` | cross-thread user or app facts | a store such as `PostgresStore` | yes | explained conceptually; not a full code section yet |
+
+The most important distinction:
+
+```text
+MemorySaver    = temporary thread memory
+PostgresSaver  = durable thread memory
+Store          = durable user/app memory across threads
+```
+
+`PostgresSaver` can hold many conversations, but each one is still separate by `thread_id`. It remembers this thread:
+
+```text
+thread_id = "chat_session_walid"
+→ messages and graph state for that conversation
+```
+
+Long-term memory is different. It is usually keyed by a stable user or application id and can be reused across many threads:
+
+```text
+user_id = "walid"
+→ preferences, profile, durable facts
+```
+
+So persistence alone does not mean "long-term memory." `PostgresSaver` persists checkpoints; `Store` is where cross-conversation facts belong.
 
 ## Setup
 

@@ -568,7 +568,7 @@ python "7-Checkpointing/06-postgres-saver/02_recall_name.py"       # new process
 - **Why does the checkpoint save after every node rather than every invoke?** Per-node granularity is what makes mid-run recovery and human-review pauses possible at the exact step needed. Per-invoke saves could only replay whole runs.
 - **When would you still choose manual history over a checkpointer?** When the surrounding application already owns conversation storage (e.g., history lives in your database and is passed per request), or you want zero framework state. You give up resume and interrupts.
 - **What's the production gap in these examples?** `MemorySaver` dies with the process. The graph code doesn't change — swap in `SqliteSaver`/`PostgresSaver` and threads survive restarts and can be shared across workers.
-- **Is the checkpointer where *all* memory belongs?** No — and confusing the two scopes is a classic architecture mistake. A checkpointer is **thread-scoped**: everything it saves lives and dies with one `thread_id`. Store a fact there ("the user prefers concise answers") and it evaporates the moment the same user opens a new conversation thread. Cross-thread, long-lived facts belong in LangGraph's separate **`Store`** interface (e.g. `InMemoryStore`, passed to `compile(checkpointer=..., store=...)`), which namespaces data by keys like a user ID rather than by thread. Rule of thumb: checkpointer = *this conversation's* short-term memory; store = *this user's* long-term memory. This tutorial covers only the first; know the second exists before you architect around threads.
+- **Is the checkpointer where *all* memory belongs?** No — and confusing the two scopes is a classic architecture mistake. A checkpointer is **thread-scoped**: everything it saves lives and dies with one `thread_id`. Store a fact there ("the user prefers concise answers") and it evaporates the moment the same user opens a new conversation thread. Cross-thread, long-lived facts belong in LangGraph's separate **`Store`** interface (e.g. `InMemoryStore`, passed to `compile(checkpointer=..., store=...)`), which namespaces data by keys like a user ID rather than by thread. Rule of thumb: checkpointer = *this conversation's* short-term memory; store = *this user's* long-term memory. This tutorial covers only the first. Continue to [`8-Long-Term-Memory/`](../8-Long-Term-Memory/) for runnable `Store` examples.
 
 ## Key Takeaways
 
@@ -576,7 +576,7 @@ python "7-Checkpointing/06-postgres-saver/02_recall_name.py"       # new process
    snapshots save at super-step boundaries—after each node in a sequential
    graph—and threads keep histories isolated.
 2. On a resumed thread, input merges into restored state **through the reducers** — checkpointing and tutorial 2 are one system.
-3. `invoke(None, config)` resumes from the saved position without re-running completed nodes — that's crash recovery, and side effects don't repeat.
+3. `invoke(None, config)` resumes from the saved position without re-running successfully checkpointed nodes. External side effects still need idempotency protection.
 4. Human-in-the-loop is checkpointing plus a *planned* interrupt: pause before the decision node, let ordinary code collect the human's verdict, `update_state`, resume. The graph never blocks on a human.
 5. In-memory savers teach the API; production durability is a one-line swap to a database-backed saver.
 6. Thread scope is intentional isolation, not short retention: use the same
@@ -587,4 +587,4 @@ python "7-Checkpointing/06-postgres-saver/02_recall_name.py"       # new process
 
 ## Where to Go Next
 
-You've now covered the full arc: state → reducers → messages → branching → workflow patterns → agents → persistence. Two natural continuations: work through the [`Exercise-Solutions/`](../Exercise-Solutions/) folders you haven't attempted, and read [`06-postgres-saver/README.md`](06-postgres-saver/README.md) to see how the in-memory examples map to production-style PostgreSQL checkpointing.
+Continue to [`8-Long-Term-Memory/`](../8-Long-Term-Memory/) to learn how a LangGraph `Store` shares selected user facts across separate threads. Then work through the [`Exercise-Solutions/`](../Exercise-Solutions/) folders you have not attempted. For durable thread checkpoints, revisit the [`PostgresSaver` guide](06-postgres-saver/README.md).

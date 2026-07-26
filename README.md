@@ -8,7 +8,7 @@ This repo is meant to feel like a guided path, not a code dump. Each folder intr
 
 - Python 3.10 or newer
 - Basic Python (functions, dictionaries, classes)
-- An OpenAI API key for LLM examples in tutorials 3, 5, 6, 7, and some exercise solutions
+- An OpenAI API key for LLM examples in tutorials 3, 5, 6, 7, 8, and some exercise solutions
 
 For deeper reference, see the [official LangGraph documentation](https://docs.langchain.com/oss/python/langgraph/overview).
 
@@ -41,7 +41,8 @@ flowchart TD
     D --> E["5. Workflows"]
     E --> F["6. Agents"]
     F --> G["7. Checkpointing"]
-    G -.-> H["Exercise Solutions"]
+    G --> H["8. Long-Term Memory"]
+    H -.-> I["Exercise Solutions"]
 ```
 
 Each tutorial follows the same rhythm:
@@ -63,6 +64,7 @@ Each tutorial follows the same rhythm:
 | `5-Workflows/` | Workflow patterns | Larger LLM designs such as routing, parallel work, orchestration, and evaluation loops |
 | `6-Agents/` | Agent patterns | Dynamic loops where the LLM decides whether to call tools and continue |
 | `7-Checkpointing/` | Persist state across runs | Learn thread memory with `MemorySaver`, durable checkpoints with `PostgresSaver`, and how this differs from long-term memory |
+| `8-Long-Term-Memory/` | Share selected memory across conversations | Learn Store namespaces, `user_id`, `InMemoryStore`, and the path to `PostgresStore` |
 | `Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
 
 
@@ -76,14 +78,31 @@ LangGraph uses the word "memory" in a few related ways. This repo separates them
 | Manual history | caller-managed conversation | your Python variable / app code | only if your app saves it | `7-Checkpointing/02-memory-saver/02_manual_history.py` |
 | `MemorySaver` | one LangGraph thread | Python process memory | no | `7-Checkpointing/02-memory-saver/01_memory_saver.py` |
 | `PostgresSaver` | many durable LangGraph threads, each keyed by `thread_id` | PostgreSQL checkpoint tables | yes | `7-Checkpointing/06-postgres-saver/` |
-| Long-term memory / `Store` | cross-thread user or app facts | a store such as `PostgresStore` | yes | explained conceptually; not a full code section yet |
+| `InMemoryStore` | cross-thread user or app facts | Python process memory | no | `8-Long-Term-Memory/` |
+| `PostgresStore` | durable cross-thread user or app facts | PostgreSQL store tables | yes | `8-Long-Term-Memory/03-postgres-store/` |
 
 The most important distinction:
 
+```mermaid
+flowchart TD
+    MEMORY["LangGraph memory"]
+
+    MEMORY --> SHORT["Short-term memory<br/>one conversation"]
+    SHORT --> THREAD["identified by thread_id"]
+    THREAD --> MS["MemorySaver<br/>Python process only"]
+    THREAD --> PS["PostgresSaver<br/>durable checkpoints"]
+
+    MEMORY --> LONG["Long-term memory<br/>shared across conversations"]
+    LONG --> USER["identified by user_id<br/>inside a Store namespace"]
+    USER --> IMS["InMemoryStore<br/>Python process only"]
+    USER --> PGS["PostgresStore<br/>durable user facts"]
+
+    MEMORY --> MANUAL["Manual history<br/>caller stores and resends messages"]
+```
+
 ```text
-MemorySaver    = temporary thread memory
-PostgresSaver  = durable thread memory
-Store          = durable user/app memory across threads
+Saver = checkpoints graph state and messages by thread_id
+Store = saves selected user or application facts by namespace + key
 ```
 
 `PostgresSaver` can hold many conversations, but each one is still separate by `thread_id`. It remembers this thread:
@@ -101,6 +120,17 @@ user_id = "walid"
 ```
 
 So persistence alone does not mean "long-term memory." `PostgresSaver` persists checkpoints; `Store` is where cross-conversation facts belong.
+
+### Long-term memory examples
+
+Run the new tutorial in this order:
+
+1. [`00_store_basics.py`](8-Long-Term-Memory/00_store_basics.py) — Store hello world with `put`, `get`, and `search`; no LLM or API key.
+2. [`01_simple_cross_thread_memory.py`](8-Long-Term-Memory/01_simple_cross_thread_memory.py) — the simplest complete chatbot using `MemorySaver` plus `InMemoryStore`.
+3. [`02_structured_cross_thread_memory.py`](8-Long-Term-Memory/02_structured_cross_thread_memory.py) — structured extraction, safer merging, and user isolation.
+4. [`03-postgres-store/`](8-Long-Term-Memory/03-postgres-store/) — save a profile in one process and reload it from PostgreSQL in another.
+
+The chatbot examples make two LLM calls per turn: `chat` produces the user-facing response, then `update_memory` extracts and saves user facts. See the [long-term memory tutorial](8-Long-Term-Memory/) for diagrams and a complete walkthrough.
 
 ## Setup
 
@@ -136,6 +166,7 @@ Read and run the folders in order:
 5. [`5-Workflows/`](5-Workflows/)
 6. [`6-Agents/`](6-Agents/)
 7. [`7-Checkpointing/`](7-Checkpointing/)
+8. [`8-Long-Term-Memory/`](8-Long-Term-Memory/)
 
 Use [`Exercise-Solutions/`](Exercise-Solutions/) after trying the exercises yourself.
 
@@ -146,7 +177,7 @@ Each tutorial folder has its own README that works like a mini lesson.
 | Problem | Fix |
 |---|---|
 | `ModuleNotFoundError: No module named 'langgraph'` | Activate the virtual environment and run `pip install -r requirements.txt` |
-| `OpenAI` authentication error in tutorials 3, 5, 6, or 7 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
+| `OpenAI` authentication error in tutorials 3, 5, 6, 7, or 8 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
 | Run commands fail with "file not found" | Run commands from the repo root, not from inside a tutorial folder |
 
 ## Official References Used
@@ -156,6 +187,7 @@ These tutorials are enriched from the official LangChain and LangGraph docs, the
 - [LangGraph overview](https://docs.langchain.com/oss/python/langgraph/overview)
 - [LangGraph Graph API](https://docs.langchain.com/oss/python/langgraph/graph-api)
 - [LangGraph workflows and agents](https://docs.langchain.com/oss/python/langgraph/workflows-agents)
+- [LangGraph memory](https://docs.langchain.com/oss/python/langgraph/add-memory)
 - [LangChain tools](https://docs.langchain.com/oss/python/langchain/tools)
 - [LangChain structured output](https://docs.langchain.com/oss/python/langchain/structured-output)
 

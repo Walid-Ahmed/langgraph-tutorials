@@ -1,4 +1,6 @@
 langgraph
+langgraph-checkpoint-postgres
+psycopg[binary,pool]
 langchain-openai
 python-dotenv
 langchain-tavily

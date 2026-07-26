@@ -18,11 +18,11 @@
 #    OPENAI_API_KEY=your_key_here
 #    DB_URI=postgresql://walidahmed@localhost:5432/langgraph_stm?sslmode=disable
 # 4. Create/validate LangGraph checkpoint tables once:
-#    python "7-Checkpointing/08-postgres-saver/00_setup_tables.py"
+#    python "7-Checkpointing/06-postgres-saver/00_setup_tables.py"
 # 5. Save the first turn:
-#    python "7-Checkpointing/08-postgres-saver/01_save_name.py"
+#    python "7-Checkpointing/06-postgres-saver/01_save_name.py"
 # 6. Then run the second script in a separate process:
-#    python "7-Checkpointing/08-postgres-saver/02_recall_name.py"
+#    python "7-Checkpointing/06-postgres-saver/02_recall_name.py"
 
 import os
 import sys
@@ -42,7 +42,7 @@ load_dotenv()
 DB_URI = os.getenv("DB_URI")
 llm = ChatOpenAI(model="gpt-4o")
 THREAD_ID = "chat_session_walid"
-GRAPH_PATH = "7-Checkpointing/diagrams/08_postgres_saver_graph.png"
+GRAPH_PATH = "7-Checkpointing/diagrams/06_postgres_saver_graph.png"
 
 
 def chatbot(state: MessagesState) -> dict:
@@ -74,7 +74,7 @@ def main() -> None:
 
     with PostgresSaver.from_conn_string(DB_URI) as checkpointer:
         # Tables should already exist. Create them once with:
-        # python "7-Checkpointing/08-postgres-saver/00_setup_tables.py"
+        # python "7-Checkpointing/06-postgres-saver/00_setup_tables.py"
         graph = build_graph(checkpointer)
         plot_graph(graph, GRAPH_PATH)
 
@@ -88,7 +88,7 @@ def main() -> None:
         print(f"\nUser: {message}")
         print(f"AI: {result['messages'][-1].content}")
         print("\nSaved this turn in PostgreSQL.")
-        print("Now stop this script and run: python \"7-Checkpointing/08-postgres-saver/02_recall_name.py\"")
+        print("Now stop this script and run: python \"7-Checkpointing/06-postgres-saver/02_recall_name.py\"")
 
 
 if __name__ == "__main__":

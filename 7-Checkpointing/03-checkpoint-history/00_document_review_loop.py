@@ -4,7 +4,7 @@
 # is its own checkpoint, and the full checkpoint history is printed at the end.
 #
 # Run from the repository root (requires OPENAI_API_KEY in .env or the shell):
-#   python "7-Checkpointing/05_document_review_loop.py"
+#   python "7-Checkpointing/03-checkpoint-history/00_document_review_loop.py"
 
 import sys
 from pathlib import Path
@@ -17,7 +17,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
+sys.path.append(str(Path(__file__).resolve().parents[2]))
 from util import plot_graph
 
 load_dotenv()

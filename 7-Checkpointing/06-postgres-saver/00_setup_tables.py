@@ -13,11 +13,11 @@
 #    DB_URI=postgresql://walidahmed@localhost:5432/langgraph_stm?sslmode=disable
 #
 # Command:
-#    python "7-Checkpointing/08-postgres-saver/00_setup_tables.py"
+#    python "7-Checkpointing/06-postgres-saver/00_setup_tables.py"
 #
 # After this succeeds, run:
-#    python "7-Checkpointing/08-postgres-saver/01_save_name.py"
-#    python "7-Checkpointing/08-postgres-saver/02_recall_name.py"
+#    python "7-Checkpointing/06-postgres-saver/01_save_name.py"
+#    python "7-Checkpointing/06-postgres-saver/02_recall_name.py"
 
 import os
 
@@ -40,7 +40,7 @@ def main() -> None:
         checkpointer.setup()
 
     print("PostgresSaver checkpoint tables are ready.")
-    print('Next: python "7-Checkpointing/08-postgres-saver/01_save_name.py"')
+    print('Next: python "7-Checkpointing/06-postgres-saver/01_save_name.py"')
 
 
 if __name__ == "__main__":

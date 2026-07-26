@@ -1,6 +1,6 @@
 # PostgreSQL Checkpointing with `PostgresSaver`
 
-This guide explains the three-file PostgresSaver demo: [`00_setup_tables.py`](00_setup_tables.py), [`01_save_name.py`](01_save_name.py), and [`02_recall_name.py`](02_recall_name.py). The goal is simple: replace in-memory checkpointing with PostgreSQL so a graph can recover its state after a process restart, crash, or redeploy.
+This guide explains the three-file PostgresSaver demo and its optional [`run_demo.sh`](run_demo.sh) launcher: [`00_setup_tables.py`](00_setup_tables.py), [`01_save_name.py`](01_save_name.py), and [`02_recall_name.py`](02_recall_name.py). The goal is simple: replace in-memory checkpointing with PostgreSQL so a graph can recover its state after a process restart, crash, or redeploy.
 
 ## Why Move Beyond `MemorySaver`?
 
@@ -9,6 +9,117 @@ This guide explains the three-file PostgresSaver demo: [`00_setup_tables.py`](00
 For real applications, that is usually not enough. A chatbot should not forget the conversation after a restart, and a long-running workflow should not restart from step one after a deployment. A database-backed checkpointer gives the graph a durable place to store its thread state.
 
 `PostgresSaver` is LangGraph's PostgreSQL-backed checkpointer. It lets LangGraph reload a thread later using the same `thread_id`.
+
+## From the Failure Demo to Real Recovery
+
+The [`04-resume-after-failure`](../04-resume-after-failure/README.md) example
+uses `MemorySaver`. It catches an exception and invokes the graph again while
+the **same Python process** is still running:
+
+```text
+first invoke:  step_one ✓ → step_two fails
+second invoke:              step_two ✓ → step_three ✓
+```
+
+That example teaches the resume mechanism, but `MemorySaver` loses its
+checkpoints if Python stops. It cannot recover after a real process crash or
+restart.
+
+`PostgresSaver` stores the same checkpoint information in PostgreSQL instead:
+
+- the graph state;
+- the next node to execute;
+- checkpoint history; and
+- the `thread_id` that identifies the execution.
+
+Because the checkpoint is outside the Python process, a new process can
+reconnect to PostgreSQL with the same `thread_id` and continue the saved
+thread.
+
+```text
+process A: node succeeds → checkpoint saved in PostgreSQL → process stops
+process B: same thread_id → checkpoint loaded → graph continues
+```
+
+The application still has to invoke the graph again. PostgreSQL does not
+automatically restart Python or run the next node; it provides the durable
+state that makes restoration and resumption possible.
+
+## Where `PostgresSaver` Fits
+
+The checkpointer interface stays the same; the storage backend changes:
+
+| Checkpointer | Storage | Survives process restart? | Typical use |
+|---|---|---:|---|
+| `MemorySaver` | Python process memory | no | learning and tests |
+| `SqliteSaver` | local SQLite file | yes | local demos and small applications |
+| `PostgresSaver` | PostgreSQL database | yes | production, multiple workers, many threads |
+
+All three are attached when the graph is compiled and all scope checkpoints by
+`thread_id`. Moving to PostgreSQL changes durability and deployment capability;
+it does not change the meaning of a thread.
+
+## How Automatic Checkpointing Works
+
+Once the graph is compiled with `PostgresSaver`, LangGraph writes checkpoints
+automatically as execution progresses. More precisely, a full checkpoint is
+saved at each **super-step boundary**. In a simple sequential graph, each node
+is its own super-step, so the practical mental model is one saved snapshot after
+each completed node:
+
+```text
+thread_id = "chat_1"
+
+Node 1 → Checkpoint 1
+Node 2 → Checkpoint 2
+Node 3 → Checkpoint 3
+Node 4 → Checkpoint 4
+```
+
+Application code does not manually insert rows into the PostgreSQL checkpoint
+tables. Nodes return state updates, LangGraph creates the checkpoint records,
+and `PostgresSaver` writes them to the database.
+
+Each `StateSnapshot` exposes three especially useful pieces:
+
+| Snapshot field | Meaning |
+|---|---|
+| `config` | identifies the thread and checkpoint |
+| `values` | contains the saved graph state at that point |
+| `next` | lists the node or nodes scheduled to run next |
+
+```python
+snapshot = graph.get_state(config)
+print(snapshot.config)
+print(snapshot.values)
+print(snapshot.next)
+```
+
+Use `graph.get_state_history(config)` to inspect earlier snapshots for the same
+thread.
+
+## What Durable Checkpoints Enable
+
+### Conversational history
+
+Messages, tool results, and other graph-state values remain associated with one
+thread. A later process can continue that conversation by using the same
+`thread_id`.
+
+### Interrupt and resume
+
+A graph can pause before or during a human-review step. The checkpoint preserves
+the state and next-node position while the application waits. A later process
+can load the same thread and resume it.
+
+### Time-travel debugging
+
+Checkpoint history lets you inspect an earlier state and run from that point to
+explore a different continuation. This creates a new branch of execution; it
+does not erase the original history.
+
+These capabilities come from LangGraph checkpointing. PostgreSQL makes them
+durable across process restarts and available to multiple application workers.
 
 ## Short-Term vs Long-Term Memory
 
@@ -51,7 +162,7 @@ That cross-thread memory belongs in LangGraph's `Store` interface, such as `Post
 
 The graph itself is intentionally tiny: one chatbot node. Both scripts use this same graph. The important difference is not the shape of the graph — it is the checkpointer attached when the graph is compiled.
 
-![PostgresSaver chatbot graph](../diagrams/08_postgres_saver_graph.png)
+![PostgresSaver chatbot graph](../diagrams/06_postgres_saver_graph.png)
 
 
 ## Setup Responsibility: You vs the Code
@@ -89,7 +200,7 @@ pip install -U "psycopg[binary,pool]" langgraph langgraph-checkpoint-postgres
 Before the first run against a new database, initialize the checkpoint schema. In this repo, that is done by:
 
 ```bash
-python "7-Checkpointing/00_setup_tables.py"
+python "7-Checkpointing/06-postgres-saver/00_setup_tables.py"
 ```
 
 Inside that script, the important line is:
@@ -130,6 +241,62 @@ result = graph.invoke({"messages": [...]}, config)
 
 Later, another invocation with the same `thread_id` can restore that thread from PostgreSQL.
 
+## Python Virtual Environment
+
+This repository uses `.venv`, a Python virtual environment that keeps this
+project's interpreter and installed Python packages isolated from other
+projects. It serves a purpose similar to a Conda environment, but it is the
+lightweight environment tool built into Python and normally uses `pip`.
+
+Activate it manually with:
+
+```bash
+source .venv/bin/activate
+```
+
+After activation, `python` and `pip` point to the copies inside `.venv`. The
+PostgreSQL server and the `langgraph_stm` database are **not** stored inside
+`.venv`; only Python libraries such as LangGraph and the PostgreSQL driver are
+installed there.
+
+If `.venv` does not exist yet, create and prepare it from the repository root:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Use `deactivate` when you want to leave the virtual environment.
+
+## Run All Three Scripts with One Command
+
+The executable [`run_demo.sh`](run_demo.sh) helper runs the complete demo in
+the correct order. It:
+
+1. locates the repository root;
+2. activates `.venv`;
+3. checks whether PostgreSQL is accepting connections;
+4. creates or validates the checkpoint tables;
+5. saves the first conversation in one Python process; and
+6. starts another Python process that recalls the saved conversation.
+
+From the repository root, run:
+
+```bash
+"7-Checkpointing/06-postgres-saver/run_demo.sh"
+```
+
+If the executable bit is lost after downloading or copying the repository,
+restore it once with:
+
+```bash
+chmod +x "7-Checkpointing/06-postgres-saver/run_demo.sh"
+```
+
+The three Python files remain runnable individually when you want to inspect
+each stage separately.
+
 ## Code Walkthrough
 
 This example is split into two scripts on purpose.
@@ -151,13 +318,13 @@ THREAD_ID = "chat_session_walid"
 First, create/validate the tables once:
 
 ```bash
-python "7-Checkpointing/00_setup_tables.py"
+python "7-Checkpointing/06-postgres-saver/00_setup_tables.py"
 ```
 
 Then run Script A normally:
 
 ```bash
-python "7-Checkpointing/01_save_name.py"
+python "7-Checkpointing/06-postgres-saver/01_save_name.py"
 ```
 
 ### Script B — recall from a new process
@@ -171,14 +338,20 @@ message = "What's my name?"
 Because it uses the same `THREAD_ID`, LangGraph loads the earlier `MessagesState` from PostgreSQL before calling the model.
 
 ```bash
-python "7-Checkpointing/02_recall_name.py"
+python "7-Checkpointing/06-postgres-saver/02_recall_name.py"
 ```
 
 This two-script structure is the proof that `PostgresSaver` is different from `MemorySaver`: the first Python process can end, but the second process still remembers because the checkpoint lives in PostgreSQL.
 
 ## What PostgreSQL Stores
 
-You normally do not query these tables directly. `PostgresSaver` manages them for LangGraph. Conceptually, they support four jobs:
+After `00_setup_tables.py` runs `checkpointer.setup()`, pgAdmin should show
+these four LangGraph checkpoint tables:
+
+![LangGraph checkpoint tables in pgAdmin](images/pgadmin_checkpoint_tables.png)
+
+These tables are created and managed by `PostgresSaver`; you do not need to
+create them manually. You normally do not query these tables directly. `PostgresSaver` manages them for LangGraph. Conceptually, they support four jobs:
 
 | Table | Purpose |
 |---|---|
@@ -214,4 +387,6 @@ For a GUI walkthrough, see [Viewing LangGraph Checkpoint Tables in pgAdmin](pgad
 
 ## Reference
 
+- [LangGraph persistence docs](https://docs.langchain.com/oss/python/langgraph/persistence)
 - [LangGraph memory docs](https://docs.langchain.com/oss/python/langgraph/add-memory)
+- [LangGraph time-travel docs](https://docs.langchain.com/oss/python/langgraph/use-time-travel)

@@ -10,7 +10,7 @@
 # - PostgresSaver restores the first turn from PostgreSQL.
 #
 # Normal run:
-#    python "7-Checkpointing/08-postgres-saver/02_recall_name.py"
+#    python "7-Checkpointing/06-postgres-saver/02_recall_name.py"
 
 import os
 import sys
@@ -30,7 +30,7 @@ load_dotenv()
 DB_URI = os.getenv("DB_URI")
 llm = ChatOpenAI(model="gpt-4o")
 THREAD_ID = "chat_session_walid"
-GRAPH_PATH = "7-Checkpointing/diagrams/08_postgres_saver_graph.png"
+GRAPH_PATH = "7-Checkpointing/diagrams/06_postgres_saver_graph.png"
 
 
 def chatbot(state: MessagesState) -> dict:

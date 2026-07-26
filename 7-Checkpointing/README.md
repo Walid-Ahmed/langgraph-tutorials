@@ -21,12 +21,12 @@ By the end of this tutorial, you will be able to:
 | [`02-memory-saver/00_no_memory.py`](02-memory-saver/00_no_memory.py) | the default: total amnesia between runs | yes |
 | [`02-memory-saver/01_memory_saver.py`](02-memory-saver/01_memory_saver.py) | `MemorySaver` + `thread_id` = automatic memory | yes |
 | [`02-memory-saver/02_manual_history.py`](02-memory-saver/02_manual_history.py) | the alternative: caller carries the history | yes |
-| [`05_document_review_loop.py`](05_document_review_loop.py) | checkpoint history through a real revise loop | yes |
-| [`06_resume_after_failure.py`](06_resume_after_failure.py) | crash mid-graph, resume without re-running | no |
-| [`07_human_review_approval.py`](07_human_review_approval.py) | pause → human reviews → update → resume | yes |
-| [`08-postgres-saver/`](08-postgres-saver/README.md) | `PostgresSaver` survives process restarts | yes |
+| [`03-checkpoint-history/`](03-checkpoint-history/README.md) | checkpoint history through a real revise loop | yes |
+| [`04-resume-after-failure/`](04-resume-after-failure/README.md) | crash mid-graph, resume without re-running | no |
+| [`05-human-review-approval/`](05-human-review-approval/README.md) | pause → human reviews → update → resume | yes |
+| [`06-postgres-saver/`](06-postgres-saver/README.md) | `PostgresSaver` survives process restarts | yes |
 
-**Requires:** `OPENAI_API_KEY` for examples 2, 3, 4, 5, 7, and 8. Example 8 also requires `DB_URI` and a running PostgreSQL database. Examples 1 and 6 are pure Python — start with those to see the mechanism without model noise.
+**Requires:** `OPENAI_API_KEY` for the chat, document-review, human-review, and PostgreSQL examples. The PostgreSQL example also requires `DB_URI` and a running database. The state-snapshot and crash-resume examples are pure Python — start with those to see the mechanism without model noise.
 
 Every graph in tutorials 1–6 had the same lifespan: `invoke()` starts with the state you pass in, and when it returns, everything is gone. This tutorial adds the missing layer — **persistence** — and shows the four things it unlocks: conversational memory, inspectable history, crash recovery, and human-in-the-loop pauses.
 
@@ -57,7 +57,7 @@ Begin with these two free, deterministic examples:
 
 ```bash
 python "7-Checkpointing/01-state-snapshots/00_custom_state_reducer.py"
-python "7-Checkpointing/06_resume_after_failure.py"
+python "7-Checkpointing/04-resume-after-failure/00_resume_after_failure.py"
 ```
 
 Then compare the three chat examples in this order:
@@ -73,6 +73,32 @@ Keep this mental model nearby:
 > **One `thread_id` = one continuous conversation or workflow.** Reusing it
 > restores and extends that saved state. A different `thread_id` starts a
 > brand-new, isolated thread.
+
+## Thread vs User
+
+A `thread_id` normally identifies **one chat or one workflow execution**, not
+the person using the application. One user can therefore own many threads:
+
+```text
+user_id = "walid"
+├── thread_id = "chat-001"
+├── thread_id = "chat-002"
+└── thread_id = "support-case-003"
+```
+
+A checkpointer, including `PostgresSaver`, saves each thread separately. The
+same PostgreSQL database can hold many users and many threads, but LangGraph
+loads only the checkpoints matching the `thread_id` supplied in `config`.
+
+- Reuse a `thread_id` to continue the same conversation or workflow.
+- Create a new `thread_id` to start an isolated conversation or workflow.
+- Use a stable `user_id` with a LangGraph `Store` when information must be
+  shared across all of one user's threads.
+
+In short: **checkpointer + `thread_id` = this conversation**; **Store +
+`user_id` = this user across conversations**. See the
+[`PostgresSaver` example](06-postgres-saver/README.md) for durable
+thread-scoped checkpoints.
 
 ## Why Is Memory Per Thread?
 
@@ -383,7 +409,7 @@ Manual history covers *memory only*. The checkpointer's real dividend is everyth
 > application, the usual choice is a durable checkpointer such as
 > `PostgresSaver`, with a separate `thread_id` for each conversation.
 
-## Walkthrough 3 — History Through a Real Loop (`05_document_review_loop.py`)
+## Walkthrough 3 — History Through a Real Loop ([`03-checkpoint-history/`](03-checkpoint-history/README.md))
 
 A realistic pipeline: `intake → analyze → (revise → analyze)* → finalize`. An LLM scores a deliberately weak Q4 report via structured output (`score`, `issues`, `recommendation`); the router loops through revision until the score reaches 8 **or** an iteration cap fires:
 
@@ -398,7 +424,7 @@ def route_after_analysis(state) -> Literal["revise", "finalize"]:
 
 What checkpointing adds here: the loop runs a *variable* number of times, and `get_state_history` captures **every** pass — each analyze, each revise, with its score and pending `next` node. The script prints the whole timeline, newest first. Nothing in this graph *needs* a checkpointer to produce its output; it needs one to let you *reconstruct how the output happened*. That audit trail is a production feature in its own right.
 
-## Walkthrough 4 — Crash and Resume (`06_resume_after_failure.py`)
+## Walkthrough 4 — Crash and Resume ([`04-resume-after-failure/`](04-resume-after-failure/README.md))
 
 Three plain nodes; `step_two` is rigged to raise on its first call (a stand-in for a flaky API). The choreography:
 
@@ -435,7 +461,7 @@ Two things to internalize:
   or sending an email should still use idempotency keys because a process can
   fail after the side effect succeeds but before its checkpoint is committed.
 
-## Walkthrough 5 — Human-in-the-Loop (`07_human_review_approval.py`)
+## Walkthrough 5 — Human-in-the-Loop ([`05-human-review-approval/`](05-human-review-approval/README.md))
 
 The capstone: an LLM drafts a response, a *human* approves or rejects it, and the graph routes accordingly. The pause-inspect-modify-resume cycle:
 
@@ -482,7 +508,7 @@ sequenceDiagram
 Design points that make this example worth studying closely:
 
 - **The human is *outside* the graph.** `review_decision` doesn't call `input()` — it just reads `approved`/`feedback` from state. The blocking, UI-specific part lives between the two invokes, in ordinary code. Swap the terminal prompt for a Slack button or web form and the graph is untouched.
-- **Why interrupt at all?** Because the human's decision depends on output that doesn't exist until mid-run. You can't collect approval of a draft before the draft is generated. `interrupt_before` is a *planned* stop at exactly that point — same machinery as example 6's *unplanned* stop, deliberate this time.
+- **Why interrupt at all?** Because the human's decision depends on output that doesn't exist until mid-run. You can't collect approval of a draft before the draft is generated. `interrupt_before` is a *planned* stop at exactly that point — same machinery as the crash-resume walkthrough's *unplanned* stop, deliberate this time.
 - **`update_state` is the third state-writing mechanism** you've now seen: nodes write during execution, reducers merge, and `update_state` edits a saved checkpoint from outside while nothing is running.
 
 ## Running the Examples
@@ -494,18 +520,18 @@ python "7-Checkpointing/01-state-snapshots/00_custom_state_reducer.py"
 python "7-Checkpointing/02-memory-saver/00_no_memory.py"
 python "7-Checkpointing/02-memory-saver/01_memory_saver.py"
 python "7-Checkpointing/02-memory-saver/02_manual_history.py"
-python "7-Checkpointing/05_document_review_loop.py"
-python "7-Checkpointing/06_resume_after_failure.py"
-python "7-Checkpointing/07_human_review_approval.py"   # interactive — it will prompt you
-python "7-Checkpointing/08-postgres-saver/00_setup_tables.py"      # run once to create/validate tables
-python "7-Checkpointing/08-postgres-saver/01_save_name.py"         # save first turn, then process exits
-python "7-Checkpointing/08-postgres-saver/02_recall_name.py"       # new process recalls from PostgreSQL
+python "7-Checkpointing/03-checkpoint-history/00_document_review_loop.py"
+python "7-Checkpointing/04-resume-after-failure/00_resume_after_failure.py"
+python "7-Checkpointing/05-human-review-approval/00_human_review_approval.py"   # interactive — it will prompt you
+python "7-Checkpointing/06-postgres-saver/00_setup_tables.py"      # run once to create/validate tables
+python "7-Checkpointing/06-postgres-saver/01_save_name.py"         # save first turn, then process exits
+python "7-Checkpointing/06-postgres-saver/02_recall_name.py"       # new process recalls from PostgreSQL
 ```
 
 ## Design Questions Worth Asking
 
-- **What happens if you pass real input (not `None`) when resuming a thread?** It's merged into the restored state through the reducers — that's example 1's doubling `bar`. Resume-in-place is `None`; "continue the conversation with a new turn" is real input. Know which one you mean.
-- **Why does the checkpoint save after every node rather than every invoke?** Per-node granularity is what makes mid-run recovery (example 6) and mid-run pauses (example 7) possible at the exact step needed. Per-invoke saves could only replay whole runs.
+- **What happens if you pass real input (not `None`) when resuming a thread?** It's merged into the restored state through the reducers — that's the state-snapshot walkthrough's doubling `bar`. Resume-in-place is `None`; "continue the conversation with a new turn" is real input. Know which one you mean.
+- **Why does the checkpoint save after every node rather than every invoke?** Per-node granularity is what makes mid-run recovery and human-review pauses possible at the exact step needed. Per-invoke saves could only replay whole runs.
 - **When would you still choose manual history over a checkpointer?** When the surrounding application already owns conversation storage (e.g., history lives in your database and is passed per request), or you want zero framework state. You give up resume and interrupts.
 - **What's the production gap in these examples?** `MemorySaver` dies with the process. The graph code doesn't change — swap in `SqliteSaver`/`PostgresSaver` and threads survive restarts and can be shared across workers.
 - **Is the checkpointer where *all* memory belongs?** No — and confusing the two scopes is a classic architecture mistake. A checkpointer is **thread-scoped**: everything it saves lives and dies with one `thread_id`. Store a fact there ("the user prefers concise answers") and it evaporates the moment the same user opens a new conversation thread. Cross-thread, long-lived facts belong in LangGraph's separate **`Store`** interface (e.g. `InMemoryStore`, passed to `compile(checkpointer=..., store=...)`), which namespaces data by keys like a user ID rather than by thread. Rule of thumb: checkpointer = *this conversation's* short-term memory; store = *this user's* long-term memory. This tutorial covers only the first; know the second exists before you architect around threads.
@@ -527,4 +553,4 @@ python "7-Checkpointing/08-postgres-saver/02_recall_name.py"       # new process
 
 ## Where to Go Next
 
-You've now covered the full arc: state → reducers → messages → branching → workflow patterns → agents → persistence. Two natural continuations: work through the [`Exercise-Solutions/`](../Exercise-Solutions/) folders you haven't attempted, and read [`08-postgres-saver/README.md`](08-postgres-saver/README.md) to see how the in-memory examples map to production-style PostgreSQL checkpointing.
+You've now covered the full arc: state → reducers → messages → branching → workflow patterns → agents → persistence. Two natural continuations: work through the [`Exercise-Solutions/`](../Exercise-Solutions/) folders you haven't attempted, and read [`06-postgres-saver/README.md`](06-postgres-saver/README.md) to see how the in-memory examples map to production-style PostgreSQL checkpointing.

@@ -5,6 +5,40 @@ that temporary state into a sequence of saved snapshots. Those snapshots let a
 graph remember a conversation, show how it reached an answer, pause for human
 review, or resume after a failure.
 
+## The Big Picture: Short-Term Memory
+
+A LangGraph workflow passes shared state from node to node. Without a
+checkpointer, that state disappears after the invocation. A checkpointer saves
+snapshots under a `thread_id`, giving the graph short-term memory for one chat
+or workflow.
+
+```mermaid
+flowchart LR
+    T["thread_id<br/>one chat or workflow"] --> C["Checkpointer<br/>saves state snapshots"]
+
+    subgraph G["LangGraph execution"]
+        START --> A["Node A"] --> B["Node B"] --> END
+    end
+
+    A -. "state after Node A" .-> C
+    B -. "state after Node B" .-> C
+
+    C --> CHOICE{"Choose one saver"}
+    CHOICE --> M["MemorySaver<br/>RAM · temporary"]
+    CHOICE --> S["SqliteSaver<br/>local file · durable"]
+    CHOICE --> P["PostgresSaver<br/>database · durable"]
+```
+
+The graph code and `thread_id` behavior stay the same whichever saver you
+choose. Only the storage location and durability change:
+
+- `MemorySaver` is simplest for learning and tests, but loses checkpoints when
+  Python stops.
+- `SqliteSaver` saves checkpoints in a local SQLite file and can survive a
+  restart.
+- `PostgresSaver` saves checkpoints in PostgreSQL and is suited to production,
+  multiple workers, and many threads.
+
 By the end of this tutorial, you will be able to:
 
 - explain the difference between a reducer and a checkpointer;

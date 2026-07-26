@@ -18,11 +18,6 @@ from util import plot_graph
 
 client = OpenAI()
 
-# LangGraph/LangChain messages use roles such as "human" and "ai", while the
-# OpenAI API expects "user" and "assistant". This mapping translates them
-# before the messages are sent to the model.
-ROLE_MAP = {"human": "user", "ai": "assistant"}
-
 
 class State(TypedDict):
     # `add_messages` is a reducer. During ONE graph invocation, it appends a
@@ -40,8 +35,12 @@ def chat_node(state: State):
     messages_for_openai = []
 
     for message in state["messages"]:
-        langchain_role = message.type
-        openai_role = ROLE_MAP.get(langchain_role, langchain_role)
+        # Translate LangChain's role names into the names OpenAI expects.
+        openai_role = message.type
+        if message.type == "human":
+            openai_role = "user"
+        elif message.type == "ai":
+            openai_role = "assistant"
 
         message_for_openai = {
             "role": openai_role,

@@ -35,6 +35,12 @@ def chat_node(state: State):
     messages_for_openai = []
 
     for message in state["messages"]:
+        # We did not set `message.type` ourselves. The `add_messages` reducer
+        # converts message dictionaries into LangChain message objects:
+        # - {"role": "user", ...} becomes HumanMessage(type="human")
+        # - {"role": "assistant", ...} becomes AIMessage(type="ai")
+        # The message class therefore supplies `message.type` automatically.
+
         # Translate LangChain's role names into the names OpenAI expects.
         openai_role = message.type
         if message.type == "human":

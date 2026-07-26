@@ -102,7 +102,52 @@ production agents use both.
 
 ## The Concept: Checkpoints and Threads
 
-**What is it?** A **checkpointer** is a storage backend attached at compile time. Once attached, LangGraph saves a **checkpoint** — a full snapshot of the state, plus which node runs next — after every super-step (every node execution). Snapshots are grouped into **threads**: the `thread_id` you pass in the config is the key under which a conversation's checkpoints accumulate.
+**What is it?** A **checkpointer** is a storage backend attached at compile
+time. Once attached, LangGraph saves a **checkpoint** at every super-step
+boundary. Each checkpoint contains a `StateSnapshot`: the graph's values,
+execution metadata, and—critically—the node or nodes to execute `next`.
+Snapshots are grouped into **threads** using the configured `thread_id`.
+
+For a sequential graph, each node runs in its own super-step, so you can picture
+one new checkpoint after each node:
+
+```mermaid
+flowchart TB
+    subgraph execution["Graph execution"]
+        direction LR
+        S["START"] --> A["node_a"] --> B["node_b"] --> E["END"]
+    end
+    subgraph snapshots["Saved checkpoints"]
+        direction LR
+        C0["Checkpoint 0<br/>values = input<br/>next = ('node_a',)"]
+        C1["Checkpoint 1<br/>values include node_a output<br/>next = ('node_b',)"]
+        C2["Checkpoint 2<br/>values include node_b output<br/>next = ()"]
+        C0 ~~~ C1 ~~~ C2
+    end
+    S -. "save" .-> C0
+    A -. "save" .-> C1
+    B -. "save" .-> C2
+```
+
+Read the diagram vertically as well as horizontally:
+
+- The top row is graph execution.
+- The checkpoint under a step is the durable snapshot produced at that
+  super-step boundary.
+- The snapshot's `values` say **what the state is now**.
+- The snapshot's `next` says **where execution continues**.
+
+That last field is easy to overlook. A checkpoint does not merely remember the
+conversation data; it also remembers the graph's position. If execution stops
+after `node_a`, LangGraph reloads Checkpoint 1, sees `next=('node_b',)`, and
+continues at `node_b` instead of starting over.
+
+> **Sequential versus parallel graphs:** “one checkpoint after every node” is
+> accurate for a linear graph because each node occupies its own super-step. If
+> several nodes run in parallel during the same super-step, their writes belong
+> to one full checkpoint when that super-step completes. LangGraph also records
+> successful per-node pending writes so completed parallel work need not be
+> repeated if a sibling node fails.
 
 ```text
 The memory lifecycle, per invoke:
@@ -116,6 +161,53 @@ merge input into restored state (via the fields' reducers)
 run node → save checkpoint → run node → save checkpoint → …
       ↓
 return final state (which is also the newest checkpoint)
+```
+
+### What Is Inside a `StateSnapshot`?
+
+```mermaid
+flowchart TB
+    SS["StateSnapshot"]
+    SS --> V["values<br/>current state channels"]
+    SS --> N["next<br/>node(s) scheduled next"]
+    SS --> C["config<br/>thread_id + checkpoint_id + namespace"]
+    SS --> M["metadata<br/>source + writes + step"]
+    SS --> T["tasks<br/>pending work, errors, interrupts"]
+    SS --> H["history links<br/>created_at + parent_config"]
+```
+
+| Field | What it answers |
+|---|---|
+| `values` | What data does the graph currently know? |
+| `next` | Which node or nodes execute next? Empty `()` means the graph is finished. |
+| `config` | Which thread, checkpoint, and checkpoint namespace identify this snapshot? |
+| `metadata` | Which step created it, what wrote to it, and was it input, loop execution, or an external update? |
+| `tasks` | What work is scheduled, interrupted, or failed at this point? |
+| `created_at` | When was the checkpoint created? |
+| `parent_config` | Which earlier checkpoint is its parent? |
+
+A simplified snapshot after `node_a` might look like:
+
+```python
+StateSnapshot(
+    values={"foo": "a", "bar": ["a"]},
+    next=("node_b",),  # saved position: resume at node_b
+    config={
+        "configurable": {
+            "thread_id": "walid-session",
+            "checkpoint_ns": "",
+            "checkpoint_id": "..."
+        }
+    },
+    metadata={
+        "source": "loop",
+        "writes": {"node_a": {"foo": "a", "bar": ["a"]}},
+        "step": 1
+    },
+    created_at="...",
+    parent_config={...},
+    tasks=(...)
+)
 ```
 
 **What problem does it solve?** Three at once:
@@ -170,7 +262,8 @@ after invoke #2:  {'foo': 'b', 'bar': ['a', 'b', 'a', 'b']}
 
 This is the subtlest point in the whole tutorial: **on a resumed thread, your `invoke` input is merged into the restored state through the reducers** — it does not reset the thread. `bar` doubles because the restored `['a', 'b']` keeps accumulating; `foo` looks the same only because it's overwritten anyway. Checkpointing and reducers are one system, not two.
 
-The script also prints `get_state_history(config)` — one `StateSnapshot` per super-step, each recording the values *and* what was about to run:
+The script also prints `get_state_history(config)`—one `StateSnapshot` per
+super-step, each recording both the values and what is scheduled to run next:
 
 ```text
 checkpoint 0 (next=('__start__',)): {'bar': []}
@@ -179,7 +272,22 @@ checkpoint 2 (next=('node_b',)):    {'foo': 'a', 'bar': ['a']}
 checkpoint 3 (next=done):           {'foo': 'b', 'bar': ['a', 'b']}
 ```
 
-That `next` field is the hinge for everything later in this tutorial: resuming, time travel, and human-in-the-loop all mean "load a snapshot and continue from its `next`." ("**Time travel**" is the ecosystem's name for the extra trick history enables: since every snapshot carries its own `checkpoint_id`, you can invoke with a config pointing at an *older* checkpoint and re-run — or fork — the graph from that earlier point instead of the latest one. Handy for debugging a bad step without replaying the whole run.)
+The snapshots tell a complete execution story:
+
+```mermaid
+flowchart LR
+    C0["checkpoint 0<br/>next = __start__"]
+    C1["checkpoint 1<br/>next = node_a"]
+    C2["checkpoint 2<br/>next = node_b"]
+    C3["checkpoint 3<br/>next = ()"]
+    C0 --> C1 --> C2 --> C3
+```
+
+The `next` field is the hinge for everything later in this tutorial: resuming,
+time travel, and human-in-the-loop all mean “load a snapshot and continue from
+its `next`.” **Time travel** adds one more capability: because every snapshot
+also carries a `checkpoint_id`, you can point at an older checkpoint and replay
+or fork execution from that saved position.
 
 ## Walkthrough 2 — Memory: Without, With, and Manual (examples 02 / 03 / 04)
 
@@ -331,7 +439,9 @@ python "7-Checkpointing/08-postgres-saver/02_recall_name.py"       # new process
 
 ## Key Takeaways
 
-1. Persistence = **checkpointer at compile + `thread_id` at invoke**. Snapshots save after every node; threads keep users' histories isolated.
+1. Persistence = **checkpointer at compile + `thread_id` at invoke**. Full
+   snapshots save at super-step boundaries—after each node in a sequential
+   graph—and threads keep histories isolated.
 2. On a resumed thread, input merges into restored state **through the reducers** — checkpointing and tutorial 2 are one system.
 3. `invoke(None, config)` resumes from the saved position without re-running completed nodes — that's crash recovery, and side effects don't repeat.
 4. Human-in-the-loop is checkpointing plus a *planned* interrupt: pause before the decision node, let ordinary code collect the human's verdict, `update_state`, resume. The graph never blocks on a human.
@@ -339,6 +449,8 @@ python "7-Checkpointing/08-postgres-saver/02_recall_name.py"       # new process
 6. Thread scope is intentional isolation, not short retention: use the same
    thread for an ongoing task, and use a `Store` for facts that must cross
    threads.
+7. A `StateSnapshot` saves both `values` and `next`: the data tells LangGraph
+   what it knows, while `next` tells it where to resume.
 
 ## Where to Go Next
 

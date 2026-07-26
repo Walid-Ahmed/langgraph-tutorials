@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/5-workflows/ex6_evaluator_strict_score.py"
+#
 # Exercise 6 — Stricter evaluator with a numeric score
 #
 # Extends the Feedback schema with score: int (1-10).

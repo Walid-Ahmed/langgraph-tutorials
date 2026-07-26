@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/1-basics/ex2_visited_nodes.py"
+#
 # Exercise 2 — Track visited nodes
 #
 # Add a "visited" field (list of strings) to the state.

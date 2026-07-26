@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/2-reducers/ex2_deduplicate_list.py"
+#
 # Exercise 2 — Deduplicate list reducer
 #
 # animals appends new items but skips ones already in the list.

@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/3-llm-messages/ex1_multi_turn.py"
+#
 # Exercise 1 — Multi-turn conversation
 #
 # Start with two messages: one telling the LLM the user's name,

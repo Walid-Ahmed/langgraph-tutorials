@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "5-Workflows/03_parallelization.py"
+#
 # Parallelization (fan-out/fan-in): START branches into three independent
 # LLM nodes that each write a different social-media post for the same
 # topic, then all three branches converge on one aggregator node.

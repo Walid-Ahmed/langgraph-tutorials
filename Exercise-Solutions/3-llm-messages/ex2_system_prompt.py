@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/3-llm-messages/ex2_system_prompt.py"
+#
 # Exercise 2 — Add a system prompt
 #
 # A SystemMessage at the front of the history shapes how the LLM responds.

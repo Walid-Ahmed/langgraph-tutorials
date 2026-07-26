@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/6-agents/ex2_iteration_cap.py"
+#
 # Exercise 2 — Cap the agent loop at 5 iterations
 #
 # Adds an iteration_count field to the state.

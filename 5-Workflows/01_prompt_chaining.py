@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "5-Workflows/01_prompt_chaining.py"
+#
 # Prompt chaining workflow: a 4-step linear pipeline (draft -> fact_check ->
 # improve -> format) where each node's LLM output becomes the next node's
 # input. Also saves an HTML report of every intermediate stage.

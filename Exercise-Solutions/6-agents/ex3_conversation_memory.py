@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/6-agents/ex3_conversation_memory.py"
+#
 # Exercise 3 — Multi-turn agent with carry-over history
 #
 # After the first graph run, the full message history is captured.

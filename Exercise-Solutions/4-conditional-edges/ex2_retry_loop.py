@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/4-conditional-edges/ex2_retry_loop.py"
+#
 # Exercise 2 — Retry loop with attempt limit
 #
 # retry_node loops back to grade_node instead of ending.

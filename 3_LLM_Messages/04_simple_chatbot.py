@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "3_LLM_Messages/04_simple_chatbot.py"
+#
 # A minimal single-turn chatbot graph: a single node sends the running
 # "messages" history to a real OpenAI model via ChatOpenAI and appends the
 # reply through the add_messages reducer. Requires OPENAI_API_KEY in .env.

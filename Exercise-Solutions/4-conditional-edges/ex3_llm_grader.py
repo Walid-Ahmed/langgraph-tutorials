@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/4-conditional-edges/ex3_llm_grader.py"
+#
 # Exercise 3 — LLM-based grader
 #
 # Replace the keyword-matching score with a real LLM call.

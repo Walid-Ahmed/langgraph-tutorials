@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "2-Reducer/01_state_without_reducer.py"
+#
 # Shows LangGraph's default state-update behavior: with no reducer attached
 # to a field, a node's return value REPLACES the existing value instead of
 # merging with it. A single node overwrites "count" and "animals" outright.

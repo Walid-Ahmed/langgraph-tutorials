@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "5-Workflows/04_orchestrator_workers.py"
+#
 # Orchestrator-workers workflow: an orchestrator LLM plans a variable-length
 # list of research sources, then dynamically dispatches one worker per
 # source via Send(), and a synthesizer merges all worker findings into a

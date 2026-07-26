@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/5-workflows/ex1_tone_step.py"
+#
 # Exercise 1 — Extend the prompt chain with a casual tone step
 #
 # Adds a fifth node after improve_content that rewrites the draft in

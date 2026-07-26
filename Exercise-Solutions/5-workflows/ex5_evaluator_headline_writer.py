@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/5-workflows/ex5_evaluator_headline_writer.py"
+#
 # Exercise 5 — Swap the domain: headline writer with clear/unclear evaluator
 #
 # Replaces the joke generator with a headline writer.

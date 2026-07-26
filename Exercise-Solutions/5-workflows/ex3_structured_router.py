@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/5-workflows/ex3_structured_router.py"
+#
 # Exercise 3 — Structured-output router
 #
 # Step 1: classify_node uses a Pydantic schema to classify the input

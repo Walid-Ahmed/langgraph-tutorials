@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/6-agents/ex1_word_count_tool.py"
+#
 # Exercise 1 — Add a word_count tool
 #
 # Adds a word_count(text) tool alongside get_weather and calculate_tip.

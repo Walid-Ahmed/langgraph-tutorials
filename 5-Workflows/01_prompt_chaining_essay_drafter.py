@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "5-Workflows/01_prompt_chaining_essay_drafter.py"
+#
 # A more elaborate prompt-chaining example: a 3-step draft -> reflect ->
 # revise pipeline. An essay is drafted, an LLM reviewer critiques it, then
 # a reviser rewrites the essay addressing every point of that feedback.

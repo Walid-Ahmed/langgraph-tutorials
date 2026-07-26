@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/2-reducers/ex3_two_nodes_accumulate.py"
+#
 # Exercise 3 — Accumulate count across two nodes
 #
 # Both node_a and node_b return {"count": 5}.

@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "2-Reducer/02_custom_reducer.py"
+#
 # Contrasts with 01_state_without_reducer.py: here each state field is
 # Annotated with a reducer (a custom increment function for "count", and
 # Python's operator.add for "animals"), so a node's return value is MERGED

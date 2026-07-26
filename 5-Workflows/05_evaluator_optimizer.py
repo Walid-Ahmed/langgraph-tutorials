@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "5-Workflows/05_evaluator_optimizer.py"
+#
 # Evaluator-optimizer workflow: a generator writes a joke, an evaluator LLM
 # grades it via structured output, and a router loops back to the generator
 # with feedback until the joke is judged "funny" — an unbounded retry loop.

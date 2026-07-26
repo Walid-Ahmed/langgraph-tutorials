@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/5-workflows/ex2_parallel_haiku.py"
+#
 # Exercise 2 — Add a haiku branch to the parallelization example
 #
 # Extends 03_parallelization_creative.py with a fourth parallel branch.

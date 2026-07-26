@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "5-Workflows/02_routing.py"
+#
 # Routing workflow: a router node classifies the user's request into one of
 # three literals ("poem", "story", "joke") via structured output, then a
 # conditional edge dispatches to the matching worker node.

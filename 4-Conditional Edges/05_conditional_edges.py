@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "4-Conditional Edges/05_conditional_edges.py"
+#
 # Demonstrates conditional routing: grade_node scores a fake "answer", then
 # a router function (not a graph node) inspects the score and picks between
 # two branches (pass_node vs retry_node) using add_conditional_edges.

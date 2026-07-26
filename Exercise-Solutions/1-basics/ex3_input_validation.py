@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/1-basics/ex3_input_validation.py"
+#
 # Exercise 3 — Input validation with a conditional edge
 #
 # validate_node runs first. If input is empty it sets an error message

@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/2-reducers/ex1_max_reducer.py"
+#
 # Exercise 1 — Max reducer
 #
 # high_score always keeps whichever value is higher.

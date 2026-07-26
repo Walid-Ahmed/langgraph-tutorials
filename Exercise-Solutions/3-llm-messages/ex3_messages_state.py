@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/3-llm-messages/ex3_messages_state.py"
+#
 # Exercise 3 — Extend MessagesState with turn_count
 #
 # MessagesState already provides a messages field with add_messages.

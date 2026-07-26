@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "2-Reducer/03_messages_reducer.py"
+#
 # Demonstrates LangGraph's built-in add_messages reducer: a node returns
 # just ONE new HumanMessage, and add_messages appends it to the existing
 # "messages" list rather than replacing the whole conversation history.

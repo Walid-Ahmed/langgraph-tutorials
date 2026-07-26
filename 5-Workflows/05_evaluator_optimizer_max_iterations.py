@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "5-Workflows/05_evaluator_optimizer_max_iterations.py"
+#
 # Evaluator-optimizer variant: same generate -> evaluate -> retry loop as
 # 05_evaluator_optimizer.py, but adds an iteration counter so the router
 # force-exits after MAX_ITERATIONS instead of retrying forever.

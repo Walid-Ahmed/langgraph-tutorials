@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "5-Workflows/01_prompt_chaining_joke_gate.py"
+#
 # Prompt chaining with a quality gate: after generate_joke, a router
 # function (check_punchline) inspects the output and either ends the chain
 # early ("Pass") or routes through improve_joke -> polish_joke ("Fail").

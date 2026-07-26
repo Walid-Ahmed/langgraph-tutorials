@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/4-conditional-edges/ex1_three_branches.py"
+#
 # Exercise 1 — Three branches: pass / needs_review / retry
 #
 # score >= 70  -> pass_node     ("Passed ✅")

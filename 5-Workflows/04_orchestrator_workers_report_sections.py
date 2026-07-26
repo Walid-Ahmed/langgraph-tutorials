@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "5-Workflows/04_orchestrator_workers_report_sections.py"
+#
 # Orchestrator-workers variant: an orchestrator plans a report's sections
 # via structured output, dynamically dispatches one worker per section with
 # Send(), and a synthesizer stitches the completed sections into one

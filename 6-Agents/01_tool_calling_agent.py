@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "6-Agents/01_tool_calling_agent.py"
+#
 # A more complete tool-calling agent using LangGraph's prebuilt ToolNode:
 # the LLM can call a live weather tool, a tip calculator, and (if a Tavily
 # key is set) a web search tool, looping until it has a final answer.

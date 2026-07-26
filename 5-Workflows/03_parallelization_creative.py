@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "5-Workflows/03_parallelization_creative.py"
+#
 # Parallelization variant: START fans out into three independent creative
 # writing nodes (joke, story, poem) for the same topic, then an aggregator
 # node joins all three once they finish.

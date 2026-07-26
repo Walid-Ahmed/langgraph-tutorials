@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "5-Workflows/03_parallelization_translation.py"
+#
 # Parallelization variant: START fans out into three independent translation
 # nodes (Arabic, French, Italian) for the same English paragraph, then an
 # aggregator node joins all three translations once they finish.

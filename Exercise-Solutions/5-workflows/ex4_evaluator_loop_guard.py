@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/5-workflows/ex4_evaluator_loop_guard.py"
+#
 # Exercise 4 — Add a loop guard to the evaluator-optimizer
 #
 # Adds an iterations counter to State. The loop stops after

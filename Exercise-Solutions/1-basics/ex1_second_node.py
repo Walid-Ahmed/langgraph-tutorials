@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "Exercise-Solutions/1-basics/ex1_second_node.py"
+#
 # Exercise 1 — Add a second node
 #
 # Extend the simple graph with a reverse_node that runs after process.

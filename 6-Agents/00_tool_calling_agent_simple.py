@@ -1,3 +1,6 @@
+# Run from the repository root:
+#   python "6-Agents/00_tool_calling_agent_simple.py"
+#
 # A tool-calling agent built by hand: the LLM is bound to three arithmetic
 # tools, and a manually-written tool_node executes whichever tools the model
 # requests. Shows what LangGraph's prebuilt ToolNode does internally,

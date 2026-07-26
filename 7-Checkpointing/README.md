@@ -1,5 +1,18 @@
 # 7. Checkpointing — Graphs That Remember
 
+LangGraph state normally lives for one `invoke()` call. A checkpointer turns
+that temporary state into a sequence of saved snapshots. Those snapshots let a
+graph remember a conversation, show how it reached an answer, pause for human
+review, or resume after a failure.
+
+By the end of this tutorial, you will be able to:
+
+- explain the difference between a reducer and a checkpointer;
+- use `thread_id` to continue or isolate conversations;
+- inspect a snapshot's saved `values` and `next` nodes;
+- choose between `MemorySaver`, SQLite, and PostgreSQL;
+- resume interrupted work without restarting the whole graph.
+
 **Example files (in reading order):**
 
 | File | Demonstrates | LLM? |
@@ -16,6 +29,50 @@
 **Requires:** `OPENAI_API_KEY` for examples 2, 3, 4, 5, 7, and 8. Example 8 also requires `DB_URI` and a running PostgreSQL database. Examples 1 and 6 are pure Python — start with those to see the mechanism without model noise.
 
 Every graph in tutorials 1–6 had the same lifespan: `invoke()` starts with the state you pass in, and when it returns, everything is gone. This tutorial adds the missing layer — **persistence** — and shows the four things it unlocks: conversational memory, inspectable history, crash recovery, and human-in-the-loop pauses.
+
+## Start Here
+
+Run all commands from the repository root.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+For examples that call an LLM, create a `.env` file in the repository root:
+
+```text
+OPENAI_API_KEY=your_key_here
+```
+
+If a script does not load `.env` itself, export the key in the shell before
+running it:
+
+```bash
+export OPENAI_API_KEY="your_key_here"
+```
+
+Begin with these two free, deterministic examples:
+
+```bash
+python "7-Checkpointing/01-state-snapshots/00_custom_state_reducer.py"
+python "7-Checkpointing/06_resume_after_failure.py"
+```
+
+Then compare the three chat examples in this order:
+
+```bash
+python "7-Checkpointing/02-memory-saver/00_no_memory.py"
+python "7-Checkpointing/02-memory-saver/01_memory_saver.py"
+python "7-Checkpointing/02-memory-saver/02_manual_history.py"
+```
+
+Keep this mental model nearby:
+
+> **One `thread_id` = one continuous conversation or workflow.** Reusing it
+> restores and extends that saved state. A different `thread_id` starts a
+> brand-new, isolated thread.
 
 ## Why Is Memory Per Thread?
 
@@ -211,6 +268,7 @@ StateSnapshot(
 ```
 
 **What problem does it solve?** Three at once:
+
 1. **Memory** — a second `invoke` on the same thread starts from where the first ended, so a chatbot remembers earlier turns without the caller shipping history around.
 2. **Fault-tolerance** — the graph's progress is durable per node, so a crash at node 5 doesn't cost you nodes 1–4.
 3. **Interruptibility** — because "current position + state" is saved externally, execution can *stop on purpose*, let a human look and edit, and continue later.
@@ -289,15 +347,21 @@ its `next`.” **Time travel** adds one more capability: because every snapshot
 also carries a `checkpoint_id`, you can point at an older checkpoint and replay
 or fork execution from that saved position.
 
-## Walkthrough 2 — Memory: Without, With, and Manual (examples 02 / 03 / 04)
+## Walkthrough 2 — Memory: Without, With, and Manual
 
 Three scripts, one identical chat graph (`START → chat → END`), three memory strategies:
 
-**02 — no checkpointer.** Run 1: "Hi, my name is Walid." Run 2: "What is my name?" → *"I don't know your name."* Each `invoke` starts blank. This is the baseline that motivates everything else.
+**`00_no_memory.py` — no checkpointer.** Run 1: "Hi, my name is Walid."
+Run 2: "What is my name?" → *"I don't know your name."* Each `invoke`
+starts blank. This is the baseline that motivates everything else.
 
-**03 — checkpointer.** Same code plus the three pieces. Run 2 on thread `"walid-session"` → *"Your name is Walid!"* The caller passed only the new message; LangGraph restored the old turn from the checkpoint and `add_messages` appended the new one.
+**`01_memory_saver.py` — checkpointer.** Same graph plus the three persistence
+pieces. Run 2 on thread `"walid-session"` → *"Your name is Walid!"* The caller
+passed only the new message; LangGraph restored the old turn from the
+checkpoint and `add_messages` appended the new one.
 
-**04 — manual history.** No checkpointer — instead the *caller* threads the transcript forward:
+**`02_manual_history.py` — manual history.** No checkpointer—instead the
+*caller* carries the transcript forward:
 
 ```python
 result = graph.invoke({"messages": result["messages"] + [new_user_turn]})
@@ -305,7 +369,7 @@ result = graph.invoke({"messages": result["messages"] + [new_user_turn]})
 
 Also works. This is exactly what tutorial 6's Exercise 3 had you do, and it's a legitimate pattern — the point of comparing them side by side:
 
-| | No memory (02) | Checkpointer (03) | Manual history (04) |
+| | `00_no_memory.py` | `01_memory_saver.py` | `02_manual_history.py` |
 |---|---|---|---|
 | Remembers across invokes | no | yes | yes |
 | Who owns the transcript | nobody | LangGraph, keyed by thread | your calling code |
@@ -360,7 +424,12 @@ flowchart LR
 Two things to internalize:
 
 - **`invoke(None, config)` is the resume idiom.** `None` means "no fresh input — don't start from START"; the `thread_id` identifies which saved position to continue from. LangGraph reads the checkpoint's `next` and picks up there.
-- **Completed work is never repeated.** If `step_one` charged a credit card or sent an email, resuming doesn't do it twice. Without a checkpointer, your only option after the crash is re-running the whole graph — side effects included.
+- **Successfully checkpointed steps are not re-run during this resume.** In
+  the example, `step_one` completed and its checkpoint was saved, so execution
+  resumes at `step_two`. A node that fails before its successful result is
+  checkpointed may run again. External side effects such as charging a card
+  or sending an email should still use idempotency keys because a process can
+  fail after the side effect succeeds but before its checkpoint is committed.
 
 ## Walkthrough 5 — Human-in-the-Loop (`07_human_review_approval.py`)
 
@@ -393,14 +462,14 @@ sequenceDiagram
     participant P as plain Python (main)
     participant G as graph
     participant C as checkpointer
-    P->>G: invoke #35;1 (request)
+    P->>G: first invoke (request)
     G->>C: checkpoint after create_draft
     Note over G: interrupt_before=["review_decision"]<br/>graph pauses here
     G-->>P: returns — draft is in state
     P->>H: prints the ACTUAL generated draft
     H-->>P: y / n (+ feedback)
     P->>C: update_state(approved, feedback)
-    P->>G: invoke #35;2 — invoke(None, config)
+    P->>G: second invoke — invoke(None, config)
     C-->>G: load checkpoint, resume at review_decision
     Note over G: router reads approved →<br/>finalize or revise
     G-->>P: final state

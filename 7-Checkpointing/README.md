@@ -43,6 +43,20 @@ concurrency, and intended deployment:
 | `SqliteSaver` | local SQLite database | yes | demos and small local workflows |
 | `PostgresSaver` | PostgreSQL | yes | production and multiple workers |
 
+> **Does stopping Python erase the checkpoints?**
+>
+> - With `InMemorySaver`, **yes**. Its checkpoints exist only in that Python
+>   process's RAM.
+> - With `SqliteSaver`, **no**, provided it uses a file-backed SQLite database.
+>   A new Python process can reopen the same file and load the same thread.
+> - With `PostgresSaver`, **no**. A new process can reconnect to the same
+>   PostgreSQL database and load the same thread.
+>
+> The exceptions are temporary storage or deliberate deletion. For example,
+> SQLite `":memory:"` is RAM-backed and disappears with the process. Deleting
+> the SQLite file, dropping PostgreSQL tables, or deleting a thread also removes
+> its checkpoints.
+
 The naming can be confusing: `MemorySaver` does not represent a separate
 checkpointing system—it is the in-memory saver implementation. Replacing it
 with `SqliteSaver` or `PostgresSaver` changes where checkpoints live, not how
@@ -70,7 +84,8 @@ Thread-scoped checkpoints solve questions such as:
 
 The thread can last for minutes, months, or many process restarts. “Per thread”
 describes isolation, not how long the data lives. Whether it survives a restart
-depends on which saver implementation you choose.
+depends on which saver implementation you choose. To resume after restarting,
+reconnect to the same database and invoke the graph with the same `thread_id`.
 
 What if information should follow a user into a **new** thread? That is
 long-term, cross-thread memory and belongs in a LangGraph `Store`, normally

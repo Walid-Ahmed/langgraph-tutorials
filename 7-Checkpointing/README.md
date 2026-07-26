@@ -22,6 +22,32 @@ Every graph in tutorials 1–6 had the same lifespan: `invoke()` starts with the
 Because a checkpointer remembers **the state of one ongoing interaction**, not
 everything an agent has ever learned.
 
+First, separate the concept from its implementations:
+
+```text
+checkpointing                         ← the persistence capability
+└── BaseCheckpointSaver               ← the common saver interface
+    ├── InMemorySaver / MemorySaver    ← stores checkpoints in RAM
+    ├── SqliteSaver                    ← stores checkpoints in SQLite
+    └── PostgresSaver                  ← stores checkpoints in PostgreSQL
+```
+
+These are not different kinds of memory scope. They all save the same kind of
+thread-scoped graph state and are all supplied through
+`compile(checkpointer=...)`. They differ primarily in storage, durability,
+concurrency, and intended deployment:
+
+| Implementation | Backing storage | Survives restart? | Best fit |
+|---|---|---:|---|
+| `InMemorySaver` / `MemorySaver` | process RAM | no | learning and tests |
+| `SqliteSaver` | local SQLite database | yes | demos and small local workflows |
+| `PostgresSaver` | PostgreSQL | yes | production and multiple workers |
+
+The naming can be confusing: `MemorySaver` does not represent a separate
+checkpointing system—it is the in-memory saver implementation. Replacing it
+with `SqliteSaver` or `PostgresSaver` changes where checkpoints live, not how
+`thread_id` scopes them.
+
 A `thread_id` is simply the lookup key for a saved session or workflow:
 
 ```text
@@ -43,13 +69,8 @@ Thread-scoped checkpoints solve questions such as:
 - Which draft or intermediate result belongs to **this job**?
 
 The thread can last for minutes, months, or many process restarts. “Per thread”
-describes isolation, not how long the data lives. Durability depends on the
-saver:
-
-| Saver | Same thread across invokes? | Survives process restart? |
-|---|---:|---:|
-| `InMemorySaver` / `MemorySaver` | yes | no |
-| `SqliteSaver` / `PostgresSaver` | yes | yes |
+describes isolation, not how long the data lives. Whether it survives a restart
+depends on which saver implementation you choose.
 
 What if information should follow a user into a **new** thread? That is
 long-term, cross-thread memory and belongs in a LangGraph `Store`, normally

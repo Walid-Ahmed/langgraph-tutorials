@@ -379,6 +379,10 @@ Also works. This is exactly what tutorial 6's Exercise 3 had you do, and it's a 
 
 Manual history covers *memory only*. The checkpointer's real dividend is everything below.
 
+> **Production recommendation:** For a production conversational LangGraph
+> application, the usual choice is a durable checkpointer such as
+> `PostgresSaver`, with a separate `thread_id` for each conversation.
+
 ## Walkthrough 3 — History Through a Real Loop (`05_document_review_loop.py`)
 
 A realistic pipeline: `intake → analyze → (revise → analyze)* → finalize`. An LLM scores a deliberately weak Q4 report via structured output (`score`, `issues`, `recommendation`); the router loops through revision until the score reaches 8 **or** an iteration cap fires:

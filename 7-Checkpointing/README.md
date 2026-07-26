@@ -17,6 +17,53 @@
 
 Every graph in tutorials 1–6 had the same lifespan: `invoke()` starts with the state you pass in, and when it returns, everything is gone. This tutorial adds the missing layer — **persistence** — and shows the four things it unlocks: conversational memory, inspectable history, crash recovery, and human-in-the-loop pauses.
 
+## Why Is Memory Per Thread?
+
+Because a checkpointer remembers **the state of one ongoing interaction**, not
+everything an agent has ever learned.
+
+A `thread_id` is simply the lookup key for a saved session or workflow:
+
+```text
+thread "customer-42/support-7"  → messages, tool results, current node
+thread "customer-42/support-8"  → a separate support case
+thread "customer-99/support-1"  → another customer's isolated state
+```
+
+This scope is useful for the same reason separate browser tabs are useful. You
+want each conversation or job to resume where it stopped, but you do **not**
+want unrelated conversations accidentally sharing private messages,
+intermediate tool results, approvals, or workflow position.
+
+Thread-scoped checkpoints solve questions such as:
+
+- What did the user already say **in this conversation**?
+- Which nodes and tool calls have completed **in this run**?
+- Where should the graph resume after a crash or approval pause?
+- Which draft or intermediate result belongs to **this job**?
+
+The thread can last for minutes, months, or many process restarts. “Per thread”
+describes isolation, not how long the data lives. Durability depends on the
+saver:
+
+| Saver | Same thread across invokes? | Survives process restart? |
+|---|---:|---:|
+| `InMemorySaver` / `MemorySaver` | yes | no |
+| `SqliteSaver` / `PostgresSaver` | yes | yes |
+
+What if information should follow a user into a **new** thread? That is
+long-term, cross-thread memory and belongs in a LangGraph `Store`, normally
+namespaced by user or organization:
+
+```text
+checkpointer + thread_id → “Where is this conversation/workflow?”
+store + user_id          → “What should future conversations know?”
+```
+
+For example, the current support conversation belongs in its checkpoint.
+The durable preference “Walid likes concise answers” belongs in a Store. Most
+production agents use both.
+
 ## The Concept: Checkpoints and Threads
 
 **What is it?** A **checkpointer** is a storage backend attached at compile time. Once attached, LangGraph saves a **checkpoint** — a full snapshot of the state, plus which node runs next — after every super-step (every node execution). Snapshots are grouped into **threads**: the `thread_id` you pass in the config is the key under which a conversation's checkpoints accumulate.
@@ -53,7 +100,18 @@ config = {"configurable": {"thread_id": "walid-session"}} # 3. a thread key per 
 graph.invoke(input, config)
 ```
 
-All three are required. Forget the `thread_id` and the checkpointer has nowhere to file the snapshots; two invokes with *different* thread_ids are two independent conversations — that isolation is a feature (one saver, many users).
+All three are required. Forget the `thread_id` and the checkpointer has nowhere
+to file the snapshots. Reuse the same `thread_id` to continue the same
+conversation or workflow; choose a new one to start isolated state:
+
+```python
+walid = {"configurable": {"thread_id": "walid/support-7"}}
+sara = {"configurable": {"thread_id": "sara/support-1"}}
+
+graph.invoke({"messages": [("user", "My order is late")]}, walid)
+graph.invoke({"messages": [("user", "What did I just report?")]}, walid)  # remembers
+graph.invoke({"messages": [("user", "What did Walid report?")]}, sara)    # isolated
+```
 
 A database-backed checkpointer like `PostgresSaver` can store many thread_ids in PostgreSQL, but it still treats each one as a separate saved thread. It is durable because it survives restarts; it is not "long-term memory" by itself because it does not automatically share facts across those threads.
 
@@ -242,6 +300,9 @@ python "7-Checkpointing/08-postgres-saver/02_recall_name.py"       # new process
 3. `invoke(None, config)` resumes from the saved position without re-running completed nodes — that's crash recovery, and side effects don't repeat.
 4. Human-in-the-loop is checkpointing plus a *planned* interrupt: pause before the decision node, let ordinary code collect the human's verdict, `update_state`, resume. The graph never blocks on a human.
 5. In-memory savers teach the API; production durability is a one-line swap to a database-backed saver.
+6. Thread scope is intentional isolation, not short retention: use the same
+   thread for an ongoing task, and use a `Store` for facts that must cross
+   threads.
 
 ## Where to Go Next
 

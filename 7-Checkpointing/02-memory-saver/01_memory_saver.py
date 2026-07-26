@@ -3,23 +3,40 @@
 # thread remembers the first turn, proving the checkpointer is what
 # provides conversational memory.
 #
-# Run from the repository root (requires OPENAI_API_KEY in the environment):
+# Put this in the repository-root .env file:
+#   OPENAI_API_KEY=your_key_here
+#
+# Then run:
 #   python "7-Checkpointing/02-memory-saver/01_memory_saver.py"
 
+import os
 import sys
 from pathlib import Path
 from typing import Annotated
 
+from dotenv import load_dotenv
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from openai import OpenAI
 from typing_extensions import TypedDict
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.append(str(REPO_ROOT))
 from util import plot_graph
 
-client = OpenAI()
+# Load the same .env file even when the script is launched by an IDE or with
+# an absolute path from a different working directory.
+load_dotenv(REPO_ROOT / ".env")
+
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise SystemExit(
+        "Missing OPENAI_API_KEY.\n"
+        f"Add OPENAI_API_KEY=your_key_here to:\n{REPO_ROOT / '.env'}"
+    )
+
+client = OpenAI(api_key=api_key)
 
 
 class State(TypedDict):

@@ -72,7 +72,13 @@ def main() -> None:
     graph = build_graph()
     plot_graph(graph)
 
-    config: RunnableConfig = {"configurable": {"thread_id": "1"}}
+    # This is a normal Python dictionary. `thread_id` tells the checkpointer
+    # which saved conversation/workflow history to load and update.
+    config = {
+        "configurable": {
+            "thread_id": "1",
+        }
+    }
 
     print("=== First invoke ===")
     first_result = graph.invoke({"foo": "", "bar": []}, config)

@@ -77,6 +77,13 @@ def main() -> None:
 
     # Simpler version: this is a normal Python dictionary. `thread_id` tells
     # the checkpointer which saved conversation/workflow history to load.
+    #
+    # Mental model:
+    # - One thread_id = one continuous conversation that accumulates.
+    # - A different thread_id = a brand-new, isolated conversation.
+    #
+    # This script deliberately reuses thread "1" twice to demonstrate state
+    # accumulating across invokes. It is not demonstrating two separate chats.
     config = {
         "configurable": {
             "thread_id": "1",

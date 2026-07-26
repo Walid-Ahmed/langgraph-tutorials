@@ -2,6 +2,9 @@
 # caller manually carries the growing "messages" list forward between
 # invoke() calls (result["messages"] + [new turn]), showing memory can be
 # managed by the caller instead of LangGraph's persistence layer.
+#
+# Run from the repository root (requires OPENAI_API_KEY in .env or the shell):
+#   python "7-Checkpointing/02-memory-saver/02_manual_history.py"
 
 import sys
 from pathlib import Path

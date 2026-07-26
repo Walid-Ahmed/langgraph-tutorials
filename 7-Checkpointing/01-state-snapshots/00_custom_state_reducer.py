@@ -2,6 +2,9 @@
 # InMemorySaver attached, invoking the same thread_id twice shows that a
 # plain field ("foo") is overwritten each run while a reduced field ("bar")
 # keeps accumulating across both runs. Also prints the full checkpoint history.
+#
+# Run from the repository root:
+#   python "7-Checkpointing/01-state-snapshots/00_custom_state_reducer.py"
 
 import sys
 from operator import add

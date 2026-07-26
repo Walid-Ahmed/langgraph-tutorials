@@ -2,6 +2,9 @@
 # checkpointer and a fixed thread_id. Now a second invoke() on the same
 # thread remembers the first turn, proving the checkpointer is what
 # provides conversational memory.
+#
+# Run from the repository root (requires OPENAI_API_KEY in .env or the shell):
+#   python "7-Checkpointing/02-memory-saver/01_memory_saver.py"
 
 import sys
 from pathlib import Path

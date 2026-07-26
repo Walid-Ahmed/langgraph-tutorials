@@ -1,6 +1,9 @@
 # Baseline "no memory" example: a graph compiled WITHOUT a checkpointer.
 # Each graph.invoke() starts from a clean slate, so a second run has no idea
 # what was said in the first — demonstrates why checkpointing is needed.
+#
+# Run from the repository root (requires OPENAI_API_KEY in .env or the shell):
+#   python "7-Checkpointing/02-memory-saver/00_no_memory.py"
 
 import sys
 from pathlib import Path

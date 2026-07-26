@@ -2,6 +2,9 @@
 # an LLM creates a draft, the graph pauses before a review_decision node,
 # the user reviews the actual draft outside the graph in the terminal,
 # then update_state() saves that decision before invoke(None, config) resumes.
+#
+# Run from the repository root (requires OPENAI_API_KEY in .env or the shell):
+#   python "7-Checkpointing/07_human_review_approval.py"
 
 import sys
 from pathlib import Path

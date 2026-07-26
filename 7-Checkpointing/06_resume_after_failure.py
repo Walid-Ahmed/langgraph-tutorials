@@ -2,6 +2,9 @@
 # first run, so the graph invoke() fails after step_one's checkpoint was
 # already saved. Calling invoke(None, config) then resumes from that
 # checkpoint — step_one is not re-run, only step_two and step_three are.
+#
+# Run from the repository root:
+#   python "7-Checkpointing/06_resume_after_failure.py"
 
 import sys
 from operator import add

@@ -2,6 +2,9 @@
 # -> finalize, where an LLM scores a document and loops it through revisions
 # until the quality score is high enough or MAX_ITERATIONS is hit. Each node
 # is its own checkpoint, and the full checkpoint history is printed at the end.
+#
+# Run from the repository root (requires OPENAI_API_KEY in .env or the shell):
+#   python "7-Checkpointing/05_document_review_loop.py"
 
 import sys
 from pathlib import Path

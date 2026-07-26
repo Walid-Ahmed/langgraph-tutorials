@@ -72,8 +72,11 @@ def main() -> None:
     graph = build_graph()
     plot_graph(graph)
 
-    # This is a normal Python dictionary. `thread_id` tells the checkpointer
-    # which saved conversation/workflow history to load and update.
+    # Typed alternative (same runtime behavior):
+    # config: RunnableConfig = {"configurable": {"thread_id": "1"}}
+
+    # Simpler version: this is a normal Python dictionary. `thread_id` tells
+    # the checkpointer which saved conversation/workflow history to load.
     config = {
         "configurable": {
             "thread_id": "1",

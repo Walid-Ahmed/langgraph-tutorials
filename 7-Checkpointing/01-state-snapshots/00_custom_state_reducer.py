@@ -21,7 +21,18 @@ from util import plot_graph
 
 
 class State(TypedDict):
+    # No reducer is attached to `foo`. Each node update therefore replaces
+    # its previous value. After node_a and node_b run, `foo` is simply "b".
     foo: str
+
+    # `Annotated[..., add]` tells LangGraph to merge updates with
+    # operator.add instead of replacing the field. For lists, `add`
+    # concatenates the existing list and the new list:
+    #     ["a"] + ["b"] -> ["a", "b"]
+    #
+    # The checkpointer saves this reduced value in each StateSnapshot. When
+    # the same thread_id is invoked again, LangGraph restores the saved list
+    # first, then applies the new node updates, so `bar` keeps accumulating.
     bar: Annotated[list[str], add]
 
 

@@ -37,15 +37,22 @@ def chat_node(state: State):
     # The node receives the current invocation's complete message history.
     # In this example that history contains only the message supplied to the
     # current graph.invoke(), because no earlier state was checkpointed.
-    messages = [
-        {"role": ROLE_MAP.get(m.type, m.type), "content": m.content}
-        for m in state["messages"]
-    ]
+    messages_for_openai = []
+
+    for message in state["messages"]:
+        langchain_role = message.type
+        openai_role = ROLE_MAP.get(langchain_role, langchain_role)
+
+        message_for_openai = {
+            "role": openai_role,
+            "content": message.content,
+        }
+        messages_for_openai.append(message_for_openai)
 
     # Send this invocation's messages to the model.
     response = client.chat.completions.create(
         model="gpt-4o",
-        messages=messages,
+        messages=messages_for_openai,
         max_tokens=256,
     )
 

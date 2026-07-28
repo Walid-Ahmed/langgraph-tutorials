@@ -27,7 +27,7 @@ from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(REPO_ROOT))
-from util import plot_graph
+from util import plot_graph  # noqa: E402
 
 load_dotenv(REPO_ROOT / ".env")
 

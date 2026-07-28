@@ -8,7 +8,7 @@ This repo is meant to feel like a guided path, not a code dump. Each folder intr
 
 - Python 3.10 or newer
 - Basic Python (functions, dictionaries, classes)
-- An OpenAI API key for LLM examples in tutorials 3, 5, 6, 7, 8, and some exercise solutions
+- An OpenAI API key for LLM examples in tutorials 3, 5, 6, 7, 8, 9, and some exercise solutions
 
 For deeper reference, see the [official LangGraph documentation](https://docs.langchain.com/oss/python/langgraph/overview).
 
@@ -42,7 +42,8 @@ flowchart TD
     E --> F["6. Agents"]
     F --> G["7. Checkpointing"]
     G --> H["8. Long-Term Memory"]
-    H -.-> I["Exercise Solutions"]
+    H --> I["9. Email Assistant"]
+    I -.-> J["Exercise Solutions"]
 ```
 
 Each tutorial follows the same rhythm:
@@ -62,13 +63,14 @@ Each tutorial follows the same rhythm:
 | `3_LLM_Messages/` | Store chat history in graph state | Learn how LLM conversations fit into LangGraph |
 | `4-Conditional Edges/` | Route to different nodes | Learn how graphs make decisions |
 | `5-Workflows/` | Workflow patterns | Larger LLM designs such as routing, parallel work, orchestration, and evaluation loops |
-| `6-Agents/` | Agent patterns | Dynamic loops where the LLM decides whether to call tools and continue |
+| `6-Agents/` | Agent patterns | Compare manual routers, `Command`, `ToolNode`, and high-level ReAct-style agents |
 | `7-Checkpointing/` | Persist state across runs | Learn thread memory with `MemorySaver`, durable checkpoints with `PostgresSaver`, and how this differs from long-term memory |
 | `8-Long-Term-Memory/` | Share selected memory across conversations | Learn Store namespaces, `user_id`, `InMemoryStore`, and the path to `PostgresStore` |
+| `9-Email-Assistant/` | Build a complete assistant gradually | Apply routing, tools, and short-term, semantic, episodic, and procedural memory |
 | `Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
 
 
-## Memory Types in This Repo
+## Memory Scopes in This Repo
 
 LangGraph uses the word "memory" in a few related ways. This repo separates them so the ideas do not blur together:
 
@@ -121,6 +123,17 @@ user_id = "walid"
 
 So persistence alone does not mean "long-term memory." `PostgresSaver` persists checkpoints; `Store` is where cross-conversation facts belong.
 
+### Long-term memory content types
+
+Memory scope describes **where and how long** information is available. Memory
+type describes **what the information means**:
+
+| Content type | Meaning | Current coverage |
+|---|---|---|
+| Semantic | facts about users, people, places, and things | implemented with Store and LangMem in tutorials 8 and 9 |
+| Episodic | past actions and outcomes used as examples | implemented as retrieved, human-corrected triage examples in tutorial 9 |
+| Procedural | instructions that control behavior | implemented as per-user, feedback-optimized stored instructions in tutorial 9 |
+
 ### Long-term memory examples
 
 Run the new tutorial in this order:
@@ -129,6 +142,7 @@ Run the new tutorial in this order:
 2. [`01_simple_cross_thread_memory.py`](8-Long-Term-Memory/01_simple_cross_thread_memory.py) — the simplest complete chatbot using `MemorySaver` plus `InMemoryStore`.
 3. [`02_structured_cross_thread_memory.py`](8-Long-Term-Memory/02_structured_cross_thread_memory.py) — structured extraction, safer merging, and user isolation.
 4. [`03-postgres-store/`](8-Long-Term-Memory/03-postgres-store/) — save a profile in one process and reload it from PostgreSQL in another.
+5. [`9-Email-Assistant/`](9-Email-Assistant/) — apply the memory concepts in a complete email assistant built gradually.
 
 The chatbot examples make two LLM calls per turn: `chat` produces the user-facing response, then `update_memory` extracts and saves user facts. See the [long-term memory tutorial](8-Long-Term-Memory/) for diagrams and a complete walkthrough.
 
@@ -167,6 +181,7 @@ Read and run the folders in order:
 6. [`6-Agents/`](6-Agents/)
 7. [`7-Checkpointing/`](7-Checkpointing/)
 8. [`8-Long-Term-Memory/`](8-Long-Term-Memory/)
+9. [`9-Email-Assistant/`](9-Email-Assistant/)
 
 Use [`Exercise-Solutions/`](Exercise-Solutions/) after trying the exercises yourself.
 

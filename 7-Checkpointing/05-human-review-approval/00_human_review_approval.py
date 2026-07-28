@@ -28,7 +28,7 @@ from typing_extensions import TypedDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.append(str(REPO_ROOT))
-from util import plot_graph
+from util import plot_graph  # noqa: E402
 
 load_dotenv()
 

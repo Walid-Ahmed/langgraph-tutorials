@@ -3,10 +3,12 @@
 **Example files:**
 - [`00_tool_calling_agent_simple.py`](00_tool_calling_agent_simple.py) — the agent loop built by hand (start here)
 - [`01_tool_calling_agent.py`](01_tool_calling_agent.py) — the same loop with LangGraph's prebuilt `ToolNode`, real external APIs, and optional web search
+- [`02_tool_calling_agent_command.py`](02_tool_calling_agent_command.py) — the `ToolNode` loop using `Command` instead of a router and conditional edges
+- [`03_prebuilt_react_agent.py`](03_prebuilt_react_agent.py) — the high-level ReAct-style loop created with `create_agent`
 
 **Requires:** `OPENAI_API_KEY` in the repo-root `.env`. Optional: `OPENWEATHER_API_KEY` (live weather) and `TAVILY_API_KEY` (web search) — the second example degrades gracefully without them.
 
-Every graph in tutorials 1–5 had one thing in common: *you* decided the possible paths at build time. An agent flips that. The graph becomes a tiny loop, and the **model** decides — on every iteration — whether to act again or finish. This tutorial builds that loop twice: once by hand so nothing is hidden, then with the prebuilt components you'd use in practice.
+Every graph in tutorials 1–5 had one thing in common: *you* decided the possible paths at build time. An agent flips that. The graph becomes a tiny loop, and the **model** decides — on every iteration — whether to act again or finish. This tutorial exposes that loop progressively: fully manual, with `ToolNode`, with `Command`, and finally through the high-level `create_agent` helper.
 
 ## The Concept: The Tool-Calling Loop
 
@@ -41,7 +43,7 @@ Every graph in tutorials 1–5 had one thing in common: *you* decided the possib
 
 ## Architecture
 
-Both example files compile to the *same* two-node shape:
+All four examples ultimately use the same model-tools loop:
 
 ```mermaid
 flowchart LR
@@ -51,12 +53,12 @@ flowchart LR
     T --> L
 ```
 
-| Piece | Simple version | Full version | Role |
-|---|---|---|---|
-| LLM node | `llm_call` | `call_llm` | sends full history to the tool-bound model, appends its reply |
-| Tool node | hand-written `tool_node` | prebuilt `ToolNode(tools)` | executes requested tools, appends `ToolMessage` results |
-| Router | `should_continue` | `should_use_tools` | inspects the last message: tools or END |
-| Back edge | `tool_node → llm_call` | `tools → llm` | closes the loop — results always return to the model |
+| Example | Construction | Routing |
+|---|---|---|
+| `00_tool_calling_agent_simple.py` | manual model and tool nodes | router + conditional edges |
+| `01_tool_calling_agent.py` | model node + prebuilt `ToolNode` | router + conditional edges |
+| `02_tool_calling_agent_command.py` | model node + prebuilt `ToolNode` | `Command` from the model node |
+| `03_prebuilt_react_agent.py` | `create_agent` builds the compiled LangGraph | handled by the high-level helper |
 
 The state is just tutorial 3's message history (`MessagesState` / `messages` + `add_messages`). The entire conversation — human question, AI tool requests, tool results, final answer — accumulates in one list, which is precisely what lets a stateless model "remember" what its tools just told it.
 
@@ -118,6 +120,46 @@ graph_builder.add_edge("tools", "llm")
 
 Delete this edge and you have a workflow: LLM → at most one round of tools → done. With it, results flow back to the model, which can chain calls — use the output of `add` as input to `multiply`, or fetch the weather and *then* decide it needs a web search. The loop, not the tools, is what makes it an agent.
 
+### `Command` — update state and route together
+
+The first two examples return a state update from the model node and then use a
+separate router plus `add_conditional_edges()`. The Command example combines
+those operations:
+
+```python
+def call_model(state):
+    response = model.invoke(state["messages"])
+    next_node = "tools" if response.tool_calls else END
+    return Command(
+        update={"messages": [response]},
+        goto=next_node,
+    )
+```
+
+The static `tools → llm` back edge remains, but no router function or
+conditional-edge declaration is required. Conditional edges keep routing
+separate and visually explicit. `Command` is useful when the node naturally
+owns both its state update and its handoff decision.
+
+### High-level ReAct-style agent
+
+The final example removes the graph-building boilerplate:
+
+```python
+agent = create_agent(
+    model="openai:gpt-4o-mini",
+    tools=[add, multiply],
+    system_prompt="Always use the tools for calculations.",
+)
+```
+
+`create_agent` is imported from `langchain.agents`, but it returns a compiled
+LangGraph containing the standard model → tools → model loop.
+
+Older tutorials may import `create_react_agent` from `langgraph.prebuilt`.
+That helper is deprecated in LangGraph 1.x; the supported high-level API is
+`langchain.agents.create_agent`.
+
 ## Execution Walkthrough
 
 The simple agent, given `"Add 3 and 4. Then multiply the result by 2."`:
@@ -169,6 +211,32 @@ From the repo root:
 ```bash
 python "6-Agents/00_tool_calling_agent_simple.py"   # arithmetic agent, manual tool node
 python "6-Agents/01_tool_calling_agent.py"          # weather + tip agent, prebuilt ToolNode
+python "6-Agents/02_tool_calling_agent_command.py"  # routing with Command
+python "6-Agents/03_prebuilt_react_agent.py"        # high-level ReAct-style agent
+```
+
+The two alternative examples also save their complete message traces:
+
+```text
+6-Agents/logs/02_command_agent_messages.log
+6-Agents/logs/03_prebuilt_agent_messages.log
+```
+
+Each trace includes the human request, AI tool calls and arguments, matching
+tool results, and final AI answer. The scripts print the complete absolute path
+after saving. The logs are overwritten on each run and ignored by Git because
+real prompts and tool results may contain sensitive information.
+
+The trace makes the abstraction levels directly comparable:
+
+```text
+Command example:
+Human → AI tool request → Tool result → AI answer
+        routing performed by Command
+
+Prebuilt example:
+Human → AI tool request → Tool result → AI answer
+        routing generated by create_agent
 ```
 
 The simple version pretty-prints the full message trace — the best way to *see* the loop. The full version runs two prompts ("What's the weather in London?", "Calculate a 20% tip on a $50 bill") and adds a web-search prompt if Tavily is configured. Without `OPENWEATHER_API_KEY` the weather tool returns a graceful "not available" string — which is itself instructive: the model receives the failure as a tool result and explains it, rather than the graph crashing.
@@ -195,11 +263,12 @@ Solutions live in [`Exercise-Solutions/6-agents/`](../Exercise-Solutions/6-agent
 
 ## Key Takeaways
 
-1. An agent = an LLM node + a tool node + a router + **one back edge**. The back edge is what turns a pipeline into a loop.
+1. An agent = an LLM node + a tool node + dynamic routing + **one back edge**. The back edge is what turns a pipeline into a loop.
 2. `bind_tools` lets the model *request*; the graph *executes*. The model never touches the outside world directly.
 3. Tool docstrings and type hints are the model's entire understanding of a tool — write them like API docs.
 4. `ToolMessage` + `tool_call_id` + `add_messages` is how results re-enter the conversation so the model can chain steps.
 5. The model decides when to stop — so **you** must add an iteration cap before trusting an agent with a budget.
+6. Conditional edges, `Command`, and `create_agent` are progressively higher-level ways to express the same tool loop.
 
 ## Next Step
 

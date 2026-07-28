@@ -23,7 +23,7 @@ from typing_extensions import TypedDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.append(str(REPO_ROOT))
-from util import plot_graph
+from util import plot_graph  # noqa: E402
 
 # Load the same .env file even when the script is launched by an IDE or with
 # an absolute path from a different working directory.

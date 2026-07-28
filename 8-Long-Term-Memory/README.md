@@ -32,6 +32,28 @@ Most production agents use both:
 - the checkpointer remembers what happened in this conversation;
 - the Store remembers what should be available in future conversations.
 
+## Chat Then Update Memory
+
+The two chatbot examples deliberately separate answering from memory writing:
+
+![Chat to update-memory architecture](diagrams/chat_update_memory_architecture.png)
+
+```text
+START → chat → update_memory → END
+```
+
+- `chat` reads the user's long-term profile from the Store and combines it with
+  the current thread's messages before calling the model.
+- `update_memory` examines the latest user message and writes selected facts
+  back to the Store.
+- `MemorySaver` keeps short-term message history for one `thread_id`.
+- `InMemoryStore` shares selected long-term facts across threads that use the
+  same `user_id`.
+
+The diagram uses **long-term** to describe cross-thread scope. Because the
+example uses `InMemoryStore`, those facts still disappear when the Python
+process stops.
+
 ## Important: Long-Term Scope Is Not the Same as Durable Storage
 
 The word **long-term** means the memory can be shared across different
@@ -72,6 +94,25 @@ backend such as `PostgresStore` for that requirement.
 | [`01_simple_cross_thread_memory.py`](01_simple_cross_thread_memory.py) | notebook-style plain text profile shared across two threads | yes |
 | [`02_structured_cross_thread_memory.py`](02_structured_cross_thread_memory.py) | structured extraction, merging, metadata, and user isolation | yes |
 | [`03-postgres-store/`](03-postgres-store/) | durable Store memory that survives between Python processes | no |
+
+## Three Types of Long-Term Memory
+
+Long-term memories can be grouped by what they contain:
+
+| Type | What it remembers | Email assistant example |
+|---|---|---|
+| Semantic | facts about people, places, or things | the user's name, role, manager, and writing preference |
+| Episodic | past experiences and their outcomes | a previously approved reply used as a few-shot example |
+| Procedural | instructions for how to behave | tone, safety rules, and the required email signature |
+
+These types describe the **contents and purpose** of memory. They are separate
+from the storage choice: any of them could be held temporarily in
+`InMemoryStore` or durably in `PostgresStore`.
+
+The separate [`9-Email-Assistant/`](../9-Email-Assistant/) tutorial applies
+these ideas gradually. It begins with semantic profile data and procedural
+triage rules. Episodic examples, memory storage, tools, and graph orchestration
+are introduced in later lessons rather than all at once.
 
 ## Store Mental Model: Namespace + Key → Value
 

@@ -24,6 +24,7 @@ per thread or user.
 | 6 | [`06_episodic_memory.py`](06_episodic_memory.py) | human-corrected triage examples retrieved as few-shot episodes |
 | 7 | [`07_procedural_memory.py`](07_procedural_memory.py) | user feedback optimized into stored triage and agent instructions |
 | 7a | [`07a_prompt_optimizer_minimal.py`](07a_prompt_optimizer_minimal.py) | minimal one-rule prompt-optimizer read/write cycle |
+| 7b | [`07b_prompt_optimizer_no_store.py`](07b_prompt_optimizer_no_store.py) | smallest optimizer example using only a Python string |
 | 8 | [`08_integrated_memory_agent.py`](08_integrated_memory_agent.py) | one graph combining short-term, semantic, episodic, and procedural memory |
 
 Lessons 1–3 introduce procedural prompt context but no persistent procedural
@@ -828,6 +829,26 @@ create_multi_prompt_optimizer → proposes better prompt text
 InMemoryStore                 → remembers that text
 application get()/put()       → controls exact reads and writes
 ```
+
+For an even smaller example with no persistence, run:
+
+```bash
+python "9-Email-Assistant/07b_prompt_optimizer_no_store.py"
+```
+
+This version keeps the original and optimized rules in ordinary Python
+variables:
+
+```text
+hard-coded prompt string
+    → create_multi_prompt_optimizer
+    → optimized prompt string
+    → rebuild system prompt in the current process
+```
+
+There is no `InMemoryStore`, `get()`, or `put()`. Restarting the script restores
+the original hard-coded rule. Therefore, this demonstrates **prompt
+optimization**, but not reusable long-term **procedural memory**.
 
 ## Lesson 8: Integrated Memory Agent
 

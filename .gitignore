@@ -26,3 +26,9 @@ notes.md
 **/notes_*.md
 # Generated tutorial reports
 5-Workflows/prompt_chaining_output.html
+
+# Email Assistant runtime logs (may contain email content)
+9-Email-Assistant/logs/
+
+# Agent interaction logs (may contain prompts and tool results)
+6-Agents/logs/

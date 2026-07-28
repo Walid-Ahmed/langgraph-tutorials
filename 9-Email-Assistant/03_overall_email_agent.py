@@ -64,6 +64,8 @@ prompt_instructions = {
 
 
 class State(TypedDict):
+    # email_input is the current work item. add_messages appends response-agent
+    # messages instead of overwriting them when a node returns an update.
     email_input: dict
     messages: Annotated[list, add_messages]
 
@@ -111,6 +113,8 @@ def check_calendar_availability(day: str) -> str:
     return f"Available times on {day}: 9:00 AM, 2:00 PM, 4:00 PM"
 
 
+# The router and response agent use the same model name but are separate calls:
+# one makes a deterministic routing decision; the other can loop over tools.
 llm = init_chat_model("openai:gpt-4o-mini")
 llm_router = llm.with_structured_output(Router)
 
@@ -154,6 +158,8 @@ def triage_router(
 
     if result.classification == "respond":
         print("📧 Classification: RESPOND — this email requires a response")
+        # Command combines a state update with the routing decision. The new
+        # message becomes the response agent's task.
         return Command(
             goto="response_agent",
             update={
@@ -183,6 +189,8 @@ def triage_router(
 
 
 def build_graph():
+    # The router chooses the destination at runtime, so only START needs a
+    # static edge. Command(goto=...) supplies the remaining transitions.
     builder = StateGraph(State)
     builder.add_node("triage_router", triage_router)
     builder.add_node("response_agent", response_agent)

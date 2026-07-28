@@ -34,6 +34,7 @@ prompt_instructions = {
 @tool
 def write_email(to: str, subject: str, content: str) -> str:
     """Simulate writing and sending an email."""
+    # @tool exposes this signature and docstring as a schema the model can call.
     # A production implementation would require approval and call an email API.
     return (
         f"Simulated email to {to} with subject {subject!r}. "
@@ -76,6 +77,8 @@ def main() -> None:
             "Missing OPENAI_API_KEY. Add it to the repository-root .env file."
         )
 
+    # create_agent builds the model -> tool -> model loop. The model decides
+    # whether a tool is needed; these Python functions perform the actual call.
     tools = [write_email, schedule_meeting, check_calendar_availability]
     agent = create_agent(
         "openai:gpt-4o-mini",
@@ -83,6 +86,8 @@ def main() -> None:
         system_prompt=create_system_prompt(),
     )
 
+    # The returned message list includes the user request, any tool calls and
+    # tool results, and the final assistant answer.
     response = agent.invoke(
         {
             "messages": [

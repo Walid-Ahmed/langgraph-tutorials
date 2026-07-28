@@ -76,6 +76,8 @@ def check_calendar_availability(day: str) -> str:
 
 
 # The embedding index enables similarity search over saved memory content.
+# GPT-4o-mini decides what to remember and when to search; the embedding model
+# only converts stored text and queries into vectors for similarity matching.
 store = InMemoryStore(
     index={
         "embed": "openai:text-embedding-3-small",
@@ -96,6 +98,8 @@ search_memory_tool = create_search_memory_tool(namespace=memory_namespace)
 
 def build_agent():
     """Create the response agent with communication and memory tools."""
+    # LangMem turns Store operations into normal agent tools. The agent never
+    # accesses the Store directly; it requests manage/search tool calls.
     tools = [
         write_email,
         schedule_meeting,
@@ -112,6 +116,8 @@ def build_agent():
         model="openai:gpt-4o-mini",
         tools=tools,
         system_prompt=system_prompt,
+        # Both invocations must receive this exact Store object or the second
+        # invocation would have nothing to recall.
         store=store,
     )
 

@@ -1,5 +1,9 @@
 """Prompt templates shared by the Email Assistant lessons."""
 
+# These are templates, not stored conversation history. Each lesson fills the
+# placeholders immediately before a model call. Procedural-memory lessons load
+# the latest instruction values from the Store before calling .format(...).
+#
 # Baseline agent prompt. Later lessons will connect these tool descriptions to
 # real Python functions.
 agent_system_prompt = """

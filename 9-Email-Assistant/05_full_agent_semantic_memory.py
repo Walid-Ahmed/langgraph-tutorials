@@ -122,6 +122,8 @@ def check_calendar_availability(day: str) -> str:
     return f"SIMULATION ONLY: available times on {day}: 9:00 AM, 2:00 PM, 4:00 PM"
 
 
+# One Store instance is shared by the outer graph and nested response agent.
+# user_id selects cross-thread memory; thread_id belongs to the checkpointer.
 store = InMemoryStore(
     index={
         "embed": "openai:text-embedding-3-small",
@@ -181,6 +183,8 @@ def triage_router(
         subject=email_input["subject"],
         email_thread=email_input["email_thread"],
     )
+    # Triage intentionally does not search semantic memory. It classifies the
+    # current email; the response agent retrieves memory only after RESPOND.
     result = llm_router.invoke(
         [
             {"role": "system", "content": system_prompt},
@@ -233,6 +237,8 @@ def build_email_agent():
     builder.add_node("triage_router", triage_router)
     builder.add_node("response_agent", build_response_agent())
     builder.add_edge(START, "triage_router")
+    # MemorySaver restores one thread's graph state. InMemoryStore separately
+    # shares selected facts across threads belonging to the same user.
     return builder.compile(checkpointer=MemorySaver(), store=store)
 
 

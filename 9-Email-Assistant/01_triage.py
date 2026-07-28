@@ -81,6 +81,8 @@ Alice
 class Router(BaseModel):
     """Analyze an unread email and route it according to its content."""
 
+    # Structured output makes the model return validated fields instead of
+    # free-form prose that application code would need to parse.
     reasoning: str = Field(
         description="A concise explanation for the classification."
     )
@@ -121,9 +123,13 @@ def main() -> None:
             "Missing OPENAI_API_KEY. Add it to the repository-root .env file."
         )
 
+    # with_structured_output keeps the model call unchanged while requiring its
+    # response to satisfy the Router schema above.
     llm = init_chat_model("openai:gpt-4o-mini")
     llm_router = llm.with_structured_output(Router)
 
+    # The system prompt contains reusable policy and profile context. The user
+    # prompt contains only the current email that needs classification.
     system_prompt = triage_system_prompt.format(
         full_name=profile["full_name"],
         name=profile["name"],

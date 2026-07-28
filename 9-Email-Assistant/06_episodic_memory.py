@@ -100,11 +100,15 @@ def triage_router(
     """Retrieve similar corrected episodes, then classify the current email."""
     user_id = config["configurable"]["langgraph_user_id"]
     email = state["email_input"]
+    # The application—not the chat model—retrieves trusted past corrections.
+    # Embeddings allow a differently worded email to match an earlier episode.
     matches = store.search(
         examples_namespace(user_id),
         query=str({"email": email}),
         limit=3,
     )
+    # Episodic memory is the stored event; semantic search selects it; few-shot
+    # prompting is how the router model uses it.
     examples = format_few_shot_examples(matches)
 
     system_prompt = triage_system_prompt.format(
@@ -152,6 +156,8 @@ def save_triage_correction(
     correct_label: Literal["ignore", "respond", "notify"],
 ) -> None:
     """Save one human-approved classification as an episodic memory."""
+    # A human-approved label is written directly. GPT does not get to promote
+    # its own potentially incorrect classification into a trusted example.
     store.put(
         examples_namespace(user_id),
         str(uuid.uuid4()),

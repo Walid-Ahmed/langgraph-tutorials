@@ -133,6 +133,8 @@ def initialize_procedures(user_id: str) -> None:
     namespace = procedural_namespace(user_id)
     for key, prompt in DEFAULT_PROCEDURES.items():
         if store.get(namespace, key) is None:
+            # index=False prevents exact-key procedures from being embedded
+            # even though semantic and episodic data share this Store.
             store.put(
                 namespace,
                 key,
@@ -224,6 +226,9 @@ def triage_router(
     initialize_procedures(user_id)
     email = state["email_input"]
 
+    # One triage prompt combines two memory types:
+    # - procedural rules loaded by exact key
+    # - episodic examples selected by embedding similarity
     episodes = store.search(
         episodic_namespace(user_id),
         query=str({"email": email}),
@@ -289,12 +294,16 @@ def response_agent_node(
     """Rebuild the response-agent prompt from the latest stored procedure."""
     user_id = config["configurable"]["langgraph_user_id"]
     initialize_procedures(user_id)
+    # Re-read the procedure for every invocation so newly optimized behavior
+    # immediately appears in the next rebuilt system prompt.
     instructions = read_procedure(user_id, "agent_instructions")
     system_prompt = agent_system_prompt_memory.format(
         instructions=instructions,
         profile=profile,
         **profile,
     )
+    # This response GPT both answers the email and controls semantic-memory
+    # tools. It is separate from the router and prompt-optimizer calls.
     agent = create_agent(
         model="openai:gpt-4o-mini",
         tools=[
@@ -328,6 +337,8 @@ def update_procedures(
         }
         for name, (key, when_to_update) in PROMPT_SPECS.items()
     ]
+    # create_multi_prompt_optimizer proposes changes; application code below
+    # remains responsible for deciding what is actually persisted.
     optimized = procedure_optimizer.invoke(
         {
             "trajectories": [(previous_interaction, feedback)],
@@ -356,6 +367,8 @@ def update_procedures(
 
 
 def build_email_agent():
+    # MemorySaver scopes state by thread_id. The Store scopes all long-term
+    # namespaces by user_id. Both are attached to the same compiled graph.
     builder = StateGraph(State)
     builder.add_node("triage_router", triage_router)
     builder.add_node("response_agent", response_agent_node)

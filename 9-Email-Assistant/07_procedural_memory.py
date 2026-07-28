@@ -84,6 +84,9 @@ class Router(BaseModel):
     classification: Literal["ignore", "respond", "notify"]
 
 
+# Each prompt section is a separate Store item rather than one giant stored
+# system prompt. This lets feedback update only the relevant section.
+#
 # No embedding index is configured. Procedural prompts have stable keys and are
 # loaded with exact get(), then replaced with put() after approved feedback.
 store = InMemoryStore()
@@ -102,6 +105,7 @@ def initialize_procedures(user_id: str) -> None:
     """Create this user's defaults without overwriting learned instructions."""
     namespace = procedures_namespace(user_id)
     for key, prompt in DEFAULT_PROCEDURES.items():
+        # Never replace an optimized prompt when the graph starts again.
         if store.get(namespace, key) is None:
             store.put(namespace, key, {"prompt": prompt})
 
@@ -117,6 +121,8 @@ def read_procedure(user_id: str, key: str) -> str:
 def classify_email(user_id: str, email: dict) -> Router:
     """Build the system prompt from stored procedures and classify one email."""
     initialize_procedures(user_id)
+    # The complete system prompt is rebuilt on every call from the latest
+    # exact-key values. The assembled prompt itself is not stored.
     system_prompt = triage_system_prompt.format(
         full_name=profile["full_name"],
         name=profile["name"],
@@ -171,6 +177,8 @@ def update_procedures(
             )
         ),
     ]
+    # This is a separate GPT-4o-mini call from the router. LangMem compares the
+    # prior behavior with feedback and proposes concise prompt revisions.
     optimized = procedure_optimizer.invoke(
         {
             "trajectories": [(trajectory, feedback)],
@@ -185,6 +193,8 @@ def update_procedures(
             continue
         name = old_prompt["name"]
         key = PROMPT_SPECS[name]["key"]
+        # put() with the same namespace/key replaces that prompt section while
+        # leaving every unrelated procedure untouched.
         store.put(
             namespace,
             key,

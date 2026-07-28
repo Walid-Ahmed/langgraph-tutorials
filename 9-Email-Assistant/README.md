@@ -23,10 +23,12 @@ per thread or user.
 | 5 | [`05_full_agent_semantic_memory.py`](05_full_agent_semantic_memory.py) | complete triage + response with short- and long-term memory |
 | 6 | [`06_episodic_memory.py`](06_episodic_memory.py) | human-corrected triage examples retrieved as few-shot episodes |
 | 7 | [`07_procedural_memory.py`](07_procedural_memory.py) | user feedback optimized into stored triage and agent instructions |
+| 8 | [`08_integrated_memory_agent.py`](08_integrated_memory_agent.py) | one graph combining short-term, semantic, episodic, and procedural memory |
 
 Lessons 1–3 introduce procedural prompt context but no persistent procedural
 memory. Lessons 4–5 implement semantic memory. Lesson 6 implements episodic
-few-shot memory. Lesson 7 implements learned procedural memory.
+few-shot memory. Lesson 7 implements learned procedural memory. Lesson 8
+combines every memory type in one graph.
 
 ## Lesson 1: Triage One Email
 
@@ -793,3 +795,65 @@ This lesson still simulates the feedback call directly. A production system
 should validate proposed instruction changes, restrict which procedures may be
 edited, keep an audit history, and require approval for sensitive policy
 changes.
+
+## Lesson 8: Integrated Memory Agent
+
+Run:
+
+```bash
+python "9-Email-Assistant/08_integrated_memory_agent.py"
+```
+
+Lesson 8 combines all previously isolated mechanisms in one compiled graph:
+
+```text
+MemorySaver + thread_id
+└── short-term messages and graph state
+
+One shared InMemoryStore + user_id
+├── collection  → semantic facts
+├── examples    → episodic corrections
+└── procedures  → procedural instructions
+```
+
+### One invocation
+
+```text
+incoming email
+    → get() latest procedural triage rules
+    → embedding-search relevant episodic examples
+    → rebuild triage system prompt from rules + examples
+    → router GPT classifies
+    → if RESPOND:
+         get() latest response-agent instructions
+         rebuild response system prompt
+         search semantic memory when needed
+         use simulated email/calendar tools
+         manage semantic memory
+```
+
+### All read and write paths
+
+| Memory | Write | Read |
+| --- | --- | --- |
+| Short-term | checkpointer automatically saves graph state | restored by `thread_id` |
+| Semantic | response GPT calls `manage_memory` | response GPT calls `search_memory`; embeddings find facts |
+| Episodic | application saves a human-approved `{email, label}` | application embedding-searches examples for the triage prompt |
+| Procedural | `create_multi_prompt_optimizer` proposes from feedback; application uses `put()` | application uses exact `get()` and rebuilds system prompts |
+
+The demonstration first stores an episodic correction and retrieves it for a
+similar vendor email. It then uses procedural feedback to change the handling
+of routine deployment FYIs. Finally, it handles Alice's detailed API request
+and recalls that semantic context from a different `thread_id`.
+
+The namespaces share one Store instance but remain isolated per user:
+
+```text
+("email_assistant", "john", "collection")
+("email_assistant", "john", "examples")
+("email_assistant", "john", "procedures")
+```
+
+Because the lesson uses `InMemoryStore` and `MemorySaver`, everything disappears
+when the Python process stops. The same architecture can use `PostgresStore`
+and `PostgresSaver` for restart-safe persistence.

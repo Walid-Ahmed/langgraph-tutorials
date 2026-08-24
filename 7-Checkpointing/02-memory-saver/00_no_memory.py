@@ -12,9 +12,13 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict
 from openai import OpenAI
+from dotenv import load_dotenv
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.append(str(REPO_ROOT))
 from util import plot_graph
+
+load_dotenv(REPO_ROOT / ".env")
 
 client = OpenAI()
 

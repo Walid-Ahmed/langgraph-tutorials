@@ -1,11 +1,35 @@
 # 7. Checkpointing — Graphs That Remember
 
+## TL;DR
+
+- Attach a checkpointer when compiling the graph.
+- Pass the `thread_id` to every `graph.invoke()` inside `config`.
+- LangGraph does **not** create a new thread for every invocation.
+- Reuse the same `thread_id` to continue the same conversation.
+- Use a different `thread_id` to start an isolated conversation.
+
+```python
+checkpointer = MemorySaver()
+graph = builder.compile(checkpointer=checkpointer)
+
+config = {"configurable": {"thread_id": "chat-001"}}
+
+graph.invoke(first_input, config=config)   # starts or continues chat-001
+graph.invoke(second_input, config=config)  # continues the same chat-001
+```
+
+Remember: **checkpointer at compile; `thread_id` at invoke.**
+
+![How to wire a MemorySaver checkpointer into a LangGraph workflow](diagrams/wiring_up_a_checkpointer.png)
+
 LangGraph state normally lives for one `invoke()` call. A checkpointer turns
 that temporary state into a sequence of saved snapshots. Those snapshots let a
 graph remember a conversation, show how it reached an answer, pause for human
 review, or resume after a failure.
 
 ## The Big Picture: Short-Term Memory
+
+![How LangGraph checkpointers save a state snapshot after each node](diagrams/how_checkpointers_work.png)
 
 A LangGraph workflow passes shared state from node to node. Without a
 checkpointer, that state disappears after the invocation. A checkpointer saves
@@ -108,10 +132,25 @@ Keep this mental model nearby:
 > restores and extends that saved state. A different `thread_id` starts a
 > brand-new, isolated thread.
 
+The `thread_id` is passed to `graph.invoke()` inside its `config` argument.
+LangGraph does **not** create a new thread for every invocation. Reusing the
+same config connects multiple invocations to the same saved conversation:
+
+```python
+config = {"configurable": {"thread_id": "chat-001"}}
+
+graph.invoke(first_input, config=config)   # starts or continues chat-001
+graph.invoke(second_input, config=config)  # continues the same chat-001
+```
+
+Use a different `thread_id` in the invocation config only when you want a new,
+isolated conversation or workflow.
+
 ## Thread vs User
 
-A `thread_id` normally identifies **one chat or one workflow execution**, not
-the person using the application. One user can therefore own many threads:
+A `thread_id` passed to `graph.invoke()` normally identifies **one chat or one
+workflow execution**, not the person using the application. One user can
+therefore own many threads:
 
 ```text
 user_id = "walid"

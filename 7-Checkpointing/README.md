@@ -6,6 +6,8 @@
 - Pass the `thread_id` to every `graph.invoke()` inside `config`.
 - LangGraph does **not** create a new thread for every invocation.
 - Reuse the same `thread_id` to continue the same conversation.
+- With the same `thread_id`, LangGraph **does load the saved state from the
+  previous `invoke()`** before running again.
 - Use a different `thread_id` to start an isolated conversation.
 
 ```python
@@ -19,6 +21,9 @@ graph.invoke(second_input, config=config)  # continues the same chat-001
 ```
 
 Remember: **checkpointer at compile; `thread_id` at invoke.**
+
+**Checkpointer saves/restores state + `thread_id` selects the state + reducer
+merges the new input.**
 
 ![How to wire a MemorySaver checkpointer into a LangGraph workflow](diagrams/wiring_up_a_checkpointer.png)
 
@@ -76,9 +81,10 @@ By the end of this tutorial, you will be able to:
 | File | Demonstrates | LLM? |
 |---|---|---|
 | [`01-state-snapshots/00_custom_state_reducer.py`](01-state-snapshots/00_custom_state_reducer.py) | what a checkpointer stores; snapshot history | no |
-| [`02-memory-saver/00_no_memory.py`](02-memory-saver/00_no_memory.py) | the default: total amnesia between runs | yes |
-| [`02-memory-saver/01_memory_saver.py`](02-memory-saver/01_memory_saver.py) | `MemorySaver` + `thread_id` = automatic memory | yes |
-| [`02-memory-saver/02_manual_history.py`](02-memory-saver/02_manual_history.py) | the alternative: caller carries the history | yes |
+| [`02-memory-saver/00_simple_counter.py`](02-memory-saver/00_simple_counter.py) | the simplest comparison of repeated invokes with and without `MemorySaver` | no |
+| [`02-memory-saver/01_no_memory.py`](02-memory-saver/01_no_memory.py) | the default: total amnesia between runs | yes |
+| [`02-memory-saver/02_memory_saver.py`](02-memory-saver/02_memory_saver.py) | `MemorySaver` + `thread_id` = automatic memory | yes |
+| [`02-memory-saver/03_manual_history.py`](02-memory-saver/03_manual_history.py) | the alternative: caller carries the history | yes |
 | [`03-checkpoint-history/`](03-checkpoint-history/README.md) | checkpoint history through a real revise loop | yes |
 | [`04-resume-after-failure/`](04-resume-after-failure/README.md) | crash mid-graph, resume without re-running | no |
 | [`05-human-review-approval/`](05-human-review-approval/README.md) | pause → human reviews → update → resume | yes |
@@ -118,12 +124,13 @@ python "7-Checkpointing/01-state-snapshots/00_custom_state_reducer.py"
 python "7-Checkpointing/04-resume-after-failure/00_resume_after_failure.py"
 ```
 
-Then compare the three chat examples in this order:
+Next run the simple counter, then compare the three chat examples in order:
 
 ```bash
-python "7-Checkpointing/02-memory-saver/00_no_memory.py"
-python "7-Checkpointing/02-memory-saver/01_memory_saver.py"
-python "7-Checkpointing/02-memory-saver/02_manual_history.py"
+python "7-Checkpointing/02-memory-saver/00_simple_counter.py"
+python "7-Checkpointing/02-memory-saver/01_no_memory.py"
+python "7-Checkpointing/02-memory-saver/02_memory_saver.py"
+python "7-Checkpointing/02-memory-saver/03_manual_history.py"
 ```
 
 Keep this mental model nearby:
@@ -446,20 +453,26 @@ its `next`.” **Time travel** adds one more capability: because every snapshot
 also carries a `checkpoint_id`, you can point at an older checkpoint and replay
 or fork execution from that saved position.
 
-## Walkthrough 2 — Memory: Without, With, and Manual
+## Walkthrough 2 — Memory: Counter, Without, With, and Manual
 
-Three scripts, one identical chat graph (`START → chat → END`), three memory strategies:
+Start with **`00_simple_counter.py`**, which compares the same increment node
+without a checkpointer (`1, 1, 1`) and with `MemorySaver` (`1, 2, 3`). This is
+the simplest demonstration because it needs neither an LLM nor a messages
+reducer.
 
-**`00_no_memory.py` — no checkpointer.** Run 1: "Hi, my name is Walid."
+The next three scripts use one identical chat graph (`START → chat → END`)
+to compare three conversation-memory strategies:
+
+**`01_no_memory.py` — no checkpointer.** Run 1: "Hi, my name is Walid."
 Run 2: "What is my name?" → *"I don't know your name."* Each `invoke`
 starts blank. This is the baseline that motivates everything else.
 
-**`01_memory_saver.py` — checkpointer.** Same graph plus the three persistence
+**`02_memory_saver.py` — checkpointer.** Same graph plus the three persistence
 pieces. Run 2 on thread `"walid-session"` → *"Your name is Walid!"* The caller
 passed only the new message; LangGraph restored the old turn from the
 checkpoint and `add_messages` appended the new one.
 
-**`02_manual_history.py` — manual history.** No checkpointer—instead the
+**`03_manual_history.py` — manual history.** No checkpointer—instead the
 *caller* carries the transcript forward:
 
 ```python
@@ -468,7 +481,7 @@ result = graph.invoke({"messages": result["messages"] + [new_user_turn]})
 
 Also works. This is exactly what tutorial 6's Exercise 3 had you do, and it's a legitimate pattern — the point of comparing them side by side:
 
-| | `00_no_memory.py` | `01_memory_saver.py` | `02_manual_history.py` |
+| | `01_no_memory.py` | `02_memory_saver.py` | `03_manual_history.py` |
 |---|---|---|---|
 | Remembers across invokes | no | yes | yes |
 | Who owns the transcript | nobody | LangGraph, keyed by thread | your calling code |
@@ -590,9 +603,10 @@ From the repo root, in order:
 
 ```bash
 python "7-Checkpointing/01-state-snapshots/00_custom_state_reducer.py"
-python "7-Checkpointing/02-memory-saver/00_no_memory.py"
-python "7-Checkpointing/02-memory-saver/01_memory_saver.py"
-python "7-Checkpointing/02-memory-saver/02_manual_history.py"
+python "7-Checkpointing/02-memory-saver/00_simple_counter.py"
+python "7-Checkpointing/02-memory-saver/01_no_memory.py"
+python "7-Checkpointing/02-memory-saver/02_memory_saver.py"
+python "7-Checkpointing/02-memory-saver/03_manual_history.py"
 python "7-Checkpointing/03-checkpoint-history/00_document_review_loop.py"
 python "7-Checkpointing/04-resume-after-failure/00_resume_after_failure.py"
 python "7-Checkpointing/05-human-review-approval/00_human_review_approval.py"   # interactive — it will prompt you

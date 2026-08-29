@@ -40,6 +40,13 @@ node at each point in the run. After the workflow finishes,
 them from newest to oldest. This history lets you see exactly how the document
 and routing decisions changed during every pass through the loop.
 
+With the same `thread_id`, LangGraph **does load the saved state from the
+previous `invoke()`** before running again. The `thread_id` therefore does more
+than label the printed history: it tells the checkpointer which saved workflow
+state to retrieve. This example invokes the graph only once and then inspects
+its history, but a second `invoke()` using `doc_review_001` would begin from
+that thread's latest saved state before applying the new input.
+
 ## Run
 
 Add `OPENAI_API_KEY` to the repository-root `.env`, then run from the

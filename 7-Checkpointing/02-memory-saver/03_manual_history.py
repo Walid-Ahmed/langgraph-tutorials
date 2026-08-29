@@ -7,7 +7,7 @@
 #   OPENAI_API_KEY=your_key_here
 #
 # Then run:
-#   python "7-Checkpointing/02-memory-saver/02_manual_history.py"
+#   python "7-Checkpointing/02-memory-saver/03_manual_history.py"
 
 import os
 import sys

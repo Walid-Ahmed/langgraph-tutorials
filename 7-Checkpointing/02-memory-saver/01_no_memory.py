@@ -3,7 +3,7 @@
 # what was said in the first — demonstrates why checkpointing is needed.
 #
 # Run from the repository root (requires OPENAI_API_KEY in the environment):
-#   python "7-Checkpointing/02-memory-saver/00_no_memory.py"
+#   python "7-Checkpointing/02-memory-saver/01_no_memory.py"
 
 import sys
 from pathlib import Path

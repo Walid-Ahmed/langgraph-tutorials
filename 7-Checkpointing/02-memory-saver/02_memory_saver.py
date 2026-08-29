@@ -1,4 +1,4 @@
-# Same chatbot as 00_no_memory.py, but compiled WITH a MemorySaver
+# Same chatbot as 01_no_memory.py, but compiled WITH a MemorySaver
 # checkpointer and a fixed thread_id. Now a second invoke() on the same
 # thread remembers the first turn, proving the checkpointer is what
 # provides conversational memory.
@@ -7,7 +7,7 @@
 #   OPENAI_API_KEY=your_key_here
 #
 # Then run:
-#   python "7-Checkpointing/02-memory-saver/01_memory_saver.py"
+#   python "7-Checkpointing/02-memory-saver/02_memory_saver.py"
 
 import os
 import sys
@@ -95,7 +95,7 @@ builder.add_edge("chat", END)
 checkpointer = MemorySaver()
 
 # Passing the checkpointer here enables persistence between graph.invoke()
-# calls. Without this argument, the graph would behave like 00_no_memory.py.
+# calls. Without this argument, the graph would behave like 01_no_memory.py.
 graph = builder.compile(checkpointer=checkpointer)
 
 plot_graph(graph)

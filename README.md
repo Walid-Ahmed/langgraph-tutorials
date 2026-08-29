@@ -76,9 +76,10 @@ LangGraph uses the word "memory" in a few related ways. This repo separates them
 
 | Memory Type | Scope | Stored In | Survives Python Restart? | Covered In |
 |---|---|---|---|---|
-| No memory | one isolated invoke | nowhere | no | `7-Checkpointing/02-memory-saver/00_no_memory.py` |
-| Manual history | caller-managed conversation | your Python variable / app code | only if your app saves it | `7-Checkpointing/02-memory-saver/02_manual_history.py` |
-| `MemorySaver` | one LangGraph thread | Python process memory | no | `7-Checkpointing/02-memory-saver/01_memory_saver.py` |
+| Simple counter | repeated invokes with and without checkpointing | nowhere / Python process memory | no | `7-Checkpointing/02-memory-saver/00_simple_counter.py` |
+| No memory | one isolated invoke | nowhere | no | `7-Checkpointing/02-memory-saver/01_no_memory.py` |
+| `MemorySaver` | one LangGraph thread | Python process memory | no | `7-Checkpointing/02-memory-saver/02_memory_saver.py` |
+| Manual history | caller-managed conversation | your Python variable / app code | only if your app saves it | `7-Checkpointing/02-memory-saver/03_manual_history.py` |
 | `PostgresSaver` | many durable LangGraph threads, each keyed by `thread_id` | PostgreSQL checkpoint tables | yes | `7-Checkpointing/06-postgres-saver/` |
 | `InMemoryStore` | cross-thread user or app facts | Python process memory | no | `8-Long-Term-Memory/` |
 | `PostgresStore` | durable cross-thread user or app facts | PostgreSQL store tables | yes | `8-Long-Term-Memory/03-postgres-store/` |

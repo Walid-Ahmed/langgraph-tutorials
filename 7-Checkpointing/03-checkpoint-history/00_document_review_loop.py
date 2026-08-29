@@ -36,13 +36,45 @@ MAX_ITERATIONS = 3  # hard stop so a stubborn low score can't loop forever
 # ---------------------------------------------------------
 
 class DocumentState(TypedDict):
+    """Shared state carried through the document-review graph.
+
+    Every node receives the latest version of this dictionary and returns only
+    the fields it wants to update. LangGraph merges those partial updates into
+    the state, then the checkpointer saves the resulting snapshot.
+
+    All fields are required because this is a regular ``TypedDict``. The
+    ``initial_input`` near the bottom therefore supplies a starting value for
+    every field, including values that later nodes will replace.
+    """
+
+    # Original identifying information. These values remain unchanged.
     document_title: str
+
+    # Current document text. ``revise_document`` replaces it after each rewrite.
     document_content: str
+
+    # Human-readable progress marker set by every node; useful when inspecting
+    # checkpoint snapshots to see which step produced a particular state.
     processing_stage: str
+
+    # Latest 1-10 score from ``analyze_quality``. The router uses it to decide
+    # whether the document is ready to finalize.
     quality_score: int
+
+    # Problems reported by the most recent analysis. The revision node reads
+    # this list to construct its rewrite prompt.
     issues_found: list[str]
+
+    # Issues addressed by the most recent revision. With the default replace
+    # behavior this records the latest pass, rather than accumulating all passes.
     revisions_made: list[str]
+
+    # Latest approval status. Analysis derives it from the model recommendation;
+    # finalization sets it to True even when the iteration limit caused the exit.
     approved: bool
+
+    # Number of completed analysis passes. This provides a deterministic escape
+    # hatch from the analyze -> revise -> analyze cycle.
     iterations: int
 
 

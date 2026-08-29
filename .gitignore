@@ -19,6 +19,7 @@ __pycache__/
 # Generated graph images
 graph.png
 **/graph.png
+!7-Checkpointing/03-checkpoint-history/graph.png
 
 # Personal notes
 notes.md

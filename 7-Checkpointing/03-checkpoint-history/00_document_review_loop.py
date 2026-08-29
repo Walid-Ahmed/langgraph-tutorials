@@ -219,7 +219,13 @@ builder.add_edge("finalize", END)
 checkpointer = MemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 
-plot_graph(graph)
+# Keep the traditional repository-root output and a tutorial-local copy. The
+# local image is referenced by this folder's README, so GitHub can render it.
+plot_graph(graph, "graph.png")
+plot_graph(
+    graph,
+    str(Path(__file__).resolve().parent / "graph.png"),
+)
 
 
 # ---------------------------------------------------------

@@ -10,6 +10,14 @@ The graph follows this path:
 intake → analyze → (revise → analyze)* → finalize
 ```
 
+## Graph
+
+![Document review checkpoint graph](graph.png)
+
+When the example runs, it saves this diagram both as `graph.png` in the
+repository root and as `graph.png` in this tutorial folder. The folder-local
+copy is the image displayed above.
+
 An LLM returns a structured quality score, issues, and recommendation. The
 router revises weak content until it reaches the acceptance threshold or
 `MAX_ITERATIONS` prevents an endless loop. The checkpointing lesson begins

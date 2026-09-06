@@ -1,0 +1,28 @@
+# Python version used: 3.11.3
+
+# langchain specific
+
+langchain==1.3.11
+langchain-text-splitters==1.1.2
+langchain-community==0.4.2
+langchain-openai==1.3.3
+
+# observe
+langsmith==0.9.8
+
+
+python-dotenv==1.2.2
+
+# vec db
+faiss-cpu==1.14.3
+
+# agentic flows
+langgraph==1.2.8
+langgraph-cli[inmem]==0.4.30
+
+# ui
+streamlit==1.59.0
+
+openai==2.44.0
+
+

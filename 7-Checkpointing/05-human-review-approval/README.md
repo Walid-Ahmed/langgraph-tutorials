@@ -63,6 +63,9 @@ That saved information allows this call to restore the correct execution:
 final_state = graph.invoke(None, config)
 ```
 
+> **Key point:** `invoke(None, config)` means load from the saved checkpoint
+> and continue from the paused node. It does **not** start a fresh run.
+
 Without a checkpointer, ordinary Python could still ask a person for input and
 manually pass data into another function. However, LangGraph could not use its
 built-in interrupt, `update_state()`, and checkpoint-resume behavior.
@@ -132,3 +135,6 @@ The script is interactive and asks whether to approve the generated draft.
 Keep the user interface outside the graph. The graph should pause, expose its
 saved state, accept a decision through `update_state()`, and resume using the
 same `thread_id`.
+
+The resume call is deliberately `invoke(None, config)`: `None` means "no new
+input," and `config` points LangGraph back to the existing checkpoint.

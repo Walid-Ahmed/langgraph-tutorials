@@ -87,6 +87,7 @@ By the end of this tutorial, you will be able to:
 | [`02-memory-saver/03_manual_history.py`](02-memory-saver/03_manual_history.py) | the alternative: caller carries the history | yes |
 | [`03-checkpoint-history/`](03-checkpoint-history/README.md) | checkpoint history through a real revise loop | yes |
 | [`04-resume-after-failure/`](04-resume-after-failure/README.md) | crash mid-graph, resume without re-running | no |
+| [`05-run-until-interrupt/`](05-run-until-interrupt/README.md) | planned pause before a node, then resume | no |
 | [`05-human-review-approval/`](05-human-review-approval/README.md) | pause → human reviews → update → resume | yes |
 | [`06-postgres-saver/`](06-postgres-saver/README.md) | `PostgresSaver` survives process restarts | yes |
 
@@ -547,7 +548,30 @@ Two things to internalize:
   or sending an email should still use idempotency keys because a process can
   fail after the side effect succeeds but before its checkpoint is committed.
 
-## Walkthrough 5 — Human-in-the-Loop ([`05-human-review-approval/`](05-human-review-approval/README.md))
+## Walkthrough 5 — Run Until Interrupt ([`05-run-until-interrupt/`](05-run-until-interrupt/README.md))
+
+This is the tiny planned-pause version before the human-review example adds an
+LLM and approval routing:
+
+```text
+invoke #1        → step_one runs → graph pauses before step_two
+get_state()      → values = {'log': ['step_one']}, next = ('step_two',)
+invoke #2 (None) → step_two runs → END
+```
+
+The whole mechanism is the compile option:
+
+```python
+graph = builder.compile(
+    checkpointer=MemorySaver(),
+    interrupt_before=["step_two"],
+)
+```
+
+Use this when you want to show the pause/resume mechanics without the extra
+moving parts of human feedback, LLM calls, or conditional routing.
+
+## Walkthrough 6 — Human-in-the-Loop ([`05-human-review-approval/`](05-human-review-approval/README.md))
 
 The capstone: an LLM drafts a response, a *human* approves or rejects it, and the graph routes accordingly. The pause-inspect-modify-resume cycle:
 
@@ -609,6 +633,7 @@ python "7-Checkpointing/02-memory-saver/02_memory_saver.py"
 python "7-Checkpointing/02-memory-saver/03_manual_history.py"
 python "7-Checkpointing/03-checkpoint-history/00_document_review_loop.py"
 python "7-Checkpointing/04-resume-after-failure/00_resume_after_failure.py"
+python "7-Checkpointing/05-run-until-interrupt/00_run_until_interrupt.py"
 python "7-Checkpointing/05-human-review-approval/00_human_review_approval.py"   # interactive — it will prompt you
 python "7-Checkpointing/06-postgres-saver/00_setup_tables.py"      # run once to create/validate tables
 python "7-Checkpointing/06-postgres-saver/01_save_name.py"         # save first turn, then process exits

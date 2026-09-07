@@ -14,6 +14,39 @@ The graph is compiled with `interrupt_before=["review_decision"]`. Ordinary
 Python collects the decision while the graph is paused, and `update_state()`
 writes the approval and feedback into the saved checkpoint.
 
+## Flowchart
+
+```mermaid
+flowchart TD
+    START([START]) --> DRAFT["create_draft<br/>LLM writes first draft"]
+    DRAFT --> PAUSE["interrupt_before review_decision<br/>graph pauses here"]
+
+    PAUSE --> HUMAN["human reviews draft<br/>outside the graph"]
+    HUMAN --> UPDATE["update_state config decision<br/>save approved + feedback"]
+    UPDATE --> RESUME["invoke None config<br/>resume from checkpoint"]
+
+    RESUME --> REVIEW["review_decision<br/>read saved human decision"]
+    REVIEW --> ROUTE{"approved?"}
+
+    ROUTE -->|"yes"| FINALIZE["finalize<br/>use draft as final"]
+    ROUTE -->|"no"| REVISE["revise<br/>LLM rewrites using feedback"]
+
+    FINALIZE --> END([END])
+    REVISE --> END
+```
+
+The approval scenario is the shortest path:
+
+```text
+create_draft -> pause -> human approves -> update_state -> resume -> finalize
+```
+
+The rejection scenario uses the feedback:
+
+```text
+create_draft -> pause -> human rejects -> update_state -> resume -> revise
+```
+
 ## Why Human-in-the-Loop Needs a Checkpointer
 
 LangGraph's built-in interrupt and resume pattern requires a checkpointer. At

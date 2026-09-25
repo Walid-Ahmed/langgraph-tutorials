@@ -43,7 +43,8 @@ flowchart TD
     F --> G["7. Checkpointing"]
     G --> H["8. Long-Term Memory"]
     H --> I["9. Email Assistant"]
-    I -.-> J["Exercise Solutions"]
+    I --> K["10. Observability"]
+    K -.-> J["Exercise Solutions"]
 ```
 
 Each tutorial follows the same rhythm:
@@ -67,6 +68,7 @@ Each tutorial follows the same rhythm:
 | `7-Checkpointing/` | Persist state across runs | Learn thread memory with `MemorySaver`, durable checkpoints with `PostgresSaver`, and how this differs from long-term memory |
 | `8-Long-Term-Memory/` | Share selected memory across conversations | Learn Store namespaces, `user_id`, `InMemoryStore`, and the path to `PostgresStore` |
 | `9-Email-Assistant/` | Build a complete assistant gradually | Apply routing, tools, and short-term, semantic, episodic, and procedural memory |
+| `10-observability/` | LangSmith tracing | See graph invokes as traces and nested LLM/node calls as runs |
 | `Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
 
 
@@ -183,6 +185,7 @@ Read and run the folders in order:
 7. [`7-Checkpointing/`](7-Checkpointing/)
 8. [`8-Long-Term-Memory/`](8-Long-Term-Memory/)
 9. [`9-Email-Assistant/`](9-Email-Assistant/)
+10. [`10-observability/`](10-observability/)
 
 Use [`Exercise-Solutions/`](Exercise-Solutions/) after trying the exercises yourself.
 

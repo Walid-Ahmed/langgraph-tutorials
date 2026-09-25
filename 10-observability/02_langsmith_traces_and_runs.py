@@ -1,3 +1,37 @@
+# LangSmith traces and runs - the second observability example.
+#
+# This script builds a two-node LangGraph (get_facts -> summarize) in which the
+# second node consumes the first node's output, then runs it once. Its job is to
+# make the trace/run vocabulary concrete: one graph.invoke() is a single TRACE,
+# and every operation inside it (each node, each LLM call) is a RUN nested in
+# that trace's tree.
+#
+# Why this matters:
+# - A trace is one logical execution; runs are the steps inside it. Seeing two
+#   chained LLM calls under one trace is the clearest way to internalize this.
+# - run_name names the top-level trace in LangSmith instead of the default
+#   "LangGraph", so you can find this run in the dashboard.
+# - As in file 01, tracing is automatic from the env vars; there is no tracing
+#   code in the graph itself.
+#
+# Before you run this (same setup as 01_langsmith_basic_tracing.py):
+# 1. Install this folder's dependencies:
+#    pip install -r requirements.txt
+# 2. Create a .env file in THIS folder (copy .env.example) containing:
+#    OPENAI_API_KEY=your_openai_key
+#    LANGSMITH_TRACING=true
+#    LANGSMITH_API_KEY=your_langsmith_key      # from smith.langchain.com
+#    LANGSMITH_PROJECT=10-observability
+#
+# Run it with (from the 10-observability folder, so load_dotenv finds .env):
+#    python 02_langsmith_traces_and_runs.py
+#
+# Expected result: it prints a two-sentence summary, and a trace named
+# "Zamalek Research1" appears at smith.langchain.com under "10-observability".
+# Open that trace to see get_facts and summarize as two child runs. The text
+# varies between runs (it is an LLM); what must hold is that get_facts feeds
+# summarize.
+
 from dotenv import load_dotenv
 from typing import TypedDict
 

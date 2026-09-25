@@ -31,6 +31,9 @@
 # Open that trace to see get_facts and summarize as two child runs. The text
 # varies between runs (it is an LLM); what must hold is that get_facts feeds
 # summarize.
+#
+# Then run the next file in the sequence:
+#    python 03_multi_tool_agent.py
 
 from dotenv import load_dotenv
 from typing import TypedDict

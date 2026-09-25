@@ -1,146 +1,229 @@
-# LangSmith — LLM Tracing & Observability
+# 10. Observability — Tracing Graphs with LangSmith
 
+**Example files (in reading order):**
+- [`01_langsmith_basic_tracing.py`](01_langsmith_basic_tracing.py) — one node, one LLM call, automatic tracing
+- [`02_langsmith_traces_and_runs.py`](02_langsmith_traces_and_runs.py) — two chained nodes; one trace, nested runs
+- [`03_multi_tool_agent.py`](03_multi_tool_agent.py) — `create_agent` with local-docs + web-search tools (notebook Experiment 5)
+- [`langsmith_basics.ipynb`](langsmith_basics.ipynb) — `@traceable`, tags/metadata, RAG, and the original Experiment 5 cells
 
+**Requires:** `OPENAI_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, and `LANGSMITH_PROJECT` in `10-observability/.env` (copy [`.env.example`](.env.example)). File 03 also uses OpenAI embeddings and optional `SERPER_API_KEY` for live web search. Install this folder's extras with `pip install -r requirements.txt`.
 
+Tutorials 1–9 taught you to *build* graphs. This one teaches you to *see* them run. With three environment variables, LangSmith records every graph invoke and nested LLM call — prompts, responses, tokens, latency — without adding tracing code to the nodes.
 
-## What is LangSmith?
+## The Concept: Tracing Is Configuration, Not Instrumentation
 
-LangSmith is an **LLM observability platform** built by LangChain. Set three environment variables and every LangChain/LangGraph call is automatically logged — model name, tokens, latency, full prompt, full response.
+**What is it?** LangSmith is LangChain's observability dashboard. A **trace** is one logical execution (`graph.invoke()`). A **run** is one recorded step inside that trace (a node, an LLM call, a tool). A **project** groups traces so you can filter later.
 
+**What problem does it solve?** Without tracing, a bad answer is a black box: you see the final string, not the prompt that produced it, which node ran, or how long it took. Production questions — "why did this fail?", "which step is slow?", "is the agent looping?" — need the exact nested tree of calls.
+
+**When is it appropriate?** Any graph you would debug more than once: multi-node pipelines, tool loops, anything that hits a paid model. Turn it on in development first; keep it on in production with tags and metadata so you can filter by user or environment.
+
+**When is it overkill?** A local experiment with no model calls does not need LangSmith. Don't add `@traceable` until you have a custom Python function that LangChain will *not* wrap for you. Files 01 and 02 deliberately skip it.
+
+**Intuition:** the graph is a play. A trace is one performance. Each run is a scene. `run_name` is the title on the playbill so you can find tonight's show in a long list of untitled "LangGraph" entries.
+
+```text
+Without LangSmith:   graph.invoke(...)  →  answer only
+
+With LangSmith:      graph.invoke(...)  →  answer PLUS a trace tree:
+                       graph run (chain)
+                         └── ChatOpenAI (llm)
+                               prompt, response, tokens, latency, cost
 ```
-Without LangSmith:   llm.invoke("What is RAG?")  →  answer only, nothing logged
 
-With LangSmith:      llm.invoke("What is RAG?")  →  answer PLUS:
-                       model = llama-3.3-70b-versatile
-                       input_tokens = 8, output_tokens = 142
-                       latency = 412ms
-                       full prompt text
-                       full response text
-                       cost = $0.00002
-```
-
-### Why LangSmith Is Useful
-
-| Problem in production | How LangSmith solves it |
-|-----------------------|------------------------|
-| "Why did the LLM give a bad answer?" | See the **exact prompt** that was sent, including all retrieved context |
-| "Which users are costing the most tokens?" | Filter by `metadata.user_id` and sum tokens across traces |
-| "Is the agent looping or calling the wrong tool?" | Every tool call and LLM reasoning step is a visible child Run |
-| "How fast are my LLM calls?" | Latency recorded per Run — spot slow retrievers or models immediately |
-| "What changed between yesterday and today?" | Compare runs across time in the dashboard with tags and metadata |
-
-### The Three Env Vars That Activate Everything
+### The three env vars that activate everything
 
 ```bash
-LANGSMITH_TRACING=true          # master switch — turns tracing on
-LANGSMITH_API_KEY=ls__...       # your API key from smith.langchain.com
-LANGSMITH_PROJECT=my-project    # groups your traces under a project name
+LANGSMITH_TRACING=true          # master switch
+LANGSMITH_API_KEY=lsv2_...      # from smith.langchain.com
+LANGSMITH_PROJECT=10-observability
 ```
 
-That's it. No `configure()` call, no `instrument_openai()`, no spans. Just env vars.
+No `configure()` call, no spans in node code. The SDK reads these at import time.
 
----
-
-
----
-
-## How LangSmith Tracing Works
+## Architecture
 
 ```mermaid
-graph TD
-    ENV["Three Environment Variables\nLANGSMITH_TRACING=true\nLANGSMITH_API_KEY=...\nLANGSMITH_PROJECT=..."]
+flowchart TD
+    ENV["LANGSMITH_TRACING<br/>LANGSMITH_API_KEY<br/>LANGSMITH_PROJECT"]
 
-    subgraph Auto["Auto-Traced — zero code needed"]
-        LLM["Any LangChain LLM call\nChatGroq · ChatOpenAI · etc."]
-        LG["All LangGraph nodes\nStateGraph.invoke()"]
-        RET["All LangChain retrievers\nFAISS · Chroma · Pinecone"]
+    subgraph Auto["Auto-traced — zero extra code"]
+        LLM["ChatOpenAI.invoke()"]
+        LG["StateGraph.invoke()"]
+        AG["create_agent tool loop"]
     end
 
-    subgraph Manual["Manual Tracing"]
-        PY["Custom Python functions\n@traceable def my_func():"]
-        META["Metadata + tags\nget_current_run_tree()"]
+    subgraph Manual["Only when you need it"]
+        PY["@traceable on custom Python"]
+        META["tags and metadata"]
     end
 
-    ENV -->|"patches SDK at startup"| Auto
-    Auto --> DB[("LangSmith Dashboard\nsmith.langchain.com")]
+    ENV -->|"patches the SDK"| Auto
+    Auto --> DB[("LangSmith dashboard")]
     Manual --> DB
-
-    style ENV fill:#f0ad4e,color:#000
-    style DB fill:#2E75B6,color:#fff
 ```
+
+| Term | Meaning in this tutorial |
+|---|---|
+| Trace | One `graph.invoke()` — the whole tree |
+| Run | One node or LLM call inside that tree |
+| `run_name` | Title of the top-level trace (`"Zamalek Facts"`) |
+| `@traceable` | Wrap *your* functions so they appear as parent runs (notebook, not files 01–02) |
 
 ---
 
-## Core Terminology
+## File 01 — Basic tracing ([`01_langsmith_basic_tracing.py`](01_langsmith_basic_tracing.py))
 
-### Run
-A **Run** is LangSmith's unit of tracing — one recorded execution of any component. Every `llm.invoke()`, every retriever call, every LangGraph node creates a Run automatically.
+The smallest LangGraph that still hits a model: one node asks for a brief overview of a team.
 
-```
-Run types:
-  llm       → a language model call
-  chain     → an orchestrator / graph run
-  retriever → a vector store search
-  tool      → a function/tool call by an agent
+```mermaid
+flowchart LR
+    START([START]) --> A["answer_question"]
+    A --> END([END])
 ```
 
-### Trace
-A **Trace** is a tree of Runs for one logical operation. When a chain calls a retriever and an LLM, the chain is the parent Run; retriever and LLM are child Runs.
+| Stage | Reads | Calls | Writes |
+|---|---|---|---|
+| `answer_question` | `team` | one `llm.invoke()` | `answer` |
 
-```
-Trace: production_guide_rag  (run_type=chain)
-  └── ChatGroq                (run_type=llm)
-        full prompt + response, tokens, cost visible here
-```
-
-### Project
-A **Project** groups related traces. Set via `LANGSMITH_PROJECT=my-project`. Use separate projects for dev, staging, and production.
-
-### @traceable
-The `@traceable` decorator makes any custom Python function appear in the trace tree, just like a LangChain object. It intercepts the function call, wraps it in a Run, and sends it to LangSmith.
+**Why it matters:** tracing is "free." There is no LangSmith import in the graph. `run_name` is the only observability knob — it names the trace so you can find it instead of scrolling past default `"LangGraph"` titles.
 
 ```python
-from langsmith import traceable
-
-@traceable(run_type="tool", name="doc_keyword_search")
-def search_document(query: str) -> list:
-    # now visible as a child Run in LangSmith
-    ...
-
-@traceable(run_type="chain", name="doc_qa_pipeline")
-def doc_qa(question: str) -> str:
-    # parent Run — search_document and llm.invoke() nest inside this
-    sections = search_document(question)   # child Tool Run
-    return llm.invoke(prompt).content     # child LLM Run
+result = graph.invoke(
+    {"team": "Zamalek SC in Egypt"},
+    config={"run_name": "Zamalek Facts"},
+)
 ```
 
-**`run_type` values:**
+This file does **not** use `@traceable`, tags, or metadata. Those come later. The job here is: env vars on → invoke → open the dashboard and see one graph run with one nested LLM run.
 
-| Value | When to use |
-|-------|------------|
-| `"llm"` | Function that calls a language model |
-| `"tool"` | Function that retrieves data, searches, or calls an API |
-| `"chain"` | Orchestrator function that calls other functions |
+**Expected result:** a short overview of Zamalek SC printed in the terminal, and a trace named **Zamalek Facts** under project `10-observability`. The wording varies; the team you passed in must be the subject.
 
-### get_current_run_tree
-`get_current_run_tree()` returns the currently active LangSmith Run object from inside a `@traceable` function. Use it to attach metadata and tags to the parent Run from within the function body — where the values are actually known.
+## File 02 — Traces vs runs ([`02_langsmith_traces_and_runs.py`](02_langsmith_traces_and_runs.py))
 
-```python
-from langsmith import traceable, get_current_run_tree
+Two nodes in a chain. The second consumes the first node's output. Same automatic tracing; the dashboard now has a *tree*.
 
-@traceable(run_type="chain", name="support-query")
-def support_qa(question: str, user_id: str, session_id: str) -> str:
-    run = get_current_run_tree()
-    if run:
-        run.metadata.update({"user_id": user_id, "session_id": session_id})
-        run.tags = ["production", "support-bot", "groq"]
-    return llm.invoke(question).content
+```mermaid
+flowchart LR
+    START([START]) --> F["get_facts"]
+    F --> S["summarize"]
+    S --> END([END])
 ```
 
+| Stage | Reads | Writes |
+|---|---|---|
+| `get_facts` | `team` | `facts` (3 facts from the LLM) |
+| `summarize` | `facts` | `summary` (two sentences) |
 
+**The design insight:** one `graph.invoke()` is still **one trace**. `get_facts`, `summarize`, and each `ChatOpenAI` call are **runs** nested under it. That vocabulary is the whole point of this file.
 
-### Tags & Metadata
-- **Tags** — string labels for filtering: `["production", "groq"]`
-- **Metadata** — key-value dict for analytics: `{"user_id": "alice", "session": "s1"}`
-- Set via `get_current_run_tree()` inside any `@traceable` function
+```text
+Trace: Zamalek Research1  (the invoke)
+  ├── get_facts           (node run)
+  │     └── ChatOpenAI    (llm run)
+  └── summarize           (node run)
+        └── ChatOpenAI    (llm run)
+```
 
+State evolution:
+
+```text
+{team: "Zamalek SC in Egypt"}
+   ↓ get_facts     writes facts
+   ↓ summarize     reads facts, writes summary
+```
+
+**Expected result:** a two-sentence summary in the terminal, and a trace named **Zamalek Research1**. Open it and confirm `get_facts` feeds `summarize`. Then run [`03_multi_tool_agent.py`](03_multi_tool_agent.py).
+
+## File 03 — Multi-tool agent ([`03_multi_tool_agent.py`](03_multi_tool_agent.py))
+
+Notebook **Experiment 5** as a script: LangChain `create_agent` with two tools. You list the tools; **the model chooses** which to call.
+
+| Tool | Typical use | Data |
+|---|---|---|
+| `search_local_docs` | RAG, security, deployment in the guide | FAISS over [`data/llm_production_guide.txt`](data/llm_production_guide.txt) |
+| `google_search` | news, regulations, recent AI | Google Serper (`SERPER_API_KEY`) |
+
+```mermaid
+flowchart LR
+    S([START]) --> L["model"]
+    L -. "tool_calls" .-> T["tools"]
+    T --> L
+    L -. "no tool_calls" .-> E([END])
+```
+
+`create_agent` builds that loop for you. There is no `ToolNode` or router in this file. Execution of a requested tool is automatic; **selection** of which tool is the agent's.
+
+Three questions exercise different expected routes (hints only — not graph edges):
+
+1. prompt injection defenses → local docs
+2. AI regulations in 2025 → web search
+3. how RAG works *and* latest frameworks → both
+
+Each `invoke` uses `config={"run_name": "...", "recursion_limit": 10}`. In LangSmith you should see **one trace per question**, with child runs for the LLM and whichever tools actually ran:
+
+```text
+Trace: Multi-Tool: both
+  ├── openai          (decides: local docs)
+  ├── search_local_docs
+  ├── openai          (decides: web search)
+  ├── google_search
+  └── openai          (final answer)
+```
+
+Without `SERPER_API_KEY`, `google_search` returns an error string instead of crashing; the model can still finish.
+
+**Expected result:** three printed answers plus the tool names that ran. Traces **Multi-Tool: local docs**, **Multi-Tool: web search**, and **Multi-Tool: both** in project `10-observability`.
+
+## Notebook — Extra experiments ([`langsmith_basics.ipynb`](langsmith_basics.ipynb))
+
+After the numbered scripts, the notebook still covers:
+
+- `@traceable` so custom Python (search, RAG glue) appears as parent runs
+- tags and metadata for filtering (`user_id`, environment)
+- a longer RAG-style pipeline (Experiment 4)
+- the original Experiment 5 cells (same agent as file 03)
+
+Use it for `@traceable` and metadata; use file 03 when you want the multi-tool agent as a runnable `.py`.
+
+## Optional: longer sequential pipeline (`agent/`)
+
+[`agent/graph.py`](agent/graph.py) is a five-node document-intelligence chain (`planner → document_reader → web_enricher → synthesizer → report_writer`). It is still a **workflow** you wired at build time, not `create_agent`. Tracing is the same mechanism as files 01–02: env vars only.
+
+[`graph_entry.py`](graph_entry.py) compiles that graph; [`graph_viz.py`](graph_viz.py) writes `graph.png`. Optional `SERPER_API_KEY` is for the web-enricher node.
+
+---
+
+## Running It
+
+This folder loads `.env` from **here**, not the repo root. From `10-observability/`:
+
+```bash
+pip install -r requirements.txt
+cp .env.example .env   # then fill in keys
+python 01_langsmith_basic_tracing.py
+python 02_langsmith_traces_and_runs.py
+python 03_multi_tool_agent.py
+```
+
+Then open [smith.langchain.com](https://smith.langchain.com), select project `10-observability`, and compare: one child LLM (01), two chained nodes (02), and a model-chosen tool loop (03).
+
+## Design Questions Worth Asking
+
+- **Why isn't there a `langsmith` import in 01 and 02?** Auto-tracing patches LangChain/LangGraph at process start from env vars. If the import were required, the lesson would be "instrument your nodes," which is the opposite of the point.
+- **What if I forget `run_name`?** The run still appears; the title is the generic `"LangGraph"`. Fine for one experiment, painful once you have twenty.
+- **When do I need `@traceable`?** When a function is *not* a LangChain runnable or LangGraph node — plain Python that you still want as a span (keyword search, custom I/O). Nodes and `ChatOpenAI` already show up.
+- **Is the five-node `agent/` graph an agent?** No. Paths are fixed. It is a prompt-chaining workflow (tutorial 5) that happens to be traced. For a model-driven tool loop, use file 03 (`create_agent`) or tutorial 6.
+
+## Key Takeaways
+
+1. LangSmith tracing is **env vars**, not node instrumentation.
+2. **Trace** = one invoke; **run** = each nested step. File 02 exists to make that tree visible.
+3. `config={"run_name": "..."}` is how you find a run in the dashboard.
+4. `@traceable`, tags, and metadata are the next layer — use them when you need custom spans or filters, not for the first graph.
+5. A longer graph does not need a new tracing API. The same three variables cover one node, two nodes, five workflow nodes, or a `create_agent` tool loop.
+6. You define the toolbox; the agent chooses which tool to call. LangSmith is how you *see* that choice.
+
+## Next Step
+
+[Tutorial 11 — Guardrails](../11-Guardrials/guardrails_langchain_middleware.ipynb): once you can *see* what the model did, constrain what it is allowed to do — PII filters, human-in-the-loop, and other LangChain middleware on `create_agent`.

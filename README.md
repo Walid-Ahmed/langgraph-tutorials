@@ -63,7 +63,7 @@ Each tutorial follows the same rhythm:
 | `2-Reducer/` | Compare state updates with and without reducers | Understand how LangGraph preserves or combines state |
 | `3_LLM_Messages/` | Store chat history in graph state | Learn how LLM conversations fit into LangGraph |
 | `4-Conditional Edges/` | Route to different nodes | Learn how graphs make decisions |
-| `5-Workflows/` | Workflow patterns | Larger LLM designs such as routing, parallel work, orchestration, and evaluation loops |
+| `5-Workflows/` | Workflow patterns | Routing, parallel work, orchestration, evaluation loops, and local RAG (retrieve then generate) |
 | `6-Agents/` | Agent patterns | Compare manual routers, `Command`, `ToolNode`, and high-level ReAct-style agents |
 | `7-Checkpointing/` | Persist state across runs | Learn thread memory with `MemorySaver`, durable checkpoints with `PostgresSaver`, and how this differs from long-term memory |
 | `8-Long-Term-Memory/` | Share selected memory across conversations | Learn Store namespaces, `user_id`, `InMemoryStore`, and the path to `PostgresStore` |

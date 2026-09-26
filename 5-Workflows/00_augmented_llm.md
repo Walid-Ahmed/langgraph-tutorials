@@ -69,6 +69,7 @@ So this page introduces the capability, while the Agents folder shows the dynami
 | Example | What It Shows |
 |---|---|
 | [`00_augmented_llm_structured_output.py`](00_augmented_llm_structured_output.py) | Augmenting an LLM with a Pydantic output schema |
+| [`01_rag_retrieve_generate.py`](01_rag_retrieve_generate.py) | Local RAG: retrieve from a docs folder, then generate |
 | [`../6-Agents/01_tool_calling_agent.py`](../6-Agents/01_tool_calling_agent.py) | Letting an LLM call tools in an agent loop |
 | [`resources/langchain_augmentation_snippets.md`](resources/langchain_augmentation_snippets.md) | Small snippets for tool binding and structured output |
 

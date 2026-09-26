@@ -86,7 +86,7 @@ State evolution:
 
 Variants: [`01_prompt_chaining_joke_gate.py`](01_prompt_chaining_joke_gate.py) adds a mid-chain **quality gate** — a router after the first node that ends early on "Pass" or continues through improvement nodes on "Fail." [`01_prompt_chaining_essay_drafter.py`](01_prompt_chaining_essay_drafter.py) is a draft → reflect → revise pipeline.
 
-**Local RAG** ([`01_rag_retrieve_generate.py`](01_rag_retrieve_generate.py)) is the same chaining shape with a different first node: `retrieve → generate`. You load a folder of `.txt` files into FAISS once (`build_vectorstore` in [`rag_index.py`](rag_index.py)), then every question takes that fixed path. Retrieval always runs; the model does not choose. That is the difference from tutorial 6 / 10, where the same index becomes a tool. Deep dive: [`01_prompt_chaining.md`](01_prompt_chaining.md) and [`01_rag_retrieve_generate.md`](01_rag_retrieve_generate.md).
+**Local RAG** ([`01_rag_retrieve_generate.py`](01_rag_retrieve_generate.py)) is the same chaining shape with a different first node: `retrieve → generate`. You load a folder of `.txt` files into FAISS once (`build_vectorstore` in [`../rag_index.py`](../rag_index.py)), then every question takes that fixed path. Retrieval always runs; the model does not choose. That is the difference from tutorial 6 / 10, where the same index becomes a tool. Deep dive: [`01_prompt_chaining.md`](01_prompt_chaining.md) and [`01_rag_retrieve_generate.md`](01_rag_retrieve_generate.md).
 
 ---
 

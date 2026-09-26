@@ -1,7 +1,9 @@
-# Shared local-RAG helper for tutorial 5 (and reused by tutorial 10).
+# Shared local-RAG helper (tutorials 5 and 10).
 #
-# Load every .txt file in a folder, split into chunks, embed, and return a
-# FAISS index. The index is built once; graph nodes only call similarity_search.
+# Sibling of util.py: plot_graph stays visualization-only so tutorials 1–4
+# do not import FAISS. This module loads every .txt file in a folder, splits,
+# embeds, and returns a FAISS index. Build the index once; graph nodes only
+# call similarity_search.
 
 from pathlib import Path
 

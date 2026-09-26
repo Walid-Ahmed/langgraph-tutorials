@@ -16,7 +16,6 @@ from langgraph.graph import END, START, StateGraph
 
 FOLDER = Path(__file__).resolve().parent
 DOCS_DIR = FOLDER / "data"
-sys.path.append(str(FOLDER))
 sys.path.append(str(FOLDER.parent))
 from util import plot_graph
 from rag_index import build_vectorstore

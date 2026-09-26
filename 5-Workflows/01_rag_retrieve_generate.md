@@ -16,7 +16,7 @@ question → retrieve top-k chunks → generate answer from chunks
                               (every invoke)
 ```
 
-`build_vectorstore(docs_dir)` in [`rag_index.py`](rag_index.py) does the first line. The LangGraph does the second:
+`build_vectorstore(docs_dir)` in [`../rag_index.py`](../rag_index.py) does the first line. The LangGraph does the second:
 
 ```mermaid
 flowchart LR

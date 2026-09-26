@@ -136,7 +136,7 @@ State evolution:
 
 ## File 03 — Multi-tool agent ([`03_multi_tool_agent.py`](03_multi_tool_agent.py))
 
-Build the **local RAG workflow** first: [`../5-Workflows/01_rag_retrieve_generate.py`](../5-Workflows/01_rag_retrieve_generate.py) (`retrieve → generate` on every question). This file is only the observability step: the same FAISS helper (`rag_index.build_vectorstore`) is a **tool** beside web search, inside `create_agent`, so LangSmith can show which tool the model picked.
+Build the **local RAG workflow** first: [`../5-Workflows/01_rag_retrieve_generate.py`](../5-Workflows/01_rag_retrieve_generate.py) (`retrieve → generate` on every question). This file is only the observability step: the same FAISS helper ([`../rag_index.py`](../rag_index.py) `build_vectorstore`) is a **tool** beside web search, inside `create_agent`, so LangSmith can show which tool the model picked.
 
 | Tool | Typical use | Data |
 |---|---|---|

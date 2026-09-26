@@ -1,7 +1,7 @@
 # LangSmith multi-tool agent - the third observability example.
 #
 # RAG itself is taught in tutorial 5 (01_rag_retrieve_generate.py): a fixed
-# retrieve → generate workflow. This file reuses that FAISS helper and wraps
+# retrieve → generate workflow. This file reuses repo-root rag_index.py and wraps
 # retrieval as a *tool* next to web search so you can see the agent loop in
 # LangSmith. You do not write ToolNode, bind_tools, or a router.
 #
@@ -49,7 +49,7 @@ from langchain_openai import ChatOpenAI
 
 FOLDER = Path(__file__).resolve().parent
 REPO_ROOT = FOLDER.parent
-sys.path.append(str(REPO_ROOT / "5-Workflows"))
+sys.path.append(str(REPO_ROOT))
 from rag_index import build_vectorstore
 
 load_dotenv(FOLDER / ".env")

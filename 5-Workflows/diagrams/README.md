@@ -11,6 +11,7 @@ These show the **compiled topology** — the nodes and edges LangGraph sees afte
 | `00_augmented_llm_structured_output_graph.png` | [`../00_augmented_llm_structured_output.py`](../00_augmented_llm_structured_output.py) |
 | `01_prompt_chaining_graph.png` | [`../01_prompt_chaining.py`](../01_prompt_chaining.py) |
 | `01_prompt_chaining_joke_gate_graph.png` | [`../01_prompt_chaining_joke_gate.py`](../01_prompt_chaining_joke_gate.py) |
+| `01_rag_retrieve_generate_graph.png` | [`../01_rag_retrieve_generate.py`](../01_rag_retrieve_generate.py) |
 | `03_parallelization_graph.png` | [`../03_parallelization.py`](../03_parallelization.py) |
 | `03_parallelization_creative_graph.png` | [`../03_parallelization_creative.py`](../03_parallelization_creative.py) |
 | `03_parallelization_translation_graph.png` | [`../03_parallelization_translation.py`](../03_parallelization_translation.py) |

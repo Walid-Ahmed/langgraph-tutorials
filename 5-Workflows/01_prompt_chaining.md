@@ -2,11 +2,12 @@
 
 This tutorial teaches **prompt chaining** with three examples: a content pipeline, a joke pipeline with a quality gate, and an essay drafter with reflection.
 
-This tutorial includes three examples:
+This tutorial includes four examples:
 
 1. a content generation pipeline with quality control
 2. a joke generation chain with a conditional quality gate
 3. an essay drafter that drafts, reflects, and revises
+4. local RAG: retrieve from a docs folder, then generate ([`01_rag_retrieve_generate.py`](01_rag_retrieve_generate.py))
 
 The graph does not ask one giant prompt to do everything. Instead, it chains smaller LLM steps together.
 
@@ -57,6 +58,7 @@ Good examples:
 - draft -> critique -> revise
 - classify -> route -> respond
 - research -> outline -> write
+- retrieve local docs -> generate grounded answer
 
 A nice safety benefit: you can add a check between stages. If the fact-check step finds issues, the improvement step can use that feedback instead of blindly publishing the first draft.
 

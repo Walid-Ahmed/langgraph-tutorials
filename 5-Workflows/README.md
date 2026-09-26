@@ -36,7 +36,7 @@ Evaluator-optimizer  generate/grade loop            START → gen → eval ─(b
 
 Each pattern answers a different question about *where the structure of the task comes from*:
 
-- structure known and linear → **chaining**
+- structure known and linear → **chaining** (including local RAG: retrieve then generate)
 - structure depends on input category → **routing**
 - structure is several independent subtasks, known in advance → **parallelization**
 - structure is several subtasks, but *how many* is only knowable at runtime → **orchestrator-workers**
@@ -60,7 +60,7 @@ class ProductReview(BaseModel):
 structured_llm = llm.with_structured_output(ProductReview)
 ```
 
-**Why it matters for everything downstream:** the moment an LLM output has to be *read by code* — a router branching on it, a dispatcher counting it, a reducer merging it — free text is a liability. `with_structured_output` turns "parse and pray" into a typed contract. Three of the five remaining patterns in this folder depend on it. The concept page [`00_augmented_llm.md`](00_augmented_llm.md) covers the other augmentations (tools, retrieval, memory); tool binding gets its full treatment in tutorial 6.
+**Why it matters for everything downstream:** the moment an LLM output has to be *read by code* — a router branching on it, a dispatcher counting it, a reducer merging it — free text is a liability. `with_structured_output` turns "parse and pray" into a typed contract. Three of the five remaining patterns in this folder depend on it. The concept page [`00_augmented_llm.md`](00_augmented_llm.md) covers the other augmentations (tools, retrieval, memory). Retrieval as a **workflow** is [`01_rag_retrieve_generate.py`](01_rag_retrieve_generate.py). Tool binding gets its full treatment in tutorial 6.
 
 ---
 
@@ -84,7 +84,9 @@ State evolution:
 **Good fit:** tasks that decompose into a known, ordered sequence where later steps consume earlier output.
 **Poor fit:** subtasks that don't depend on each other (parallelize instead), or a flow that varies by input (route instead).
 
-Variants: [`01_prompt_chaining_joke_gate.py`](01_prompt_chaining_joke_gate.py) adds a mid-chain **quality gate** — a router after the first node that ends early on "Pass" or continues through improvement nodes on "Fail." [`01_prompt_chaining_essay_drafter.py`](01_prompt_chaining_essay_drafter.py) is a draft → reflect → revise pipeline. Deep dive: [`01_prompt_chaining.md`](01_prompt_chaining.md).
+Variants: [`01_prompt_chaining_joke_gate.py`](01_prompt_chaining_joke_gate.py) adds a mid-chain **quality gate** — a router after the first node that ends early on "Pass" or continues through improvement nodes on "Fail." [`01_prompt_chaining_essay_drafter.py`](01_prompt_chaining_essay_drafter.py) is a draft → reflect → revise pipeline.
+
+**Local RAG** ([`01_rag_retrieve_generate.py`](01_rag_retrieve_generate.py)) is the same chaining shape with a different first node: `retrieve → generate`. You load a folder of `.txt` files into FAISS once (`build_vectorstore` in [`rag_index.py`](rag_index.py)), then every question takes that fixed path. Retrieval always runs; the model does not choose. That is the difference from tutorial 6 / 10, where the same index becomes a tool. Deep dive: [`01_prompt_chaining.md`](01_prompt_chaining.md) and [`01_rag_retrieve_generate.md`](01_rag_retrieve_generate.md).
 
 ---
 
@@ -250,6 +252,7 @@ All from the repo root; suggested order:
 python "5-Workflows/00_augmented_llm_structured_output.py"   # structured output
 python "5-Workflows/01_prompt_chaining.py"                   # sequential chain (+ HTML report)
 python "5-Workflows/01_prompt_chaining_joke_gate.py"         # chain + quality gate
+python "5-Workflows/01_rag_retrieve_generate.py"             # local RAG: retrieve then generate
 python "5-Workflows/02_routing.py"                           # classify & dispatch
 python "5-Workflows/03_parallelization.py"                   # static fan-out/fan-in
 python "5-Workflows/04_orchestrator_workers.py"              # dynamic workers via Send
@@ -265,6 +268,7 @@ Each script saves its graph PNG under [`diagrams/`](diagrams/) — comparing tho
 |---|---|---|
 | needs machine-readable LLM output | Augmented LLM | `with_structured_output` |
 | is a known, ordered sequence | Prompt chaining | one field per node, plain edges |
+| is answer-from-my-docs, every time | Prompt chaining (RAG) | retrieve node then generate node |
 | varies by input category | Routing | `Literal` classifier node + router fn |
 | is N independent subtasks, N fixed | Parallelization | multi-edge fan-out, distinct fields |
 | is N independent subtasks, N runtime-decided | Orchestrator-workers | `Send` + worker state + reducer |
@@ -289,6 +293,7 @@ Solutions live in [`Exercise-Solutions/5-workflows/`](../Exercise-Solutions/5-wo
 3. Static fan-out (edges) when the branch count is known; **`Send`** when it's decided at runtime — and shared result fields then *require* a reducer.
 4. Loops need **explicit stopping criteria**. An evaluator verdict is a stopping *signal*; an iteration cap is a stopping *guarantee*. Use both.
 5. Pattern choice is about where the task's structure comes from — sequence, category, independence, runtime planning, or iteration. Pick the simplest shape that fits.
+6. **Local RAG is a chain** (`retrieve → generate`) when every question should hit your docs. Make retrieval a tool only when the model must choose whether to search.
 
 ## Next Step
 

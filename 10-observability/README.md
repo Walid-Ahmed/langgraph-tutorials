@@ -3,8 +3,7 @@
 **Example files (in reading order):**
 - [`01_langsmith_basic_tracing.py`](01_langsmith_basic_tracing.py) — one node, one LLM call, automatic tracing
 - [`02_langsmith_traces_and_runs.py`](02_langsmith_traces_and_runs.py) — two chained nodes; one trace, nested runs
-- [`03_multi_tool_agent.py`](03_multi_tool_agent.py) — `create_agent` with local-docs + web-search tools (notebook Experiment 5)
-- [`langsmith_basics.ipynb`](langsmith_basics.ipynb) — `@traceable`, tags/metadata, RAG, and the original Experiment 5 cells
+- [`03_multi_tool_agent.py`](03_multi_tool_agent.py) — `create_agent` with local-docs + web-search tools
 
 **Requires:** `OPENAI_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, and `LANGSMITH_PROJECT` in `10-observability/.env` (copy [`.env.example`](.env.example)). File 03 also uses OpenAI embeddings and optional `SERPER_API_KEY` for live web search. Install this folder's extras with `pip install -r requirements.txt`.
 
@@ -18,7 +17,7 @@ Tutorials 1–9 taught you to *build* graphs. This one teaches you to *see* them
 
 **When is it appropriate?** Any graph you would debug more than once: multi-node pipelines, tool loops, anything that hits a paid model. Turn it on in development first; keep it on in production with tags and metadata so you can filter by user or environment.
 
-**When is it overkill?** A local experiment with no model calls does not need LangSmith. Don't add `@traceable` until you have a custom Python function that LangChain will *not* wrap for you. Files 01 and 02 deliberately skip it.
+**When is it overkill?** A local experiment with no model calls does not need LangSmith. Don't add `@traceable` until you have a custom Python function that LangChain will *not* wrap for you. Files 01 and 02 deliberately skip it. Learn local RAG in tutorial 5 before file 03.
 
 **Intuition:** the graph is a play. A trace is one performance. Each run is a scene. `run_name` is the title on the playbill so you can find tonight's show in a long list of untitled "LangGraph" entries.
 
@@ -68,7 +67,7 @@ flowchart TD
 | Trace | One `graph.invoke()` — the whole tree |
 | Run | One node or LLM call inside that tree |
 | `run_name` | Title of the top-level trace (`"Zamalek Facts"`) |
-| `@traceable` | Wrap *your* functions so they appear as parent runs (notebook, not files 01–02) |
+| `@traceable` | Wrap *your* functions so they appear as parent runs (not used in files 01–03) |
 
 ---
 
@@ -137,11 +136,11 @@ State evolution:
 
 ## File 03 — Multi-tool agent ([`03_multi_tool_agent.py`](03_multi_tool_agent.py))
 
-Notebook **Experiment 5** as a script: LangChain `create_agent` with two tools. You list the tools; **the model chooses** which to call.
+Build the **local RAG workflow** first: [`../5-Workflows/01_rag_retrieve_generate.py`](../5-Workflows/01_rag_retrieve_generate.py) (`retrieve → generate` on every question). This file is only the observability step: the same FAISS helper (`rag_index.build_vectorstore`) is a **tool** beside web search, inside `create_agent`, so LangSmith can show which tool the model picked.
 
 | Tool | Typical use | Data |
 |---|---|---|
-| `search_local_docs` | RAG, security, deployment in the guide | FAISS over [`data/llm_production_guide.txt`](data/llm_production_guide.txt) |
+| `search_local_docs` | RAG, security, deployment in local docs | FAISS over `.txt` files in a folder (default [`data/`](data/)) |
 | `google_search` | news, regulations, recent AI | Google Serper (`SERPER_API_KEY`) |
 
 ```mermaid
@@ -175,17 +174,6 @@ Without `SERPER_API_KEY`, `google_search` returns an error string instead of cra
 
 **Expected result:** three printed answers plus the tool names that ran. Traces **Multi-Tool: local docs**, **Multi-Tool: web search**, and **Multi-Tool: both** in project `10-observability`.
 
-## Notebook — Extra experiments ([`langsmith_basics.ipynb`](langsmith_basics.ipynb))
-
-After the numbered scripts, the notebook still covers:
-
-- `@traceable` so custom Python (search, RAG glue) appears as parent runs
-- tags and metadata for filtering (`user_id`, environment)
-- a longer RAG-style pipeline (Experiment 4)
-- the original Experiment 5 cells (same agent as file 03)
-
-Use it for `@traceable` and metadata; use file 03 when you want the multi-tool agent as a runnable `.py`.
-
 ## Optional: longer sequential pipeline (`agent/`)
 
 [`agent/graph.py`](agent/graph.py) is a five-node document-intelligence chain (`planner → document_reader → web_enricher → synthesizer → report_writer`). It is still a **workflow** you wired at build time, not `create_agent`. Tracing is the same mechanism as files 01–02: env vars only.
@@ -203,6 +191,7 @@ pip install -r requirements.txt
 cp .env.example .env   # then fill in keys
 python 01_langsmith_basic_tracing.py
 python 02_langsmith_traces_and_runs.py
+# After tutorial 5's 01_rag_retrieve_generate.py:
 python 03_multi_tool_agent.py
 ```
 

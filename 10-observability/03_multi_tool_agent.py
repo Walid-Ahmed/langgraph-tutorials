@@ -1,12 +1,12 @@
 # LangSmith multi-tool agent - the third observability example.
 #
-# This is Experiment 5 from langsmith_basics.ipynb, as a standalone script.
-# LangChain's create_agent builds a compiled LangGraph tool loop. You provide
-# two tools; the MODEL chooses which to call at runtime (and when to stop).
-# You do not write ToolNode, bind_tools, or a router.
+# RAG itself is taught in tutorial 5 (01_rag_retrieve_generate.py): a fixed
+# retrieve → generate workflow. This file reuses that FAISS helper and wraps
+# retrieval as a *tool* next to web search so you can see the agent loop in
+# LangSmith. You do not write ToolNode, bind_tools, or a router.
 #
 # Tools:
-#   search_local_docs  - FAISS over data/llm_production_guide.txt (Exp 4 index)
+#   search_local_docs  - FAISS over every .txt file in a docs folder
 #   google_search      - live web via Google Serper (needs SERPER_API_KEY)
 #
 # Why this matters for observability:
@@ -36,37 +36,25 @@
 # Open a trace to see model -> tool -> model, not a fixed pipeline.
 
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 from langchain.agents import create_agent
-from langchain_community.document_loaders import TextLoader
 from langchain_community.utilities import GoogleSerperAPIWrapper
 from langchain_community.vectorstores import FAISS
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_openai import ChatOpenAI
 
 FOLDER = Path(__file__).resolve().parent
+REPO_ROOT = FOLDER.parent
+sys.path.append(str(REPO_ROOT / "5-Workflows"))
+from rag_index import build_vectorstore
+
 load_dotenv(FOLDER / ".env")
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3)
-
-
-def build_vectorstore() -> FAISS:
-    """Chunk the local guide and embed it. Same pipeline as notebook Exp 4."""
-    guide_path = FOLDER / "data" / "llm_production_guide.txt"
-    if not guide_path.exists():
-        raise SystemExit(f"Missing local guide: {guide_path}")
-
-    raw_docs = TextLoader(str(guide_path), encoding="utf-8").load()
-    splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=80)
-    chunks = splitter.split_documents(raw_docs)
-
-    # Embeddings are extra OpenAI calls; they also show up in LangSmith.
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-    return FAISS.from_documents(chunks, embeddings)
 
 
 def make_tools(vectorstore: FAISS):
@@ -79,10 +67,10 @@ def make_tools(vectorstore: FAISS):
     @tool
     def search_local_docs(query: str) -> str:
         """
-        Search the internal LLM production guide.
+        Search local text documents in the configured docs folder.
 
         Use for RAG, security, evaluation, monitoring, prompt engineering,
-        guardrails, and deployment topics in the local document.
+        guardrails, and deployment topics in those files.
 
         Call at most once per question, then answer the user.
         """
@@ -185,8 +173,9 @@ def main() -> None:
             "Missing OPENAI_API_KEY. Add it to 10-observability/.env"
         )
 
-    print("Building FAISS index from data/llm_production_guide.txt ...")
-    vectorstore = build_vectorstore()
+    docs_dir = FOLDER / "data"
+    print(f"Building FAISS index from {docs_dir} ...")
+    vectorstore = build_vectorstore(docs_dir)
     tools = make_tools(vectorstore)
 
     # create_agent wires model -> tools -> model. Routing is the model's job.

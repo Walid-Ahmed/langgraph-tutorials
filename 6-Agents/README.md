@@ -1,11 +1,15 @@
 # 6. Agents — Letting the Model Drive the Loop
 
+**Book mapping:** Chapter 7 (Tools) uses `05_tools_single_round.py` and `doc_tools.py`; Chapter 8 (Agents) uses `00`–`04`.
+
 **Example files:**
 - [`00_tool_calling_agent_simple.py`](00_tool_calling_agent_simple.py) — the agent loop built by hand (start here)
 - [`01_tool_calling_agent.py`](01_tool_calling_agent.py) — the same loop with LangGraph's prebuilt `ToolNode`, real external APIs, and optional web search
 - [`02_tool_calling_agent_command.py`](02_tool_calling_agent_command.py) — the `ToolNode` loop using `Command` instead of a router and conditional edges
 - [`03_prebuilt_react_agent.py`](03_prebuilt_react_agent.py) — the high-level ReAct-style loop created with `create_agent`
 - [`04_rag_as_tool.py`](04_rag_as_tool.py) — tutorial 5's local RAG index wrapped as a validated tool: the model decides when to search, runs parallel searches, and recovers from bad arguments and transient failures. Same idea with two tools plus LangSmith: [`../10-observability/03_multi_tool_agent/`](../10-observability/03_multi_tool_agent/)
+- [`05_tools_single_round.py`](05_tools_single_round.py) — **tools without a loop**: the contract the model sees, a proposed tool call, executing it by hand, and one round of tools in a graph (start here for book Chapter 7)
+- [`doc_tools.py`](doc_tools.py) — the shared `search_docs` tool used by examples 04 and 05
 
 **Requires:** `OPENAI_API_KEY` in the repo-root `.env`. Optional: `OPENWEATHER_API_KEY` (live weather) and `TAVILY_API_KEY` (web search) — the second example degrades gracefully without them.
 

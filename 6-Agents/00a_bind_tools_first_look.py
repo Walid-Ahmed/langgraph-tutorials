@@ -2,7 +2,7 @@
 #   python "6-Agents/00a_bind_tools_first_look.py"
 #
 # What it does:
-#   Defines three smart-home tools, binds them to a chat model, sends three
+#   Defines four smart-home tools, binds them to a chat model, sends four
 #   requests, and prints what the model sends back. NO tool is ever executed:
 #   there is no tool node, no loop and no code that runs the requested calls.
 #
@@ -19,9 +19,11 @@
 # Expected output (the model's wording may vary; the pattern should not):
 #   Request 1 "Turn on the kitchen light"
 #       -> text: '' ; tool_calls: [{'name': 'turn_on_light', 'args': {'room': 'kitchen'}, ...}]
-#   Request 2 "I'm cold and it's dark in the living room"
+#   Request 2 "Dim the bedroom lights to 30%"
+#       -> text: '' ; tool_calls: [{'name': 'dim_lights', 'args': {'room': 'bedroom', 'brightness': 30}, ...}]
+#   Request 3 "I'm cold and it's dark in the living room"
 #       -> text: '' ; tool_calls: two entries, set_thermostat and turn_on_light
-#   Request 3 "What's a good temperature for sleeping?"
+#   Request 4 "What's a good temperature for sleeping?"
 #       -> text: an answer ; tool_calls: []
 #   Final line: the device log is still empty — nothing was switched on.
 
@@ -54,19 +56,27 @@ def set_thermostat(temperature: float, unit: Literal["C", "F"] = "C") -> str:
 
 
 @tool
+def dim_lights(room: str, brightness: int) -> str:
+    """Dim the lights in one room to a brightness percentage from 0 (off) to 100 (full)."""
+    DEVICE_LOG.append(f"dim {room}: {brightness}%")
+    return f"The {room} lights are at {brightness}%."
+
+
+@tool
 def lock_door(door: str) -> str:
     """Lock one door of the house, e.g. 'front' or 'garage'."""
     DEVICE_LOG.append(f"locked: {door}")
     return f"The {door} door is locked."
 
 
-tools = [turn_on_light, set_thermostat, lock_door]
+tools = [turn_on_light, dim_lights, set_thermostat, lock_door]
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 llm_with_tools = llm.bind_tools(tools)   # advertise the tools — nothing more
 
 REQUESTS = [
     "Turn on the kitchen light",
+    "Dim the bedroom lights to 30%",
     "I'm cold and it's dark in the living room",
     "What's a good temperature for sleeping?",
 ]

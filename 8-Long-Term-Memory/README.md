@@ -519,3 +519,21 @@ its [setup and run guide](03-postgres-store/README.md).
 - [LangGraph memory](https://docs.langchain.com/oss/python/langgraph/add-memory)
 - [LangGraph persistence and Store](https://docs.langchain.com/oss/python/langgraph/persistence)
 - [Long-term memory Store notebook used for additional examples](https://github.com/Kerolos2019/Agentic_ai_using_LangGrph/blob/main/17_longterm-memory-store.ipynb)
+
+## Beyond One Profile: Semantic, Episodic and Procedural Memory
+
+Examples 04–06 go past the single profile of 01–02 and show the three kinds of long-term memory, each with a small, general study-assistant example (book Chapter 11). They need `langmem` and `OPENAI_API_KEY` (chat + embeddings).
+
+| File | Memory type | Written by | Found by |
+|---|---|---|---|
+| [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | **semantic** — facts about the user | the agent, via LangMem `manage_memory` (hot path) | embedding search via `search_memory` |
+| [`05_episodic_memory.py`](05_episodic_memory.py) | **episodic** — approved past answers used as few-shot examples | the app, after the user approves (background) | `store.search(namespace, query=request)` |
+| [`06_procedural_memory.py`](06_procedural_memory.py) | **procedural** — the assistant's instructions | a LangMem prompt optimizer, from feedback (background) | exact `store.get(namespace, key)` |
+
+All three use the namespace `("assistant", user_id, <kind>)`, so each user's memories stay isolated. The email assistant in `9-Email-Assistant/` combines the same three ideas in one application.
+
+```bash
+python "8-Long-Term-Memory/04_semantic_memory_tools.py"
+python "8-Long-Term-Memory/05_episodic_memory.py"
+python "8-Long-Term-Memory/06_procedural_memory.py"
+```

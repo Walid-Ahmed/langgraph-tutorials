@@ -1,4 +1,4 @@
-"""Utility tools used by agent nodes."""
+"""Helpers used by document_workflow nodes (not LangChain @tool functions)."""
 import os
 import re
 from typing import List

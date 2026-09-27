@@ -1,4 +1,10 @@
+from pathlib import Path
+
+from dotenv import load_dotenv
 from langgraph.graph import StateGraph, START, END
+
+# Single .env for this package (complete file: keys + LANGSMITH_PROJECT).
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 from .state import AgentState
 from .nodes import planner, document_reader, web_enricher, synthesizer, report_writer
@@ -6,7 +12,7 @@ from .nodes import planner, document_reader, web_enricher, synthesizer, report_w
 
 def build_graph():
     """
-    Sequential Document Intelligence Agent.
+    Sequential document workflow (not a tool-calling agent).
 
     Flow: planner → document_reader → web_enricher → synthesizer → report_writer → END
 

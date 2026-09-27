@@ -4,13 +4,9 @@
 # Demo harness for the research assistant. The compiled graph lives in
 # research_assistant.py. This file: env, FAISS, one PNG, three invokes, print.
 #
-# Tracing is the same as 01/02: LANGSMITH_* in .env. There is no langsmith
-# import and no @traceable. LangSmith records each invoke because tracing is
-# on — it shows whatever this graph uses as state (here: messages).
-#
-# Load .env before importing LangChain so the SDK can patch at import time.
-# Parent 10-observability/.env has keys; this folder's .env can override
-# LANGSMITH_PROJECT.
+# Tracing is the same as 01/02: LANGSMITH_* in this folder's .env (complete
+# file: keys + LANGSMITH_PROJECT). There is no langsmith import and no
+# @traceable. Load .env before importing LangChain so the SDK can patch.
 
 import os
 import sys
@@ -23,8 +19,7 @@ OBS_FOLDER = PACKAGE.parent
 REPO_ROOT = OBS_FOLDER.parent
 sys.path.append(str(REPO_ROOT))
 
-load_dotenv(OBS_FOLDER / ".env")
-load_dotenv(PACKAGE / ".env", override=True)
+load_dotenv(PACKAGE / ".env")
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.graph import MessagesState
@@ -74,7 +69,8 @@ def final_answer(messages: list) -> str:
 def main() -> None:
     if not os.getenv("OPENAI_API_KEY"):
         raise SystemExit(
-            "Missing OPENAI_API_KEY. Add it to 10-observability/.env"
+            "Missing OPENAI_API_KEY. Copy .env.example to "
+            "03_multi_tool_agent/.env and fill in keys."
         )
 
     docs_dir = PACKAGE / "local_RAG"

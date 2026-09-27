@@ -8,7 +8,7 @@ This is file 03 of [tutorial 10](../README.md). LangSmith tracing is still the l
   tools.py               # search_local_docs, google_search
   local_RAG/             # .txt files indexed for search_local_docs (employees/)
   diagrams/              # PNG from plot_graph (written when you run main.py)
-  .env                   # optional: LANGSMITH_PROJECT for this package only
+  .env                   # complete: keys + LANGSMITH_PROJECT (this package only)
   main.py                # demo: QUERIES, FAISS, graph PNG, invoke
 ```
 
@@ -24,7 +24,7 @@ The numbered folder name is for tutorial order. A real package would not start w
 
 ## Prerequisites
 
-Local RAG as a **workflow** first: [`../../5-Workflows/01_rag_retrieve_generate.py`](../../5-Workflows/01_rag_retrieve_generate.py). Same index helper: [`../../rag_index.py`](../../rag_index.py) `build_vectorstore` over [`local_RAG/`](local_RAG/) (`**/*.txt`, including `employees/`). Keys in [`../.env`](../.env): `OPENAI_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, optional `SERPER_API_KEY`. Override the LangSmith **project name** in this folder's [`.env`](.env) (copy [`.env.example`](.env.example)): `LANGSMITH_PROJECT=...`. `main.py` loads the parent file first, then this one (`override=True`).
+Local RAG as a **workflow** first: [`../../5-Workflows/01_rag_retrieve_generate.py`](../../5-Workflows/01_rag_retrieve_generate.py). Same index helper: [`../../rag_index.py`](../../rag_index.py) `build_vectorstore` over [`local_RAG/`](local_RAG/) (`**/*.txt`, including `employees/`). Keys in this folder's [`.env`](.env) (copy [`.env.example`](.env.example)): `OPENAI_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, `LANGSMITH_PROJECT`, optional `SERPER_API_KEY`. `main.py` loads **only** that file.
 
 There is no `@traceable` in this package. `create_agent`, `ChatOpenAI`, and the tools are recorded automatically once those env vars are set. `main.py` loads `.env` **before** importing LangChain, then names each invoke with `config={"run_name": "..."}`.
 

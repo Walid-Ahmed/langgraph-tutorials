@@ -1,14 +1,11 @@
 import sys
 import os
 
-from dotenv import load_dotenv
-
-# Add the project root to sys.path so 'agent' is importable as a package.
+# Add this folder to sys.path so document_workflow is importable as a package.
+# graph.py loads document_workflow/.env (the only env file this graph uses).
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-load_dotenv()
-
-from agent.graph import graph
+from document_workflow.graph import graph
 
 if __name__ == "__main__":
     out_path = "graph.png"

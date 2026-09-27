@@ -5,7 +5,7 @@
 - [`02_langsmith_traces_and_runs.py`](02_langsmith_traces_and_runs.py) — two chained nodes; one trace, nested runs
 - [`03_multi_tool_agent/`](03_multi_tool_agent/) — `create_agent` with local-docs + web-search tools; [package README](03_multi_tool_agent/README.md) (`research_assistant.py`, `tools.py`, `main.py`)
 
-**Requires:** `OPENAI_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, and `LANGSMITH_PROJECT` in `10-observability/.env` (copy [`.env.example`](.env.example)). File 03 can override the project name in [`03_multi_tool_agent/.env`](03_multi_tool_agent/.env.example) without changing keys. File 03 also uses OpenAI embeddings and optional `SERPER_API_KEY` for live web search. Install this folder's extras with `pip install -r requirements.txt`.
+**Requires:** `OPENAI_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, and `LANGSMITH_PROJECT` in `10-observability/.env` for files 01–02 (copy [`.env.example`](.env.example)). File 03 uses a **complete** [`03_multi_tool_agent/.env`](03_multi_tool_agent/.env.example) only. The optional document pipeline uses a complete [`document_workflow/.env`](document_workflow/.env.example) (`LANGSMITH_PROJECT=document-workflow`). File 03 also uses OpenAI embeddings and optional `SERPER_API_KEY`. Install this folder's extras with `pip install -r requirements.txt`.
 
 Tutorials 1–9 taught you to *build* graphs. This one teaches you to *see* them run. With three environment variables, LangSmith records every graph invoke and nested LLM call — prompts, responses, tokens, latency — without adding tracing code to the nodes.
 
@@ -187,11 +187,17 @@ Without `SERPER_API_KEY`, `google_search` returns an error string instead of cra
 
 **Expected result:** a PNG of the `create_agent` loop at [`03_multi_tool_agent/diagrams/03_multi_tool_agent.png`](03_multi_tool_agent/diagrams/03_multi_tool_agent.png), three printed answers plus the tool names that ran, and traces **Multi-Tool: local docs**, **Multi-Tool: web search**, and **Multi-Tool: both** in project `10-observability`.
 
-## Optional: longer sequential pipeline (`agent/`)
+## Optional: longer sequential pipeline (`document_workflow/`)
 
-[`agent/graph.py`](agent/graph.py) is a five-node document-intelligence chain (`planner → document_reader → web_enricher → synthesizer → report_writer`). It is still a **workflow** you wired at build time, not `create_agent`. Tracing is the same mechanism as files 01–02: env vars only.
+[`document_workflow/graph.py`](document_workflow/graph.py) is a five-node document chain (`planner → document_reader → web_enricher → synthesizer → report_writer`). It is still a **workflow** you wired at build time, not `create_agent`. Tracing is env vars in **this package only**: copy [`document_workflow/.env.example`](document_workflow/.env.example) to `document_workflow/.env` and fill keys plus `LANGSMITH_PROJECT`. `graph.py` loads that one file.
 
-[`graph_entry.py`](graph_entry.py) compiles that graph; [`graph_viz.py`](graph_viz.py) writes `graph.png`. Optional `SERPER_API_KEY` is for the web-enricher node.
+Run from `10-observability/`:
+
+```bash
+python document_workflow/main.py
+```
+
+That writes [`document_workflow/diagrams/document_workflow.png`](document_workflow/diagrams/document_workflow.png), invokes once (`run_name`: **Document workflow: prompt injection**), and prints `final_report`. [`graph_entry.py`](graph_entry.py) / [`graph_viz.py`](graph_viz.py) still compile or draw the graph without asking a question.
 
 ---
 
@@ -215,7 +221,7 @@ Then open [smith.langchain.com](https://smith.langchain.com), select project `10
 - **Why isn't there a `langsmith` import in 01 and 02?** Auto-tracing patches LangChain/LangGraph at process start from env vars. If the import were required, the lesson would be "instrument your nodes," which is the opposite of the point.
 - **What if I forget `run_name`?** The run still appears; the title is the generic `"LangGraph"`. Fine for one experiment, painful once you have twenty.
 - **When do I need `@traceable`?** When a function is *not* a LangChain runnable or LangGraph node — plain Python that you still want as a span (keyword search, custom I/O). Nodes and `ChatOpenAI` already show up.
-- **Is the five-node `agent/` graph an agent?** No. Paths are fixed. It is a prompt-chaining workflow (tutorial 5) that happens to be traced. For a model-driven tool loop, use file 03 (`create_agent`) or tutorial 6.
+- **Is the five-node `document_workflow/` graph an agent?** No. Paths are fixed. It is a prompt-chaining workflow (tutorial 5) that happens to be traced. For a model-driven tool loop, use file 03 (`create_agent`) or tutorial 6.
 
 ## Key Takeaways
 

@@ -1,5 +1,5 @@
 """
-Sequential Document Intelligence Agent — nodes.
+Sequential document workflow — nodes.
 All LangChain / LangGraph calls are auto-traced to LangSmith via env vars.
 No explicit tracing code needed in these nodes.
 """

@@ -1,8 +1,9 @@
 # 6. Agents — Letting the Model Drive the Loop
 
-**Book mapping:** Chapter 7 (Tools) uses `05_tools_single_round.py` and `doc_tools.py`; Chapter 8 (Agents) uses `00`–`04` and `06_command_basics.py`.
+**Book mapping:** Chapter 7 (Tools) uses `00a_bind_tools_first_look.py`, `05_tools_single_round.py` and `doc_tools.py`; Chapter 8 (Agents) uses `00`–`04` and `06_command_basics.py`.
 
 **Example files:**
+- [`00a_bind_tools_first_look.py`](00a_bind_tools_first_look.py) — **the very first tool example**: three smart-home tools are bound to a model, three requests are sent, and the raw `response.tool_calls` are printed — and nothing is ever executed (book Chapter 7, §7.1)
 - [`00_tool_calling_agent_simple.py`](00_tool_calling_agent_simple.py) — the agent loop built by hand (start here)
 - [`01_tool_calling_agent.py`](01_tool_calling_agent.py) — the same loop with LangGraph's prebuilt `ToolNode`, real external APIs, and optional web search
 - [`02_tool_calling_agent_command.py`](02_tool_calling_agent_command.py) — the `ToolNode` loop using `Command` instead of a router and conditional edges

@@ -86,7 +86,7 @@ State evolution:
 
 Variants: [`01_prompt_chaining_joke_gate.py`](01_prompt_chaining_joke_gate.py) adds a mid-chain **quality gate** — a router after the first node that ends early on "Pass" or continues through improvement nodes on "Fail." [`01_prompt_chaining_essay_drafter.py`](01_prompt_chaining_essay_drafter.py) is a draft → reflect → revise pipeline.
 
-**Local RAG** ([`01_rag_retrieve_generate.py`](01_rag_retrieve_generate.py)) is the same chaining shape with a different first node: `retrieve → generate`. You load a folder of `.txt` files into FAISS once (`build_vectorstore` in [`../rag_index.py`](../rag_index.py)), then every question takes that fixed path. Retrieval always runs; the model does not choose. That is the difference from tutorial 6 / 10, where the same index becomes a tool. Deep dive: [`01_prompt_chaining.md`](01_prompt_chaining.md) and [`01_rag_retrieve_generate.md`](01_rag_retrieve_generate.md).
+**Local RAG** ([`01_rag_retrieve_generate.py`](01_rag_retrieve_generate.py)) is the same chaining shape with a different first node: `retrieve → generate`. You load a folder of `.txt` files into FAISS once (`build_vectorstore` in [`../rag_index.py`](../rag_index.py)), then every question takes that fixed path. Retrieval always runs; the model does not choose. The same index becomes a **tool** in [`../6-Agents/04_rag_as_tool.py`](../6-Agents/04_rag_as_tool.py) (the model decides when to search) and again in [`../10-observability/03_multi_tool_agent/`](../10-observability/03_multi_tool_agent/) (local docs plus web search, traced in LangSmith). Deep dive: [`01_prompt_chaining.md`](01_prompt_chaining.md) and [`01_rag_retrieve_generate.md`](01_rag_retrieve_generate.md).
 
 ---
 
@@ -293,7 +293,7 @@ Solutions live in [`Exercise-Solutions/5-workflows/`](../Exercise-Solutions/5-wo
 3. Static fan-out (edges) when the branch count is known; **`Send`** when it's decided at runtime — and shared result fields then *require* a reducer.
 4. Loops need **explicit stopping criteria**. An evaluator verdict is a stopping *signal*; an iteration cap is a stopping *guarantee*. Use both.
 5. Pattern choice is about where the task's structure comes from — sequence, category, independence, runtime planning, or iteration. Pick the simplest shape that fits.
-6. **Local RAG is a chain** (`retrieve → generate`) when every question should hit your docs. Make retrieval a tool only when the model must choose whether to search.
+6. **Local RAG is a chain** (`retrieve → generate`) when every question should hit your docs. Make retrieval a tool only when the model must choose whether to search ([`04_rag_as_tool.py`](../6-Agents/04_rag_as_tool.py); traced in [`03_multi_tool_agent/`](../10-observability/03_multi_tool_agent/)).
 
 ## Next Step
 

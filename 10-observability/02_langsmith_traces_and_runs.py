@@ -33,7 +33,7 @@
 # summarize.
 #
 # Then run the next file in the sequence:
-#    python 03_multi_tool_agent.py
+#    python 03_multi_tool_agent/main.py
 
 from dotenv import load_dotenv
 from typing import TypedDict

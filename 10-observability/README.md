@@ -3,9 +3,9 @@
 **Example files (in reading order):**
 - [`01_langsmith_basic_tracing.py`](01_langsmith_basic_tracing.py) — one node, one LLM call, automatic tracing
 - [`02_langsmith_traces_and_runs.py`](02_langsmith_traces_and_runs.py) — two chained nodes; one trace, nested runs
-- [`03_multi_tool_agent.py`](03_multi_tool_agent.py) — `create_agent` with local-docs + web-search tools
+- [`03_multi_tool_agent/`](03_multi_tool_agent/) — `create_agent` with local-docs + web-search tools; [package README](03_multi_tool_agent/README.md) (`research_assistant.py`, `tools.py`, `main.py`)
 
-**Requires:** `OPENAI_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, and `LANGSMITH_PROJECT` in `10-observability/.env` (copy [`.env.example`](.env.example)). File 03 also uses OpenAI embeddings and optional `SERPER_API_KEY` for live web search. Install this folder's extras with `pip install -r requirements.txt`.
+**Requires:** `OPENAI_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, and `LANGSMITH_PROJECT` in `10-observability/.env` (copy [`.env.example`](.env.example)). File 03 can override the project name in [`03_multi_tool_agent/.env`](03_multi_tool_agent/.env.example) without changing keys. File 03 also uses OpenAI embeddings and optional `SERPER_API_KEY` for live web search. Install this folder's extras with `pip install -r requirements.txt`.
 
 Tutorials 1–9 taught you to *build* graphs. This one teaches you to *see* them run. With three environment variables, LangSmith records every graph invoke and nested LLM call — prompts, responses, tokens, latency — without adding tracing code to the nodes.
 
@@ -132,16 +132,29 @@ State evolution:
    ↓ summarize     reads facts, writes summary
 ```
 
-**Expected result:** a two-sentence summary in the terminal, and a trace named **Zamalek Research1**. Open it and confirm `get_facts` feeds `summarize`. Then run [`03_multi_tool_agent.py`](03_multi_tool_agent.py).
+**Expected result:** a two-sentence summary in the terminal, and a trace named **Zamalek Research1**. Open it and confirm `get_facts` feeds `summarize`. Then run [`03_multi_tool_agent/main.py`](03_multi_tool_agent/main.py).
 
-## File 03 — Multi-tool agent ([`03_multi_tool_agent.py`](03_multi_tool_agent.py))
+## File 03 — Multi-tool agent ([`03_multi_tool_agent/`](03_multi_tool_agent/))
 
-Build the **local RAG workflow** first: [`../5-Workflows/01_rag_retrieve_generate.py`](../5-Workflows/01_rag_retrieve_generate.py) (`retrieve → generate` on every question). This file is only the observability step: the same FAISS helper ([`../rag_index.py`](../rag_index.py) `build_vectorstore`) is a **tool** beside web search, inside `create_agent`, so LangSmith can show which tool the model picked.
+Package lesson: [`03_multi_tool_agent/README.md`](03_multi_tool_agent/README.md).
+
+Layout (the same split as a small production agent: prompts as files, tools, a factory, a thin CLI):
+
+```text
+03_multi_tool_agent/
+  research_assistant.py  # SYSTEM_PROMPT + build_research_assistant()
+  tools.py               # search_local_docs, google_search
+  local_RAG/             # employee .txt files for FAISS
+  diagrams/              # 03_multi_tool_agent.png from plot_graph
+  main.py                # demo: env, index, graph PNG, invoke, LangSmith run_name
+```
+
+Build the **local RAG workflow** first: [`../5-Workflows/01_rag_retrieve_generate.py`](../5-Workflows/01_rag_retrieve_generate.py) (`retrieve → generate` on every question). This folder is only the observability step: the same FAISS helper ([`../rag_index.py`](../rag_index.py) `build_vectorstore`) indexes [`03_multi_tool_agent/local_RAG/`](03_multi_tool_agent/local_RAG/) and exposes it as a **tool** beside web search, inside `create_agent`, so LangSmith can show which tool the model picked.
 
 | Tool | Typical use | Data |
 |---|---|---|
-| `search_local_docs` | RAG, security, deployment in local docs | FAISS over `.txt` files in a folder (default [`data/`](data/)) |
-| `google_search` | news, regulations, recent AI | Google Serper (`SERPER_API_KEY`) |
+| `search_local_docs` | employee records (name, salary, address, role) | FAISS over `.txt` in [`03_multi_tool_agent/local_RAG/`](03_multi_tool_agent/local_RAG/) |
+| `google_search` | news, regulations, market pay | Google Serper (`SERPER_API_KEY`) |
 
 ```mermaid
 flowchart LR
@@ -151,13 +164,13 @@ flowchart LR
     L -. "no tool_calls" .-> E([END])
 ```
 
-`create_agent` builds that loop for you. There is no `ToolNode` or router in this file. Execution of a requested tool is automatic; **selection** of which tool is the agent's.
+`create_agent` builds that loop for you. There is no `ToolNode` or router in this example. Execution of a requested tool is automatic; **selection** of which tool is the agent's, from each `@tool` docstring in [`tools.py`](03_multi_tool_agent/tools.py). [`SYSTEM_PROMPT`](03_multi_tool_agent/research_assistant.py) only sets role and a call budget — it does not list the tools. The three demo questions and `run_name`s are hardcoded in [`main.py`](03_multi_tool_agent/main.py). Wire a server to [`build_research_assistant()`](03_multi_tool_agent/research_assistant.py); do not copy the demo loop from `main.py`.
 
 Three questions exercise different expected routes (hints only — not graph edges):
 
-1. prompt injection defenses → local docs
+1. Bob Martinez's salary and department → local docs
 2. AI regulations in 2025 → web search
-3. how RAG works *and* latest frameworks → both
+3. Charlie's role and salary *and* 2025 market pay → both
 
 Each `invoke` uses `config={"run_name": "...", "recursion_limit": 10}`. In LangSmith you should see **one trace per question**, with child runs for the LLM and whichever tools actually ran:
 
@@ -172,7 +185,7 @@ Trace: Multi-Tool: both
 
 Without `SERPER_API_KEY`, `google_search` returns an error string instead of crashing; the model can still finish.
 
-**Expected result:** three printed answers plus the tool names that ran. Traces **Multi-Tool: local docs**, **Multi-Tool: web search**, and **Multi-Tool: both** in project `10-observability`.
+**Expected result:** a PNG of the `create_agent` loop at [`03_multi_tool_agent/diagrams/03_multi_tool_agent.png`](03_multi_tool_agent/diagrams/03_multi_tool_agent.png), three printed answers plus the tool names that ran, and traces **Multi-Tool: local docs**, **Multi-Tool: web search**, and **Multi-Tool: both** in project `10-observability`.
 
 ## Optional: longer sequential pipeline (`agent/`)
 
@@ -192,7 +205,7 @@ cp .env.example .env   # then fill in keys
 python 01_langsmith_basic_tracing.py
 python 02_langsmith_traces_and_runs.py
 # After tutorial 5's 01_rag_retrieve_generate.py:
-python 03_multi_tool_agent.py
+python 03_multi_tool_agent/main.py
 ```
 
 Then open [smith.langchain.com](https://smith.langchain.com), select project `10-observability`, and compare: one child LLM (01), two chained nodes (02), and a model-chosen tool loop (03).

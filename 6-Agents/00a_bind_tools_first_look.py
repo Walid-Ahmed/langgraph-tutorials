@@ -71,8 +71,6 @@ def lock_door(door: str) -> str:
 
 tools = [turn_on_light, dim_lights, set_thermostat, lock_door]
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-llm_with_tools = llm.bind_tools(tools)   # advertise the tools — nothing more
 
 REQUESTS = [
     "Turn on the kitchen light",
@@ -83,6 +81,10 @@ REQUESTS = [
 
 
 def main() -> None:
+    # Created here, not at import time, so 00b can reuse the tools without an API key.
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm_with_tools = llm.bind_tools(tools)   # advertise the tools — nothing more
+
     for number, request in enumerate(REQUESTS, start=1):
         response = llm_with_tools.invoke(request)   # one call to the model, that's all
         print(f"\nRequest {number}: {request!r}")

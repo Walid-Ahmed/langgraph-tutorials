@@ -1,6 +1,6 @@
 # 6. Agents — Letting the Model Drive the Loop
 
-**Book mapping:** Chapter 7 (Tools) uses `00a_bind_tools_first_look.py`, `00b_tool_call_ids.py`, `05_tools_single_round.py` and `doc_tools.py`; Chapter 8 (Agents) uses `00`–`04`, `06_command_basics.py` and `07_agent_call_limits.py`.
+**Book mapping:** Chapter 7 (Tools) uses `00a_bind_tools_first_look.py`, `00b_tool_call_ids.py`, `05_tools_single_round.py` and `doc_tools.py`; Chapter 8 (Agents) uses `00`–`04`, `06_command_basics.py`, `07_agent_call_limits.py` and `08-notify-agent/`.
 
 **Example files:**
 - [`00a_bind_tools_first_look.py`](00a_bind_tools_first_look.py) — **the very first tool example**: three smart-home tools are bound to a model, three requests are sent, and the raw `response.tool_calls` are printed — and nothing is ever executed (book Chapter 7, §7.1)
@@ -13,6 +13,7 @@
 - [`05_tools_single_round.py`](05_tools_single_round.py) — **tools without a loop**: the contract the model sees, a proposed tool call, executing it by hand, and one round of tools in a graph (start here for book Chapter 7)
 - [`06_command_basics.py`](06_command_basics.py) — **`Command` with no model and no API key**: a help-desk graph where nodes update state and choose the next node in one return, including a handoff between desks (book Chapter 8, §8.4)
 - [`07_agent_call_limits.py`](07_agent_call_limits.py) — capping a `create_agent` agent with `ModelCallLimitMiddleware` and `ToolCallLimitMiddleware` on a tool that never finishes (book Chapter 8, §8.6)
+- [`08-notify-agent/`](08-notify-agent/) — **an agent that acts**: Telegram, Gmail and Discord tools in separate files, with an email allow-list, a dry-run switch (`NOTIFY_DRY_RUN=1`) and a one-email-per-run limit (book Chapter 8, §8.7)
 - [`doc_tools.py`](doc_tools.py) — the shared `search_docs` tool used by examples 04 and 05
 
 **Requires:** `OPENAI_API_KEY` in the repo-root `.env`. Optional: `OPENWEATHER_API_KEY` (live weather) and `TAVILY_API_KEY` (web search) — the second example degrades gracefully without them.

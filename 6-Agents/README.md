@@ -5,7 +5,7 @@
 - [`01_tool_calling_agent.py`](01_tool_calling_agent.py) — the same loop with LangGraph's prebuilt `ToolNode`, real external APIs, and optional web search
 - [`02_tool_calling_agent_command.py`](02_tool_calling_agent_command.py) — the `ToolNode` loop using `Command` instead of a router and conditional edges
 - [`03_prebuilt_react_agent.py`](03_prebuilt_react_agent.py) — the high-level ReAct-style loop created with `create_agent`
-- [`04_rag_as_tool.py`](04_rag_as_tool.py) — tutorial 5's local RAG index wrapped as a validated tool: the model decides when to search, runs parallel searches, and recovers from bad arguments and transient failures
+- [`04_rag_as_tool.py`](04_rag_as_tool.py) — tutorial 5's local RAG index wrapped as a validated tool: the model decides when to search, runs parallel searches, and recovers from bad arguments and transient failures. Same idea with two tools plus LangSmith: [`../10-observability/03_multi_tool_agent/`](../10-observability/03_multi_tool_agent/)
 
 **Requires:** `OPENAI_API_KEY` in the repo-root `.env`. Optional: `OPENWEATHER_API_KEY` (live weather) and `TAVILY_API_KEY` (web search) — the second example degrades gracefully without them.
 
@@ -274,3 +274,5 @@ Solutions live in [`Exercise-Solutions/6-agents/`](../Exercise-Solutions/6-agent
 ## Next Step
 
 [Tutorial 7 — Checkpointing](../7-Checkpointing/README.md): every graph so far forgets everything when `invoke()` returns. Next, graphs that remember — conversation threads, snapshots, and resuming after failure.
+
+After tutorials 7–9, [tutorial 10](../10-observability/README.md) traces a production-shaped `create_agent` package ([`03_multi_tool_agent/`](../10-observability/03_multi_tool_agent/)).

@@ -2,7 +2,7 @@
 
 This example is **prompt chaining** where the first step is retrieval, not an LLM call. You decide the path at build time: every question hits the local index, then the model answers from those chunks.
 
-This is **not** an agent. The model never chooses whether to search. Tutorial 6 / 10 can wrap the same index as a tool so the model decides.
+This is **not** an agent. The model never chooses whether to search. The same index is a tool in [`../6-Agents/04_rag_as_tool.py`](../6-Agents/04_rag_as_tool.py) and in [`../10-observability/03_multi_tool_agent/`](../10-observability/03_multi_tool_agent/) so the model decides.
 
 ## Part 1 — Core Tutorial
 
@@ -36,7 +36,7 @@ The index is built **once** in `main()`, then closed over by the retrieve node. 
 
 Use this workflow when **every** question should consult the same private docs: a product guide, policy handbook, or internal wiki.
 
-Use an agent with a retrieve **tool** (tutorial 6 / 10) when the model might need docs, the web, a calculator, or no tool at all.
+Use an agent with a retrieve **tool** ([`04_rag_as_tool.py`](../6-Agents/04_rag_as_tool.py), [`03_multi_tool_agent/`](../10-observability/03_multi_tool_agent/)) when the model might need docs, the web, or no tool at all.
 
 ## What To Look For In The Code Example
 

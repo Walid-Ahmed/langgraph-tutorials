@@ -68,7 +68,7 @@ Each tutorial follows the same rhythm:
 | `7-Checkpointing/` | Persist state across runs | Learn thread memory with `MemorySaver`, durable checkpoints with `PostgresSaver`, and how this differs from long-term memory |
 | `8-Long-Term-Memory/` | Share selected memory across conversations | Learn Store namespaces, `user_id`, `InMemoryStore`, and the path to `PostgresStore` |
 | `9-Email-Assistant/` | Build a complete assistant gradually | Apply routing, tools, and short-term, semantic, episodic, and procedural memory |
-| `10-observability/` | LangSmith tracing | See graph invokes as traces and nested LLM/node calls as runs |
+| `10-observability/` | LangSmith tracing | See graph invokes as traces and nested LLM/node calls as runs. File 03 is a small agent package (`03_multi_tool_agent/`) |
 | `Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
 
 
@@ -197,7 +197,8 @@ Each tutorial folder has its own README that works like a mini lesson.
 |---|---|
 | `ModuleNotFoundError: No module named 'langgraph'` | Activate the virtual environment and run `pip install -r requirements.txt` |
 | `OpenAI` authentication error in tutorials 3, 5, 6, 7, or 8 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
-| Run commands fail with "file not found" | Run commands from the repo root, not from inside a tutorial folder |
+| Tutorial 10 cannot find `.env` or LangSmith keys | Copy `10-observability/.env.example` to `10-observability/.env`. Those scripts load env from **that** folder, not the repo root. Run 01–02 as `python 01_….py` and file 03 as `python 03_multi_tool_agent/main.py` from `10-observability/` |
+| Run commands fail with "file not found" | Run commands from the repo root, not from inside a tutorial folder (except tutorial 10 — run from `10-observability/`) |
 
 ## Official References Used
 

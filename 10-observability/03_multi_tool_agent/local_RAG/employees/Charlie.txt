@@ -1,0 +1,5 @@
+Name: Charlie Kim
+Salary: 102000
+Address: 789 Bay Rd, Toronto, ON
+Position: Senior Data Engineer
+Department: Analytics

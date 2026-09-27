@@ -48,4 +48,4 @@ python "6-Agents/04_rag_as_tool.py"
 
 To **see** which tools ran, use tutorial 10's package ([`../10-observability/03_multi_tool_agent/`](../10-observability/03_multi_tool_agent/)): same FAISS helper, plus web search, traces in LangSmith.
 
-Covered in the book in Chapter 8 (Agents and Tools, Part 2).
+Covered in the book in Chapter 8 (Agents). The `search_docs` tool itself lives in [`doc_tools.py`](doc_tools.py) and is introduced in Chapter 7 (Tools).

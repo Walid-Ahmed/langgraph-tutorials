@@ -6,7 +6,7 @@
 #   but instead of wiring retrieval into every run, wraps it as a TOOL. The
 #   model decides whether to search, how many times, and with what query.
 #
-# What it demonstrates (Chapter 8 — Tools and Tool Calling):
+# What it demonstrates (Chapter 8 — Agents; the tool itself is taught in Chapter 7):
 #   - a tool with a Pydantic args schema: the model sees the schema, and bad
 #     arguments are rejected before your code runs
 #   - a tool built by a factory so it closes over a prebuilt index
@@ -33,89 +33,24 @@ from typing import Annotated
 
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
-from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.graph import START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.types import RetryPolicy
-from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DOCS_DIR = REPO_ROOT / "5-Workflows" / "data"
 sys.path.append(str(REPO_ROOT))
+sys.path.append(str(Path(__file__).resolve().parent))
 from rag_index import build_vectorstore  # noqa: E402
 from util import plot_graph  # noqa: E402
 
 load_dotenv()
 
 
-# ---------------------------------------------------------
-# 1. The tool's contract
-#
-# The model never sees the function body. It sees the tool name, the
-# docstring, and this schema. Field descriptions tell it WHAT to pass;
-# ge/le tell it the legal range, and Pydantic enforces that range before
-# the search runs.
-# ---------------------------------------------------------
-class SearchDocsInput(BaseModel):
-    query: str = Field(
-        description="A focused search phrase, e.g. 'prompt injection defenses'. "
-        "Rewrite the user's question into keywords; do not paste it verbatim."
-    )
-    k: int = Field(
-        default=3, ge=1, le=5,
-        description="How many passages to return (1-5). Use more for broad questions.",
-    )
-
-
-# Flip to True (or let main() do it for Q4) to simulate a flaky vector store.
-SIMULATE_OUTAGE = {"remaining_failures": 0}
-
-
-def make_search_tool(vectorstore):
-    """Build a search tool that closes over an already-built index.
-
-    Same idea as Chapter 6: build the expensive index once, outside the graph,
-    and let the node (here, the tool) only read it.
-    """
-
-    @tool(args_schema=SearchDocsInput, response_format="content_and_artifact")
-    def search_docs(query: str, k: int = 3):
-        """Search the internal 'LLM Production Security and Observability Guide'.
-
-        Use this for questions about LLM security threats (OWASP LLM Top 10,
-        prompt injection), guardrails, gateways, evaluation, observability,
-        or production deployment. Do NOT use it for general knowledge,
-        arithmetic, or current events.
-        """
-        if SIMULATE_OUTAGE["remaining_failures"] > 0:
-            SIMULATE_OUTAGE["remaining_failures"] -= 1
-            # A transient failure: raised, not returned, so RetryPolicy can retry it.
-            raise ConnectionError("vector store temporarily unavailable")
-
-        docs = vectorstore.similarity_search(query, k=k)
-        if not docs:
-            # "Nothing found" is an answer, not an exception: tell the model.
-            return "No relevant passages found in the guide.", []
-
-        text = "\n\n".join(
-            f"[Chunk {i + 1}]\n{doc.page_content}" for i, doc in enumerate(docs)
-        )
-        # The artifact never reaches the model; it is for your code (logging,
-        # citations, UI) and survives as ToolMessage.artifact.
-        sources = [
-            {
-                "chunk": i + 1,
-                "source": Path(doc.metadata.get("source", "?")).name,
-                "preview": doc.page_content[:60].replace("\n", " "),
-            }
-            for i, doc in enumerate(docs)
-        ]
-        return text, sources
-
-    return search_docs
+from doc_tools import SIMULATE_OUTAGE, make_search_tool  # noqa: E402  (shared with 05_tools_single_round.py)
 
 
 # ---------------------------------------------------------
@@ -135,7 +70,7 @@ SYSTEM_PROMPT = (
 
 
 # ---------------------------------------------------------
-# 3. Graph — the Chapter 7 loop, built from prebuilt parts
+# 3. Graph — the agent loop, built from prebuilt parts
 # ---------------------------------------------------------
 def build_agent(vectorstore, llm=None):
     search_docs = make_search_tool(vectorstore)
@@ -164,7 +99,7 @@ def build_agent(vectorstore, llm=None):
     builder.add_edge(START, "llm")
     # tools_condition: "tools" if the last AIMessage has tool_calls, else END.
     builder.add_conditional_edges("llm", tools_condition)
-    builder.add_edge("tools", "llm")  # the back edge from Chapter 7
+    builder.add_edge("tools", "llm")  # the back edge that makes it an agent
     return builder.compile()
 
 
@@ -210,7 +145,7 @@ def main() -> None:
         print("=" * 70)
         result = agent.invoke(
             {"messages": [HumanMessage(question)]},
-            config={"recursion_limit": 10},  # a hard cap on laps (Chapter 7)
+            config={"recursion_limit": 10},  # a hard cap on laps
         )
         summarize_run(result["messages"])
 

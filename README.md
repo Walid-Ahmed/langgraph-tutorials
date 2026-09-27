@@ -214,3 +214,13 @@ These tutorials are enriched from the official LangChain and LangGraph docs, the
 ## Getting Started
 
 Tutorial 1 walks through the core graph pattern step by step. Once you understand that shape, the rest of the series builds on it. Start with [`1-Langgraph basics/README.md`](1-Langgraph%20basics/README.md).
+
+## Tested Versions and Updates
+
+The book *Building AI Agents with LangGraph* was written against the versions pinned in [`requirements.txt`](requirements.txt) (current as of September 2026), including `langgraph==1.2.6`, `langchain==1.3.11`, `langchain-openai==1.3.3` and `langmem==0.0.30`. Install that file and every example runs as printed in the book.
+
+LangGraph moves quickly. When an upgrade changes an import or a default, the examples here are updated and the change is logged below, so readers of the printed book can see what moved.
+
+| Date | Library change | What changed in this repo |
+|---|---|---|
+| 2026-09 | — | Baseline for the first edition. |

@@ -35,10 +35,13 @@ class State(TypedDict):
     desk: str          # which desk is handling the request now
     path: list[str]    # every desk that touched it, in order
     reply: str
+    # No reducer: each node returns a full new `path` list (overwrite).
 
 
 def triage(state: State) -> Command[Literal["billing", "tech"]]:
     """Decide where the request goes: update state AND route, in one return."""
+    # Literal[...] is for compile() and the drawn graph, not a runtime switch.
+    # The if/else below is what actually picks billing vs tech.
     text = state["request"].lower()
     desk = "billing" if any(w in text for w in ("invoice", "refund", "charge")) else "tech"
     return Command(
@@ -49,6 +52,7 @@ def triage(state: State) -> Command[Literal["billing", "tech"]]:
 
 def billing(state: State) -> Command[Literal["refunds", "__end__"]]:
     """Answer billing questions, or hand refunds off to the refunds desk."""
+    # In Command[Literal], END is written as the string "__end__".
     if "refund" in state["request"].lower():
         # A handoff: billing passes control (and a note) to another desk.
         return Command(
@@ -68,6 +72,7 @@ def refunds(state: State) -> dict:
 
 
 def tech(state: State) -> dict:
+    """Same as refunds: return a state patch; the graph edge goes to END."""
     return {"path": state["path"] + ["tech"], "reply": "Tech: please update the app and retry."}
 
 

@@ -1,6 +1,6 @@
 # 6. Agents — Letting the Model Drive the Loop
 
-**Book mapping:** Chapter 7 (Tools) uses `00a_bind_tools_first_look.py`, `00b_tool_call_ids.py`, `05_tools_single_round.py` and `doc_tools.py`; Chapter 8 (Agents) uses `00`–`04`, `06_command_basics.py`, `07_agent_call_limits.py` and `08-notify-agent/`.
+**Book mapping:** Chapter 7 (Tools) uses `00a_bind_tools_first_look.py`, `00b_tool_call_ids.py`, `05_tools_single_round.py` and `doc_tools.py`; Chapter 8 (Agents) uses `00`–`04`, `06_command_basics.py`, `07_agent_call_limits.py`, `08-notify-agent/`, `09_two_agents_direct.py` and `10_two_agents_with_state.py`.
 
 **Example files:**
 - [`00a_bind_tools_first_look.py`](00a_bind_tools_first_look.py) — **the very first tool example**: three smart-home tools are bound to a model, three requests are sent, and the raw `response.tool_calls` are printed — and nothing is ever executed (book Chapter 7, §7.1)
@@ -14,6 +14,8 @@
 - [`06_command_basics.py`](06_command_basics.py) — **`Command` with no model and no API key**: a help-desk graph where nodes update state and choose the next node in one return, including a handoff between desks (book Chapter 8, §8.4)
 - [`07_agent_call_limits.py`](07_agent_call_limits.py) — capping a `create_agent` agent with `ModelCallLimitMiddleware` and `ToolCallLimitMiddleware` on a tool that never finishes (book Chapter 8, §8.6)
 - [`08-notify-agent/`](08-notify-agent/) — **an agent that acts**: Telegram, Gmail and Discord tools in separate files, with an email allow-list, a dry-run switch (`NOTIFY_DRY_RUN=1`) and a one-email-per-run limit (book Chapter 8, §8.7)
+- [`09_two_agents_direct.py`](09_two_agents_direct.py) — **two `create_agent` graphs**: analyst then writer; Python copies Agent 1's last message into Agent 2's prompt (no outer StateGraph)
+- [`10_two_agents_with_state.py`](10_two_agents_with_state.py) — the same two agents as nodes on `START → analyst → writer → END`; handoff is state fields `analysis` / `report`
 - [`doc_tools.py`](doc_tools.py) — the shared `search_docs` tool used by examples 04 and 05
 
 **Requires:** `OPENAI_API_KEY` in the repo-root `.env`. Optional: `OPENWEATHER_API_KEY` (live weather) and `TAVILY_API_KEY` (web search) — the second example degrades gracefully without them.
@@ -223,6 +225,8 @@ python "6-Agents/00_tool_calling_agent_simple.py"   # arithmetic agent, manual t
 python "6-Agents/01_tool_calling_agent.py"          # weather + tip agent, prebuilt ToolNode
 python "6-Agents/02_tool_calling_agent_command.py"  # routing with Command
 python "6-Agents/03_prebuilt_react_agent.py"        # high-level ReAct-style agent
+python "6-Agents/09_two_agents_direct.py"           # two create_agent graphs, Python handoff
+python "6-Agents/10_two_agents_with_state.py"       # two create_agent graphs, StateGraph handoff
 ```
 
 The two alternative examples also save their complete message traces:
@@ -279,6 +283,7 @@ Solutions live in [`Exercise-Solutions/6-agents/`](../Exercise-Solutions/6-agent
 4. `ToolMessage` + `tool_call_id` + `add_messages` is how results re-enter the conversation so the model can chain steps.
 5. The model decides when to stop — so **you** must add an iteration cap before trusting an agent with a budget.
 6. Conditional edges, `Command`, and `create_agent` are progressively higher-level ways to express the same tool loop.
+7. Two `create_agent` specialists are still two graphs. Connect them with a Python variable (`09`) or an outer `StateGraph` (`10`).
 
 ## Next Step
 

@@ -64,7 +64,7 @@ Each tutorial follows the same rhythm:
 | `3_LLM_Messages/` | Store chat history in graph state | Learn how LLM conversations fit into LangGraph |
 | `4-Conditional Edges/` | Route to different nodes | Learn how graphs make decisions |
 | `5-Workflows/` | Workflow patterns | Routing, parallel work, orchestration, evaluation loops, and local RAG (retrieve then generate) |
-| `6-Agents/` | Agent patterns | Compare manual routers, `Command`, `ToolNode`, and high-level ReAct-style agents |
+| `6-Agents/` | Agent patterns | Compare manual routers, `Command`, `ToolNode`, `create_agent`, and two-agent handoff (Python vs outer StateGraph) |
 | `7-Checkpointing/` | Persist state across runs | Learn thread memory with `MemorySaver`, durable checkpoints with `PostgresSaver`, and how this differs from long-term memory |
 | `8-Long-Term-Memory/` | Share selected memory across conversations | Learn Store namespaces, `user_id`, `InMemoryStore`, and the path to `PostgresStore` |
 | `9-Email-Assistant/` | Build a complete assistant gradually | Apply routing, tools, and short-term, semantic, episodic, and procedural memory |

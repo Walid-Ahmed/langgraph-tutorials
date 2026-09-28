@@ -15,6 +15,7 @@ executing over time.
 | `00_tool_calling_agent_graph.png` | [`../01_tool_calling_agent.py`](../01_tool_calling_agent.py) |
 | `02_tool_calling_agent_command.png` | [`../02_tool_calling_agent_command.py`](../02_tool_calling_agent_command.py) |
 | `03_prebuilt_react_agent.png` | [`../03_prebuilt_react_agent.py`](../03_prebuilt_react_agent.py) |
+| `10_two_agents_with_state.png` | [`../10_two_agents_with_state.py`](../10_two_agents_with_state.py) |
 
 Details that are easy to trip on:
 

@@ -2,7 +2,7 @@
 
 This folder combines everything from tutorials 1–4 — state, reducers, messages, conditional edges — into the six workflow patterns that cover most real LLM systems. Every pattern here is a **runnable script** plus a companion `.md` deep-dive.
 
-**Prerequisites:** tutorials 1–4, and an `OPENAI_API_KEY` in the repo-root `.env` (every script makes real model calls).
+**Prerequisites:** tutorials 1–4, and an `OPENAI_API_KEY` in the repo-root `.env` (every script makes real model calls, except `03a_parallel_math.py`).
 
 ## Workflow vs. Agent — the distinction this folder rests on
 
@@ -118,6 +118,14 @@ Deep dive: [`02_routing.md`](02_routing.md).
 ---
 
 ## Pattern 4 — Parallelization ([`03_parallelization.py`](03_parallelization.py))
+
+**Start here — no API key:** [`03a_parallel_math.py`](03a_parallel_math.py) takes `x` and `y` and runs `add`, `subtract` and `multiply` in parallel, then a `combine` node waits for all three. Each branch writes its own field, so no reducer is needed. The same file then has all three write one shared `results` list: without a reducer LangGraph raises `InvalidUpdateError`; with `Annotated[list, operator.add]` the three writes combine.
+
+```text
+START ─┬→ add      (x + y) ─┐
+       ├→ subtract (x − y) ─┼→ combine → END
+       └→ multiply (x × y) ─┘
+```
 
 Three nodes generate an Instagram, Twitter, and LinkedIn post *for the same topic*, simultaneously; an aggregator combines them. The fan-out is nothing more than multiple edges from the same source:
 
@@ -254,6 +262,7 @@ python "5-Workflows/01_prompt_chaining.py"                   # sequential chain 
 python "5-Workflows/01_prompt_chaining_joke_gate.py"         # chain + quality gate
 python "5-Workflows/01_rag_retrieve_generate.py"             # local RAG: retrieve then generate
 python "5-Workflows/02_routing.py"                           # classify & dispatch
+python "5-Workflows/03a_parallel_math.py"                    # fan-out/fan-in, no API key
 python "5-Workflows/03_parallelization.py"                   # static fan-out/fan-in
 python "5-Workflows/04_orchestrator_workers.py"              # dynamic workers via Send
 python "5-Workflows/05_evaluator_optimizer.py"               # feedback loop

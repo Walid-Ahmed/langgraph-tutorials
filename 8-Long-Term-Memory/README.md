@@ -526,9 +526,11 @@ Examples 04–06 go past the single profile of 01–02 and show the three kinds 
 
 | File | Memory type | Written by | Found by |
 |---|---|---|---|
-| [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | **semantic** — facts about the user | the agent, via LangMem `manage_memory` (hot path) | embedding search via `search_memory` |
+| [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | **semantic** — facts about the user | the agent, via LangMem `manage_memory` (hot path) | the app: a `@dynamic_prompt` middleware runs `store.search(namespace, query=request)` before every model call |
 | [`05_episodic_memory.py`](05_episodic_memory.py) | **episodic** — approved past answers used as few-shot examples | the app, after the user approves (background) | `store.search(namespace, query=request)` |
 | [`06_procedural_memory.py`](06_procedural_memory.py) | **procedural** — the assistant's instructions | a LangMem prompt optimizer, from feedback (background) | exact `store.get(namespace, key)` |
+
+Why does 04 read memory in code rather than with a `search_memory` tool? A read *tool* is optional to the model: in a real run, the model saved the user's facts in the first conversation but never called `search_memory` in the second, and asked the user what topic they wanted. Reading in code — before the model runs — makes remembering a guarantee; writing stays a tool, because deciding what is worth remembering is a judgment the model is good at.
 
 All three use the namespace `("assistant", user_id, <kind>)`, so each user's memories stay isolated. The email assistant in `9-Email-Assistant/` combines the same three ideas in one application.
 

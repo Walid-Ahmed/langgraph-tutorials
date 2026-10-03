@@ -16,6 +16,8 @@
 - [`08-notify-agent/`](08-notify-agent/) — **an agent that acts**: Telegram, Gmail and Discord tools in separate files, with an email allow-list, a dry-run switch (`NOTIFY_DRY_RUN=1`) and a one-email-per-run limit (book Chapter 8, §8.7)
 - [`09_two_agents_direct.py`](09_two_agents_direct.py) — **two `create_agent` graphs**: analyst then writer; Python copies Agent 1's last message into Agent 2's prompt (no outer StateGraph)
 - [`10_two_agents_with_state.py`](10_two_agents_with_state.py) — the same two agents as nodes on `START → analyst → writer → END`; handoff is state fields `analysis` / `report`
+- [`11_parallel_subgraphs.py`](11_parallel_subgraphs.py) — **two agents in parallel as subgraphs**: a weather agent and a budget agent get the same question, each writes its own state field, and a `combine` node merges them (tools in [`trip_tools.py`](trip_tools.py), sample prices in [`trip_data.json`](trip_data.json))
+- [`12_subgraph_shared_keys.py`](12_subgraph_shared_keys.py) — the other way to attach a subgraph: a compiled graph passed straight to `add_node`, sharing state keys with its parent (no API key)
 - [`doc_tools.py`](doc_tools.py) — the shared `search_docs` tool used by examples 04 and 05
 
 **Requires:** `OPENAI_API_KEY` in the repo-root `.env`. Optional: `OPENWEATHER_API_KEY` (live weather) and `TAVILY_API_KEY` (web search) — the second example degrades gracefully without them.
@@ -227,6 +229,8 @@ python "6-Agents/02_tool_calling_agent_command.py"  # routing with Command
 python "6-Agents/03_prebuilt_react_agent.py"        # high-level ReAct-style agent
 python "6-Agents/09_two_agents_direct.py"           # two create_agent graphs, Python handoff
 python "6-Agents/10_two_agents_with_state.py"       # two create_agent graphs, StateGraph handoff
+python "6-Agents/11_parallel_subgraphs.py"          # two agents in parallel as subgraphs + a combiner
+python "6-Agents/12_subgraph_shared_keys.py"        # subgraph passed to add_node (no API key)
 ```
 
 The two alternative examples also save their complete message traces:

@@ -4,6 +4,7 @@
 - [`01_langsmith_basic_tracing.py`](01_langsmith_basic_tracing.py) — one node, one LLM call, automatic tracing
 - [`02_langsmith_traces_and_runs.py`](02_langsmith_traces_and_runs.py) — two chained nodes; one trace, nested runs
 - [`03_multi_tool_agent/`](03_multi_tool_agent/) — `create_agent` with local-docs + web-search tools; [package README](03_multi_tool_agent/README.md) (`research_assistant.py`, `tools.py`, `main.py`)
+- [`04_research_assistant/`](04_research_assistant/) — the five-node Research Assistant from Chapter 13 (Listings 13.10–13.13), built with no tracing code: `tools.py`, `graph.py`, `run_traced.py`. Run `python 04_research_assistant/run_traced.py` from this folder; it uses this folder's `.env` plus `SERPER_API_KEY`.
 
 **Requires:** `OPENAI_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, and `LANGSMITH_PROJECT` in `10-observability/.env` for files 01–02 (copy [`.env.example`](.env.example)). File 03 uses a **complete** [`03_multi_tool_agent/.env`](03_multi_tool_agent/.env.example) only. The optional document pipeline uses a complete [`document_workflow/.env`](document_workflow/.env.example) (`LANGSMITH_PROJECT=document-workflow`). File 03 also uses OpenAI embeddings and optional `SERPER_API_KEY`. Install this folder's extras with `pip install -r requirements.txt`.
 

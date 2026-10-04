@@ -2,7 +2,7 @@
 
 | Diagram | Purpose |
 |---|---|
-| `chat_update_memory_architecture.png` | supplied architecture sketch for the `chat → update_memory` pattern |
+| `chat_update_memory_architecture.png` | architecture sketch for the `chat → update_memory` pattern |
 | `simple_cross_thread_memory_graph.png` | generated graph for `01_simple_cross_thread_memory.py` |
 | `structured_cross_thread_memory_graph.png` | generated graph for `02_structured_cross_thread_memory.py` |
 

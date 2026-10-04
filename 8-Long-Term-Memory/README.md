@@ -1,10 +1,35 @@
 # 8. Long-Term Memory — Remembering Across Conversations
 
-Checkpointing taught the graph to remember one conversation. Long-term memory
-adds a different ability: remembering selected user or application facts across
-many separate conversations.
+## TL;DR
 
-## The Two Memory Scopes
+- A **checkpointer** remembers one conversation (`thread_id`). A **Store**
+  remembers selected facts across many conversations (a namespace that usually
+  contains `user_id`).
+- Attach both at compile time: `builder.compile(checkpointer=..., store=...)`.
+- Pass `thread_id` in `config` and `user_id` in runtime `context`; nodes read
+  the Store through `runtime.store`.
+- A Store entry is **namespace + key → value** (the value is always a dict).
+- "Long-term" describes **scope** (across threads), not **durability**.
+  `InMemoryStore` is erased when Python stops; `PostgresStore` survives.
+- Long-term memories come in three kinds: **semantic** (facts),
+  **episodic** (past experiences), and **procedural** (instructions).
+
+```python
+graph = builder.compile(checkpointer=MemorySaver(), store=InMemoryStore())
+
+config = {"configurable": {"thread_id": "chat-1"}}   # which conversation
+context = Context(user_id="walid")                    # which user
+
+graph.invoke({"messages": [...]}, config, context=context)
+```
+
+Remember: **checkpointer for this chat; Store for this user.**
+
+## The Big Picture: Two Memory Scopes
+
+Checkpointing (tutorial 7) taught the graph to remember one conversation.
+Long-term memory adds a different ability: remembering selected user or
+application facts across many separate conversations.
 
 ```mermaid
 flowchart LR
@@ -27,115 +52,72 @@ flowchart LR
 | Short-term | one chat or workflow | checkpointer | `thread_id` |
 | Long-term | many chats for a user or application | Store | namespace, often containing `user_id` |
 
-Most production agents use both:
+Most production agents use both: the checkpointer remembers what happened in
+*this* conversation; the Store remembers what should be available in *future*
+conversations.
 
-- the checkpointer remembers what happened in this conversation;
-- the Store remembers what should be available in future conversations.
+### Scope is not durability
 
-## Chat Then Update Memory
-
-The two chatbot examples deliberately separate answering from memory writing:
-
-![Chat to update-memory architecture](diagrams/chat_update_memory_architecture.png)
-
-```text
-START → chat → update_memory → END
-```
-
-- `chat` reads the user's long-term profile from the Store and combines it with
-  the current thread's messages before calling the model.
-- `update_memory` examines the latest user message and writes selected facts
-  back to the Store.
-- `MemorySaver` keeps short-term message history for one `thread_id`.
-- `InMemoryStore` shares selected long-term facts across threads that use the
-  same `user_id`.
-
-The diagram uses **long-term** to describe cross-thread scope. Because the
-example uses `InMemoryStore`, those facts still disappear when the Python
-process stops.
-
-## Important: Long-Term Scope Is Not the Same as Durable Storage
-
-The word **long-term** means the memory can be shared across different
-`thread_id` values. It does **not** automatically mean the memory survives when
-Python stops. The Store implementation decides durability.
+"Long-term" means the memory is shared across different `thread_id` values. It
+does **not** mean the memory survives a restart. The Store backend decides
+that:
 
 | Store | Shared across threads? | Survives Python restart? | Practical use |
 |---|---:|---:|---|
-| `InMemoryStore` | yes | no | learning, tests, and temporary applications |
+| `InMemoryStore` | yes | no | learning, tests, temporary applications |
 | `PostgresStore` | yes | yes | durable production memory |
 
-The runnable example uses:
-
-```python
-store = InMemoryStore()
+```text
+same process + different thread_id  → memory is shared by user_id
+new Python process                  → InMemoryStore data is gone
 ```
 
-Its user profile is shared by multiple threads only while that Python process
-remains alive:
+Examples 00–02 and 04–06 use `InMemoryStore` so they run without a database.
+Example 03 switches to `PostgresStore` to prove durability.
 
-```text
-thread 1, user walid ─┐
-thread 2, user walid ─┴─ same InMemoryStore → profile is available
+## Start Here
 
-stop Python → InMemoryStore is erased → profile is gone
+Run every command from the repository root.
+
+| # | File | Demonstrates | Needs |
+|---|---|---|---|
+| 1 | [`00_store_basics.py`](00_store_basics.py) | `put`, `get`, `search`, namespaces, keys, `Item` fields | nothing (no LLM) |
+| 2 | [`01_simple_cross_thread_memory.py`](01_simple_cross_thread_memory.py) | chatbot sharing one plain-text profile across two threads | `OPENAI_API_KEY` |
+| 3 | [`02_structured_cross_thread_memory.py`](02_structured_cross_thread_memory.py) | structured extraction, field merging, user isolation | `OPENAI_API_KEY` |
+| 4 | [`03-postgres-store/`](03-postgres-store/README.md) | memory that survives between Python processes | PostgreSQL (no LLM) |
+| 5 | [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | **semantic** memory saved and searched by the agent | `OPENAI_API_KEY`, `langmem` |
+| 6 | [`05_episodic_memory.py`](05_episodic_memory.py) | **episodic** memory as few-shot examples | `OPENAI_API_KEY` |
+| 7 | [`06_procedural_memory.py`](06_procedural_memory.py) | **procedural** memory rewritten from feedback | `OPENAI_API_KEY`, `langmem` |
+
+```bash
+python "8-Long-Term-Memory/00_store_basics.py"
+python "8-Long-Term-Memory/01_simple_cross_thread_memory.py"
+python "8-Long-Term-Memory/02_structured_cross_thread_memory.py"
+# 03: follow 03-postgres-store/README.md (needs a running PostgreSQL)
+python "8-Long-Term-Memory/04_semantic_memory_tools.py"
+python "8-Long-Term-Memory/05_episodic_memory.py"
+python "8-Long-Term-Memory/06_procedural_memory.py"
 ```
 
-Therefore, `InMemoryStore` is useful for teaching and testing the long-term
-memory *scope*, but it is usually not practical for production memory that must
-survive restarts, deployments, or multiple application processes. Use a durable
-backend such as `PostgresStore` for that requirement.
+`OPENAI_API_KEY` goes in the repository-root `.env` file. `langmem` is listed
+in the root `requirements.txt`.
 
-## Example Files
+## The Store: Namespace + Key → Value
 
-| File | Demonstrates | LLM? |
-|---|---|---:|
-| [`00_store_basics.py`](00_store_basics.py) | `put`, `get`, `search`, namespaces, keys, and values | no |
-| [`01_simple_cross_thread_memory.py`](01_simple_cross_thread_memory.py) | notebook-style plain text profile shared across two threads | yes |
-| [`02_structured_cross_thread_memory.py`](02_structured_cross_thread_memory.py) | structured extraction, merging, metadata, and user isolation | yes |
-| [`03-postgres-store/`](03-postgres-store/) | durable Store memory that survives between Python processes | no |
-
-## Three Types of Long-Term Memory
-
-Long-term memories can be grouped by what they contain:
-
-| Type | What it remembers | Email assistant example |
-|---|---|---|
-| Semantic | facts about people, places, or things | the user's name, role, manager, and writing preference |
-| Episodic | past experiences and their outcomes | a previously approved reply used as a few-shot example |
-| Procedural | instructions for how to behave | tone, safety rules, and the required email signature |
-
-These types describe the **contents and purpose** of memory. They are separate
-from the storage choice: any of them could be held temporarily in
-`InMemoryStore` or durably in `PostgresStore`.
-
-The separate [`9-Email-Assistant/`](../9-Email-Assistant/) tutorial applies
-these ideas gradually. It begins with semantic profile data and procedural
-triage rules. Episodic examples, memory storage, tools, and graph orchestration
-are introduced in later lessons rather than all at once.
-
-## Store Mental Model: Namespace + Key → Value
-
-A Store organizes each memory using three pieces:
+A Store organizes each memory with three pieces:
 
 ```text
-namespace = ("walid", "memories")   ← folder path
+namespace = ("walid", "memories")   ← folder path (a tuple)
 key       = "profile"               ← filename
-value     = {                       ← saved contents
+value     = {                       ← saved contents (always a dict)
     "name": "Walid",
     "role": "software engineer",
     "preferences": ["concise explanations"]
 }
 ```
 
-The namespace is a tuple. It groups related entries and provides isolation. A
-common user-memory namespace is:
-
-```python
-namespace = (user_id, "memories")
-```
-
-The same Store can therefore contain separate memory spaces:
+The namespace groups related entries and provides isolation. Putting the
+`user_id` in it gives every user a separate memory space:
 
 ```text
 ("walid", "memories")
@@ -146,90 +128,14 @@ The same Store can therefore contain separate memory spaces:
 └── profile
 ```
 
-The key identifies one item inside the namespace. Calling `put` again with the
-same namespace and key updates that item.
+Calling `put` again with the same namespace and key **updates** that entry.
 
-### Text can be the value inside a key-value entry
+> **Plain text is still a value.** To remember a paragraph, wrap it in a dict:
+> `store.put(ns, "user_details", {"memory": profile_text})`, and read it back
+> with `item.value["memory"]`. The text is the content of a field, never the
+> key.
 
-The Store is still key-value storage when the saved information is plain text.
-The simple example wraps the LLM-produced profile text inside a dictionary:
-
-```python
-namespace = ("memory", "user-1")
-key = "user_details"
-value = {
-    "memory": "- Name: Walid\n- Role: Engineering manager"
-}
-
-store.put(namespace, key, value)
-```
-
-These are three different layers:
-
-```text
-namespace  ("memory", "user-1")     folder/user memory space
-key        "user_details"            item name inside that space
-value      {"memory": "...text..."} saved dictionary
-```
-
-The text is not being used as the Store key. It is the content of the `memory`
-field inside the dictionary value. Reading it back therefore takes two steps:
-
-```python
-item = store.get(("memory", "user-1"), "user_details")
-profile_text = item.value["memory"]
-```
-
-This entry belongs to `InMemoryStore`, not `MemorySaver`. `MemorySaver`
-separately checkpoints the graph messages for each `thread_id`.
-
-## Store Operations
-
-### Method signatures
-
-These are the signatures provided by the LangGraph version installed in this
-repository:
-
-```python
-def put(
-    namespace: tuple[str, ...],
-    key: str,
-    value: dict[str, Any],
-    index: Literal[False] | list[str] | None = None,
-    *,
-    ttl: float | None | NotProvided = NOT_GIVEN,
-) -> None: ...
-
-def get(
-    namespace: tuple[str, ...],
-    key: str,
-    *,
-    refresh_ttl: bool | None = None,
-) -> Item | None: ...
-
-def search(
-    namespace_prefix: tuple[str, ...],
-    /,
-    *,
-    query: str | None = None,
-    filter: dict[str, Any] | None = None,
-    limit: int = 10,
-    offset: int = 0,
-    refresh_ttl: bool | None = None,
-) -> list[SearchItem]: ...
-```
-
-The first three arguments to `put` are the ones beginners normally need.
-`index` controls which fields participate in semantic search when the Store was
-created with an embedding index. `ttl` and `refresh_ttl` apply only to Store
-implementations that support expiration.
-
-For `search`, `namespace_prefix` is positional. With no `query`, it lists items
-in that namespace prefix. `query` requests semantic similarity search when an
-index is configured; `filter`, `limit`, and `offset` narrow or paginate the
-results.
-
-### Basic usage
+### Operations
 
 ```python
 from langgraph.store.memory import InMemoryStore
@@ -238,302 +144,242 @@ store = InMemoryStore()
 namespace = ("walid", "memories")
 
 store.put(namespace, "profile", {"name": "Walid"})
-
-profile = store.get(namespace, "profile")
-print(profile.value)
-
-all_memories = store.search(namespace)
+item = store.get(namespace, "profile")   # Item or None
+print(item.value)                        # {'name': 'Walid'}
+all_items = store.search(namespace)      # list of items in the namespace
 ```
 
 | Operation | Purpose |
 |---|---|
 | `put(namespace, key, value)` | create or update one memory |
 | `get(namespace, key)` | fetch one exact memory; returns `None` when absent |
-| `search(namespace)` | list memories in a namespace |
+| `search(namespace_prefix, query=..., filter=..., limit=...)` | list memories under a prefix; with `query`, rank by meaning (needs an embedding index) |
 | `delete(namespace, key)` | remove one memory |
 
-## What a Store Returns
-
-`get` and `search` return `Item` objects, not only the saved value. An item
-contains:
+`get` and `search` return `Item` objects, not just the dict:
 
 | Item field | Meaning |
 |---|---|
-| `namespace` | the tuple-like path containing the memory |
+| `namespace` | the tuple path containing the memory |
 | `key` | the entry identifier inside that namespace |
 | `value` | the dictionary your application saved |
-| `created_at` | when the item was first created |
-| `updated_at` | when the item was last changed |
-| `score` | similarity score when a search uses semantic retrieval |
+| `created_at` / `updated_at` | when the item was created / last changed |
+| `score` | similarity score, only for a semantic `search(query=...)` |
 
-```python
-item = store.get(("walid", "memories"), "profile")
+`put` also accepts `index` (which fields to embed) and `ttl` (expiry, on
+backends that support it). You won't need them until examples 04–05.
 
-if item:
-    print(item.namespace)
-    print(item.key)
-    print(item.value)
-    print(item.created_at)
-    print(item.updated_at)
-```
+### Walkthrough 1 — Store basics (`00_store_basics.py`)
 
-Run the deterministic introduction first:
+No graph and no LLM: the script puts a profile, gets it back, prints every
+`Item` field, lists the namespace with `search`, then puts the same key again
+to show an update. Run it first; everything after builds on these four calls.
 
-```bash
-python "8-Long-Term-Memory/00_store_basics.py"
-```
+## Wiring a Store into a Graph
 
-## Cross-Thread Chatbot Architecture
+Identity has two jobs, so it travels through two channels:
 
-Both chatbot examples use the same graph shape and both memory systems:
-
-```mermaid
-flowchart LR
-    START --> CHAT["chat<br/>read profile from Store"]
-    CHAT --> UPDATE["update_memory<br/>extract and save facts"]
-    UPDATE --> END
-```
-
-- `chat` loads the profile belonging to `user_id` and adds it to the model's
-  system message.
-- `update_memory` examines the latest user message, extracts explicitly stated
-  facts, and writes them back to the Store.
-- `MemorySaver` separately checkpoints the messages belonging to each
-  `thread_id`.
-
-The memory extractor is a second LLM call. That makes the teaching flow easy to
-see, but production systems should decide carefully when extraction is worth
-the latency and cost.
-
-## Current LangGraph API: Context and Runtime
-
-The linked notebook places both `thread_id` and `user_id` inside `config` and
-receives `config` plus `store` as separate node parameters. This tutorial adapts
-the same idea to the current recommended API: `thread_id` remains in config,
-while `user_id` travels through typed runtime context and the Store is available
-as `runtime.store`.
-
-The advanced `02_structured_cross_thread_memory.py` example uses structured output and examines only the latest
-human message. This reduces the risk of accidentally saving claims invented by
-the assistant.
-
-Identity has two jobs, so the example passes it through two different channels:
-
-```python
-config = {"configurable": {"thread_id": "walid-chat-1"}}
-context = Context(user_id="walid")
-
-graph.invoke(
-    {"messages": [{"role": "user", "content": "Hi"}]},
-    config,
-    context=context,
-)
-```
-
-- `thread_id` in `config` selects short-term checkpoint history.
-- `user_id` in runtime context selects long-term Store memory.
-
-### Why `@dataclass` is used
-
-`Context` is a small object carrying information about who is running the graph:
+- `thread_id` in **`config`** selects the checkpoint history (short-term).
+- `user_id` in runtime **`context`** selects the Store namespace (long-term).
 
 ```python
 from dataclasses import dataclass
+from langgraph.runtime import Runtime
 
 @dataclass
 class Context:
     user_id: str
-```
 
-`@dataclass` asks Python to generate the constructor automatically. Therefore:
-
-```python
-context = Context(user_id="walid")
-print(context.user_id)  # walid
-```
-
-is approximately equivalent to manually writing:
-
-```python
-class Context:
-    def __init__(self, user_id: str):
-        self.user_id = user_id
-```
-
-The `str` annotation documents the expected type and helps editors and type
-checkers. Python does not normally enforce that type at runtime. A dataclass is
-not required by LangGraph; it is simply a concise, readable way to define typed
-runtime context.
-
-The graph declares its context type:
-
-```python
 builder = StateGraph(MessagesState, context_schema=Context)
-```
 
-LangGraph injects a `Runtime[Context]` into nodes:
-
-```python
 def chat(state: MessagesState, runtime: Runtime[Context]):
     user_id = runtime.context.user_id
     item = runtime.store.get((user_id, "memories"), "profile")
-```
+    ...
 
-The Store must be attached at compile time:
+graph = builder.compile(checkpointer=MemorySaver(), store=InMemoryStore())
 
-```python
-graph = builder.compile(
-    checkpointer=MemorySaver(),
-    store=InMemoryStore(),
+graph.invoke(
+    {"messages": [{"role": "user", "content": "Hi"}]},
+    {"configurable": {"thread_id": "walid-chat-1"}},
+    context=Context(user_id="walid"),
 )
 ```
 
-## Streaming State While Memory Updates
+`context_schema=Context` declares the context type, so LangGraph can inject a
+typed `Runtime[Context]` into each node. `runtime.store` is whichever Store you
+passed to `compile`.
 
-Both chatbot examples use `stream_mode="values"`:
+> **Why `@dataclass`?** It generates `__init__` for you, so
+> `Context(user_id="walid")` works without boilerplate. LangGraph doesn't
+> require it; any small typed class works.
 
-```python
-for event in graph.stream(
-    {"messages": [{"role": "user", "content": message}]},
-    config,
-    context=context,
-    stream_mode="values",
-):
-    final_state = event
-```
+## The Chat → Update-Memory Pattern
 
-Each event contains the complete graph state after a step. The final event
-contains the messages after `chat` and after the `update_memory` node has had a
-chance to write new facts to the Store.
+Examples 01 and 02 use the same two-node graph. They separate *answering*
+from *remembering*:
 
-## Simple Example: Closest to the Shared File
-
-[`01_simple_cross_thread_memory.py`](01_simple_cross_thread_memory.py) keeps one plain text
-profile inside one key-value Store entry:
-
-```python
-namespace = ("memory", user_id)
-key = "user_details"
-value = {"memory": updated_profile.content}
-
-runtime.store.put(namespace, key, value)
-```
-
-`updated_profile.content` is plain text returned by the second LLM call.
-`store.put(...)` is the Python operation that actually saves it. Using the same
-namespace and key later replaces the old profile value with the newly generated
-complete profile.
-
-It runs two different `thread_id` values with the same `user_id`. The first
-thread saves the user's name, role, and project. The second thread reads that
-profile and then updates the role. This is the easiest complete example to read.
-
-```bash
-python "8-Long-Term-Memory/01_simple_cross_thread_memory.py"
-```
-
-## Structured Example: Safer Memory Updates
-
-[`02_structured_cross_thread_memory.py`](02_structured_cross_thread_memory.py) adds a Pydantic schema, field-by-field merging, Store Item metadata, and a different-user isolation check. It performs three invocations:
+![Chat to update-memory architecture](diagrams/chat_update_memory_architecture.png)
 
 ```text
-Thread 1, user walid
-→ user states name, role, and preference
-→ update_memory saves profile under ("walid", "memories")
-
-Thread 2, user walid
-→ new thread_id, so old messages are not loaded
-→ same user_id, so saved profile is available
-→ user states a newer role, so the profile entry is updated
-
-Thread 3, user guest
-→ different user_id
-→ isolated namespace with no Walid memory
+START → chat → update_memory → END
 ```
 
-Run it with:
+- **`chat`** reads the user's profile from the Store, adds it to the system
+  message, and answers using it together with this thread's messages.
+- **`update_memory`** looks only at the **latest human message**, extracts facts
+  the user explicitly stated, and writes them back to the Store. Ignoring
+  assistant messages keeps invented claims out of memory.
+- `MemorySaver` keeps each `thread_id`'s messages separate; the Store shares the
+  profile across threads for the same `user_id`.
 
-```bash
-python "8-Long-Term-Memory/02_structured_cross_thread_memory.py"
+`update_memory` is a second LLM call. That makes the flow easy to see, but in
+production decide carefully when extraction is worth the latency and cost.
+
+### Walkthrough 2 — Plain-text profile (`01_simple_cross_thread_memory.py`)
+
+The simplest version. The whole profile is one block of LLM-written text in one
+Store entry:
+
+```python
+namespace = ("memory", runtime.context.user_id)
+runtime.store.put(namespace, "user_details", {"memory": updated_profile.content})
 ```
 
-It requires `OPENAI_API_KEY` in the repository-root `.env` file.
-
-## Important `InMemoryStore` Limitation
-
-`InMemoryStore` demonstrates cross-thread scope, but it stores data only in the
-current Python process:
+Each update **replaces** the entire profile with a newly merged one. The script
+runs two threads for the same user:
 
 ```text
-same process + different thread_id  → memory is shared by user_id
-new Python process                  → InMemoryStore data is gone
+thread-1, user-1 → "My name is Walid, I'm a software engineer…" → profile saved
+thread-2, user-1 → no thread-1 messages, but the profile is loaded
+                 → "I am now an engineering manager" → profile updated
 ```
 
-So "long-term" describes the memory's logical scope across threads. Durability
-depends on the Store implementation.
+This file uses `("memory", user_id)` / `"user_details"`, while 00 and 02 use
+`(user_id, "memories")` / `"profile"`. Both work: any namespace that contains
+the `user_id` keeps users apart.
 
-For production, use a persistent implementation such as `PostgresStore`:
+### Walkthrough 3 — Structured profile (`02_structured_cross_thread_memory.py`)
+
+The safer version. The extractor returns a Pydantic schema instead of free
+text, and new values are merged field by field into the existing profile:
+
+```text
+Thread 1, user walid → states name, role, preference → profile saved
+Thread 2, user walid → new thread_id (no old messages), same profile
+                     → states a newer role → that field is updated
+Thread 3, user guest → different user_id → empty, isolated namespace
+```
+
+It also prints the `Item` metadata (`created_at`, `updated_at`) so you can see
+the update happen.
+
+## Making It Durable: `PostgresStore`
+
+Moving to production changes only the backend; the graph code stays the same:
 
 ```python
 from langgraph.store.postgres import PostgresStore
 
 with PostgresStore.from_conn_string(DB_URI) as store:
-    store.setup()  # run once for a new database
-    graph = builder.compile(store=store)
+    store.setup()  # once, for a new database
+    graph = builder.compile(checkpointer=checkpointer, store=store)
 ```
 
-`PostgresStore` and `PostgresSaver` solve different problems:
+Don't confuse it with the checkpointer of tutorial 7:
 
 | PostgreSQL component | Stores | Scoped by |
 |---|---|---|
 | `PostgresSaver` | checkpoints and thread state | `thread_id` |
 | `PostgresStore` | cross-thread facts and memories | namespace such as `(user_id, "memories")` |
 
-A production graph can compile with both.
+A production graph usually compiles with both.
 
-The runnable [`03-postgres-store/`](03-postgres-store/) example demonstrates
-this persistence directly. One Python process writes a structured user profile
-and exits; a second process reconnects and retrieves the profile. Start with
-its [setup and run guide](03-postgres-store/README.md).
+### Walkthrough 4 — Surviving a restart (`03-postgres-store/`)
+
+One Python process writes a structured profile and exits; a second process
+reconnects and reads it back. No LLM is used, so the result is deterministic.
+Follow the [setup and run guide](03-postgres-store/README.md).
+
+## Three Types of Long-Term Memory
+
+Examples 00–03 store a single profile. Real assistants remember different
+*kinds* of things:
+
+| Type | What it remembers | Study-assistant example |
+|---|---|---|
+| Semantic | facts about people, places, or things | the user's goal and preferred language |
+| Episodic | past experiences and their outcomes | an approved explanation reused as a few-shot example |
+| Procedural | instructions for how to behave | tone and answer-format rules |
+
+The type describes what a memory *contains and is for*. It is independent of
+the backend: any of them can live in `InMemoryStore` or `PostgresStore`.
+
+| File | Type | Written by | Found by |
+|---|---|---|---|
+| [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | semantic | the agent, via LangMem `manage_memory` (while answering) | embedding search via `search_memory` |
+| [`05_episodic_memory.py`](05_episodic_memory.py) | episodic | the app, after the user approves (background) | `store.search(namespace, query=request)` |
+| [`06_procedural_memory.py`](06_procedural_memory.py) | procedural | a LangMem prompt optimizer, from feedback (background) | exact `store.get(namespace, key)` |
+
+All three use the namespace `("assistant", user_id, <kind>)` so each user's
+memories stay isolated. 04 and 05 create the Store with an embedding index
+(`InMemoryStore(index={"embed": ..., "dims": 1536})`) so `search(query=...)`
+matches by meaning. They take the user from
+`config["configurable"]["langgraph_user_id"]`, the convention LangMem's tools
+expect.
+
+### Walkthrough 5 — Semantic memory (`04_semantic_memory_tools.py`)
+
+The agent gets two tools. In run 1 the user states facts and the agent calls
+`manage_memory` to save them. In run 2, which shares no messages with run 1,
+the agent calls `search_memory` and personalizes its answer. A different user's
+namespace stays empty.
+
+### Walkthrough 6 — Episodic memory (`05_episodic_memory.py`)
+
+When the user approves an explanation, the exchange is saved as an episode.
+For a later, similar request, the closest episodes are retrieved and shown to
+the model as few-shot examples, so the new answer follows the approved format
+without any change to the instructions.
+
+### Walkthrough 7 — Procedural memory (`06_procedural_memory.py`)
+
+The system prompt is rebuilt from named instruction sections stored in the
+Store. When the user gives feedback, a LangMem optimizer rewrites only the
+section the feedback is about; the next answer follows the new rule, and other
+users keep the defaults.
 
 ## Design Guidance
 
-- Save useful, stable facts—not every sentence.
+- Save useful, stable facts, not every sentence.
 - Keep users isolated by including a trusted `user_id` in the namespace.
 - Do not let a user choose another user's namespace.
 - Treat model-extracted memories as untrusted data that may need validation.
-- Define how contradictions work; this example keeps the newest explicit value.
+- Define how contradictions work; these examples keep the newest explicit value.
 - Provide deletion and correction paths for personal information.
 - Use semantic search only when exact key or namespace lookup is insufficient.
 
 ## Key Takeaways
 
-- A checkpointer remembers one thread; a Store shares memory across threads.
-- `thread_id` identifies the conversation; `user_id` identifies the user.
-- Store data is organized as namespace + key → value.
-- `InMemoryStore` is appropriate for learning, not process-restart durability.
-- `PostgresStore` provides durable long-term memory for production.
+1. A checkpointer remembers one thread; a Store shares memory across threads.
+2. `thread_id` (in `config`) identifies the conversation; `user_id` (in
+   `context`) identifies the user.
+3. Store data is namespace + key → dict, and `put` on an existing key updates
+   it.
+4. Scope is not durability: `InMemoryStore` is for learning; `PostgresStore`
+   survives restarts.
+5. Semantic, episodic, and procedural memory differ in what they hold and how
+   they are written and found, not in where they are stored.
 
-## Official References
+## Where to Go Next
+
+Continue to [`9-Email-Assistant/`](../9-Email-Assistant/), which combines
+short-term memory with all three long-term memory types in one application,
+introduced one lesson at a time. To revisit thread-scoped memory, see
+[`7-Checkpointing/`](../7-Checkpointing/).
+
+## References
 
 - [LangGraph memory](https://docs.langchain.com/oss/python/langgraph/add-memory)
 - [LangGraph persistence and Store](https://docs.langchain.com/oss/python/langgraph/persistence)
-- [Long-term memory Store notebook used for additional examples](https://github.com/Kerolos2019/Agentic_ai_using_LangGrph/blob/main/17_longterm-memory-store.ipynb)
-
-## Beyond One Profile: Semantic, Episodic and Procedural Memory
-
-Examples 04–06 go past the single profile of 01–02 and show the three kinds of long-term memory, each with a small, general study-assistant example (book Chapter 11). They need `langmem` and `OPENAI_API_KEY` (chat + embeddings).
-
-| File | Memory type | Written by | Found by |
-|---|---|---|---|
-| [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | **semantic** — facts about the user | the agent, via LangMem `manage_memory` (hot path) | embedding search via `search_memory` |
-| [`05_episodic_memory.py`](05_episodic_memory.py) | **episodic** — approved past answers used as few-shot examples | the app, after the user approves (background) | `store.search(namespace, query=request)` |
-| [`06_procedural_memory.py`](06_procedural_memory.py) | **procedural** — the assistant's instructions | a LangMem prompt optimizer, from feedback (background) | exact `store.get(namespace, key)` |
-
-All three use the namespace `("assistant", user_id, <kind>)`, so each user's memories stay isolated. The email assistant in `9-Email-Assistant/` combines the same three ideas in one application.
-
-```bash
-python "8-Long-Term-Memory/04_semantic_memory_tools.py"
-python "8-Long-Term-Memory/05_episodic_memory.py"
-python "8-Long-Term-Memory/06_procedural_memory.py"
-```
+- [Long-term memory Store notebook (additional examples)](https://github.com/Kerolos2019/Agentic_ai_using_LangGrph/blob/main/17_longterm-memory-store.ipynb)

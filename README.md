@@ -1,20 +1,43 @@
 # LangGraph Tutorials
 
-A beginner-friendly tutorial repo for learning LangGraph one concept at a time.
+A beginner-friendly tutorial repo for learning LangGraph one concept at a time. It is the companion code for the book *Building AI Agents with LangGraph*.
 
 This repo is meant to feel like a guided path, not a code dump. Each folder introduces one idea, explains why it matters, then uses a small Python file to make the idea concrete.
 
-## Prerequisites
+You need basic Python (functions, dictionaries, classes). An OpenAI API key is needed from tutorial 3 onward; tutorials 1, 2 and 4 run without one.
 
-- Python 3.10 or newer
-- Basic Python (functions, dictionaries, classes)
-- An OpenAI API key for LLM examples in tutorials 3, 5, 6, 7, 8, 9, and some exercise solutions
+## Quick Start
 
-For deeper reference, see the [official LangGraph documentation](https://docs.langchain.com/oss/python/langgraph/overview).
+Python 3.10 or newer is required. From the repo root:
 
-This repo intentionally follows the official LangGraph mental model: define **state**, run **nodes**, connect them with **edges**, then compile the graph into something you can invoke. The examples are small so the idea is visible before the code becomes realistic.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-## Part 1 — Core Tutorial Roadmap
+Most tutorials call an LLM. Create a `.env` file in the repo root:
+
+```bash
+OPENAI_API_KEY=your_api_key_here
+```
+
+For the tool-calling agent in tutorial 6, optionally add keys for live weather and web search:
+
+```bash
+OPENWEATHER_API_KEY=your_openweather_key_here
+TAVILY_API_KEY=your_tavily_key_here
+```
+
+Tutorial 10 reads its LangSmith keys from `10-observability/.env` (see its README). Tutorials 7 and 8 have optional PostgreSQL examples with their own setup guides.
+
+Then run the first example, always from the repo root:
+
+```bash
+python "1-Langgraph basics/00_simple_graph.py"
+```
+
+## The Core Idea
 
 LangGraph lets you build workflows as graphs. A graph is made of three main pieces:
 
@@ -31,7 +54,11 @@ flowchart LR
     UPDATE --> END([END])
 ```
 
-The learning path builds up slowly:
+This repo follows the official LangGraph mental model: define **state**, run **nodes**, connect them with **edges**, then compile the graph into something you can invoke. The examples are small so the idea is visible before the code becomes realistic.
+
+## Learning Path
+
+The tutorials build on each other, so work through them in order:
 
 ```mermaid
 flowchart TD
@@ -44,10 +71,26 @@ flowchart TD
     G --> H["8. Long-Term Memory"]
     H --> I["9. Email Assistant"]
     I --> K["10. Observability"]
-    K -.-> J["Exercise Solutions"]
+    K --> L["11. Guardrails"]
+    L -.-> J["Exercise Solutions"]
 ```
 
-Each tutorial follows the same rhythm:
+| # | Folder | What you learn | Needs |
+|---|---|---|---|
+| 1 | [`1-Langgraph basics/`](1-Langgraph%20basics/) | The smallest graph: state, node, edge, compile, invoke | — |
+| 2 | [`2-Reducer/`](2-Reducer/) | How reducers preserve or combine state updates | — |
+| 3 | [`3_LLM_Messages/`](3_LLM_Messages/) | Chat history in graph state | OpenAI |
+| 4 | [`4-Conditional Edges/`](4-Conditional%20Edges/) | Routing to different nodes | — |
+| 5 | [`5-Workflows/`](5-Workflows/) | Prompt chaining, routing, parallelization, orchestrator-workers, evaluator-optimizer, local RAG | OpenAI |
+| 6 | [`6-Agents/`](6-Agents/) | Manual routers, `Command`, `ToolNode`, `create_agent`, two-agent handoff | OpenAI (optional: weather, Tavily) |
+| 7 | [`7-Checkpointing/`](7-Checkpointing/) | Short-term memory per `thread_id`: `MemorySaver`, history, resume, human-in-the-loop, `PostgresSaver` | OpenAI; PostgreSQL for the last step |
+| 8 | [`8-Long-Term-Memory/`](8-Long-Term-Memory/) | Cross-conversation memory with a Store: namespaces, `PostgresStore`, semantic/episodic/procedural memory | OpenAI; PostgreSQL for `03-postgres-store/` |
+| 9 | [`9-Email-Assistant/`](9-Email-Assistant/) | A complete assistant built gradually: routing, tools, and every memory type | OpenAI |
+| 10 | [`10-observability/`](10-observability/) | LangSmith tracing of graphs, LLM calls and nodes | OpenAI, LangSmith |
+| 11 | [`11-Guardrials/`](11-Guardrials/) | Guardrails with LangChain middleware: PII detection, human-in-the-loop, input/output checks (notebook) | OpenAI |
+| — | [`Exercise-Solutions/`](Exercise-Solutions/) | Runnable answers to the end-of-tutorial exercises (1–6). Try the exercises first | OpenAI for some |
+
+Each folder has its own README that works like a mini lesson. Each one follows the same rhythm:
 
 1. the concept and the problem it solves, in plain language with an intuition-building analogy
 2. the architecture of the example — a diagram and a table of what each stage reads and writes
@@ -55,148 +98,26 @@ Each tutorial follows the same rhythm:
 4. a step-by-step execution walkthrough showing how state evolves
 5. exercises (with solutions in `Exercise-Solutions/`) and key takeaways
 
-## Folder Guide
+## Memory in This Repo
 
-| Folder | Tutorial Focus | Why It Matters |
-|---|---|---|
-| `1-Langgraph basics/` | Build the smallest possible graph | Learn the core shape: state, node, edge, compile, invoke |
-| `2-Reducer/` | Compare state updates with and without reducers | Understand how LangGraph preserves or combines state |
-| `3_LLM_Messages/` | Store chat history in graph state | Learn how LLM conversations fit into LangGraph |
-| `4-Conditional Edges/` | Route to different nodes | Learn how graphs make decisions |
-| `5-Workflows/` | Workflow patterns | Routing, parallel work, orchestration, evaluation loops, and local RAG (retrieve then generate) |
-| `6-Agents/` | Agent patterns | Compare manual routers, `Command`, `ToolNode`, `create_agent`, and two-agent handoff (Python vs outer StateGraph) |
-| `7-Checkpointing/` | Persist state across runs | Learn thread memory with `MemorySaver`, durable checkpoints with `PostgresSaver`, and how this differs from long-term memory |
-| `8-Long-Term-Memory/` | Share selected memory across conversations | Learn Store namespaces, `user_id`, `InMemoryStore`, and the path to `PostgresStore` |
-| `9-Email-Assistant/` | Build a complete assistant gradually | Apply routing, tools, and short-term, semantic, episodic, and procedural memory |
-| `10-observability/` | LangSmith tracing | See graph invokes as traces and nested LLM/node calls as runs. File 03 is a small agent package (`03_multi_tool_agent/`) |
-| `Exercise-Solutions/` | Practice solutions | Runnable answers for the exercises at the end of each tutorial |
+LangGraph uses the word "memory" for two different scopes, and this repo
+teaches them in two separate tutorials:
 
-
-## Memory Scopes in This Repo
-
-LangGraph uses the word "memory" in a few related ways. This repo separates them so the ideas do not blur together:
-
-| Memory Type | Scope | Stored In | Survives Python Restart? | Covered In |
+| Scope | Remembers | Identified by | Temporary / durable | Tutorial |
 |---|---|---|---|---|
-| Simple counter | repeated invokes with and without checkpointing | nowhere / Python process memory | no | `7-Checkpointing/02-memory-saver/00_simple_counter.py` |
-| No memory | one isolated invoke | nowhere | no | `7-Checkpointing/02-memory-saver/01_no_memory.py` |
-| `MemorySaver` | one LangGraph thread | Python process memory | no | `7-Checkpointing/02-memory-saver/02_memory_saver.py` |
-| Manual history | caller-managed conversation | your Python variable / app code | only if your app saves it | `7-Checkpointing/02-memory-saver/03_manual_history.py` |
-| `PostgresSaver` | many durable LangGraph threads, each keyed by `thread_id` | PostgreSQL checkpoint tables | yes | `7-Checkpointing/06-postgres-saver/` |
-| `InMemoryStore` | cross-thread user or app facts | Python process memory | no | `8-Long-Term-Memory/` |
-| `PostgresStore` | durable cross-thread user or app facts | PostgreSQL store tables | yes | `8-Long-Term-Memory/03-postgres-store/` |
+| Short-term | one conversation's messages and graph state | `thread_id` | `MemorySaver` / `PostgresSaver` | [`7-Checkpointing/`](7-Checkpointing/) |
+| Long-term | selected user or app facts shared across conversations | namespace containing `user_id` | `InMemoryStore` / `PostgresStore` | [`8-Long-Term-Memory/`](8-Long-Term-Memory/) |
 
-The most important distinction:
-
-```mermaid
-flowchart TD
-    MEMORY["LangGraph memory"]
-
-    MEMORY --> SHORT["Short-term memory<br/>one conversation"]
-    SHORT --> THREAD["identified by thread_id"]
-    THREAD --> MS["MemorySaver<br/>Python process only"]
-    THREAD --> PS["PostgresSaver<br/>durable checkpoints"]
-
-    MEMORY --> LONG["Long-term memory<br/>shared across conversations"]
-    LONG --> USER["identified by user_id<br/>inside a Store namespace"]
-    USER --> IMS["InMemoryStore<br/>Python process only"]
-    USER --> PGS["PostgresStore<br/>durable user facts"]
-
-    MEMORY --> MANUAL["Manual history<br/>caller stores and resends messages"]
-```
-
-```text
-Saver = checkpoints graph state and messages by thread_id
-Store = saves selected user or application facts by namespace + key
-```
-
-`PostgresSaver` can hold many conversations, but each one is still separate by `thread_id`. It remembers this thread:
-
-```text
-thread_id = "chat_session_walid"
-→ messages and graph state for that conversation
-```
-
-Long-term memory is different. It is usually keyed by a stable user or application id and can be reused across many threads:
-
-```text
-user_id = "walid"
-→ preferences, profile, durable facts
-```
-
-So persistence alone does not mean "long-term memory." `PostgresSaver` persists checkpoints; `Store` is where cross-conversation facts belong.
-
-### Long-term memory content types
-
-Memory scope describes **where and how long** information is available. Memory
-type describes **what the information means**:
-
-| Content type | Meaning | Current coverage |
-|---|---|---|
-| Semantic | facts about users, people, places, and things | implemented with Store and LangMem in tutorials 8 and 9 |
-| Episodic | past actions and outcomes used as examples | implemented as retrieved, human-corrected triage examples in tutorial 9 |
-| Procedural | instructions that control behavior | implemented as per-user, feedback-optimized stored instructions in tutorial 9 |
-
-### Long-term memory examples
-
-Run the new tutorial in this order:
-
-1. [`00_store_basics.py`](8-Long-Term-Memory/00_store_basics.py) — Store hello world with `put`, `get`, and `search`; no LLM or API key.
-2. [`01_simple_cross_thread_memory.py`](8-Long-Term-Memory/01_simple_cross_thread_memory.py) — the simplest complete chatbot using `MemorySaver` plus `InMemoryStore`.
-3. [`02_structured_cross_thread_memory.py`](8-Long-Term-Memory/02_structured_cross_thread_memory.py) — structured extraction, safer merging, and user isolation.
-4. [`03-postgres-store/`](8-Long-Term-Memory/03-postgres-store/) — save a profile in one process and reload it from PostgreSQL in another.
-5. [`9-Email-Assistant/`](9-Email-Assistant/) — apply the memory concepts in a complete email assistant built gradually.
-
-The chatbot examples make two LLM calls per turn: `chat` produces the user-facing response, then `update_memory` extracts and saves user facts. See the [long-term memory tutorial](8-Long-Term-Memory/) for diagrams and a complete walkthrough.
-
-## Setup
-
-From the repo root:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-For LLM examples, create a local `.env` file in the repo root:
-
-```bash
-OPENAI_API_KEY=your_api_key_here
-```
-
-For the tool-calling agent, optionally add API keys for live weather and web search:
-
-```bash
-OPENWEATHER_API_KEY=your_openweather_key_here
-TAVILY_API_KEY=your_tavily_key_here
-```
-
-## Suggested Order
-
-Read and run the folders in order:
-
-1. [`1-Langgraph basics/`](1-Langgraph%20basics/)
-2. [`2-Reducer/`](2-Reducer/)
-3. [`3_LLM_Messages/`](3_LLM_Messages/)
-4. [`4-Conditional Edges/`](4-Conditional%20Edges/)
-5. [`5-Workflows/`](5-Workflows/)
-6. [`6-Agents/`](6-Agents/)
-7. [`7-Checkpointing/`](7-Checkpointing/)
-8. [`8-Long-Term-Memory/`](8-Long-Term-Memory/)
-9. [`9-Email-Assistant/`](9-Email-Assistant/)
-10. [`10-observability/`](10-observability/)
-
-Use [`Exercise-Solutions/`](Exercise-Solutions/) after trying the exercises yourself.
-
-Each tutorial folder has its own README that works like a mini lesson.
+[`9-Email-Assistant/`](9-Email-Assistant/) then combines both in one
+application. The details (savers, Stores, and semantic, episodic and
+procedural memory) live in those tutorials' READMEs.
 
 ## Troubleshooting
 
 | Problem | Fix |
 |---|---|
 | `ModuleNotFoundError: No module named 'langgraph'` | Activate the virtual environment and run `pip install -r requirements.txt` |
-| `OpenAI` authentication error in tutorials 3, 5, 6, 7, or 8 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
+| `OpenAI` authentication error in tutorials 3 and 5–11 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
 | Tutorial 10 cannot find `.env` or LangSmith keys | Copy `10-observability/.env.example` to `10-observability/.env`. Those scripts load env from **that** folder, not the repo root. Run 01–02 as `python 01_….py` and file 03 as `python 03_multi_tool_agent/main.py` from `10-observability/` |
 | Run commands fail with "file not found" | Run commands from the repo root, not from inside a tutorial folder (except tutorial 10 — run from `10-observability/`) |
 
@@ -210,10 +131,6 @@ These tutorials are enriched from the official LangChain and LangGraph docs, the
 - [LangGraph memory](https://docs.langchain.com/oss/python/langgraph/add-memory)
 - [LangChain tools](https://docs.langchain.com/oss/python/langchain/tools)
 - [LangChain structured output](https://docs.langchain.com/oss/python/langchain/structured-output)
-
-## Getting Started
-
-Tutorial 1 walks through the core graph pattern step by step. Once you understand that shape, the rest of the series builds on it. Start with [`1-Langgraph basics/README.md`](1-Langgraph%20basics/README.md).
 
 ## Tested Versions and Updates
 

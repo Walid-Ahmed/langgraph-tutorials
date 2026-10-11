@@ -4,6 +4,7 @@
 - [`01_state_without_reducer.py`](01_state_without_reducer.py) — the default: updates overwrite
 - [`02_custom_reducer.py`](02_custom_reducer.py) — custom merge rules per field
 - [`03_messages_reducer.py`](03_messages_reducer.py) — the built-in `add_messages` reducer
+- [`04_messages_update_by_id.py`](04_messages_update_by_id.py) — **no graph, no API key**: `add_messages` called directly to append, replace a message by id, and remove one (book Chapter 3)
 
 Tutorial 1 said "LangGraph merges the node's return value into the state." This tutorial answers the question that statement hides: **merges *how*?** The answer is per-field, and you control it with reducers. No LLM or API key is needed for any of these examples.
 
@@ -131,6 +132,7 @@ From the repo root:
 python "2-Reducer/01_state_without_reducer.py"
 python "2-Reducer/02_custom_reducer.py"
 python "2-Reducer/03_messages_reducer.py"
+python "2-Reducer/04_messages_update_by_id.py"
 ```
 
 Expected final states, respectively:

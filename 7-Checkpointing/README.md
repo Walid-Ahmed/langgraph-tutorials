@@ -81,6 +81,7 @@ By the end of this tutorial, you will be able to:
 | File | Demonstrates | LLM? |
 |---|---|---|
 | [`01-state-snapshots/00_custom_state_reducer.py`](01-state-snapshots/00_custom_state_reducer.py) | what a checkpointer stores; snapshot history | no |
+| [`01-state-snapshots/01_time_travel.py`](01-state-snapshots/01_time_travel.py) | replay and fork a run from an earlier checkpoint | no |
 | [`02-memory-saver/00_simple_counter.py`](02-memory-saver/00_simple_counter.py) | the simplest comparison of repeated invokes with and without `MemorySaver` | no |
 | [`02-memory-saver/01_no_memory.py`](02-memory-saver/01_no_memory.py) | the default: total amnesia between runs | yes |
 | [`02-memory-saver/02_memory_saver.py`](02-memory-saver/02_memory_saver.py) | `MemorySaver` + `thread_id` = automatic memory | yes |

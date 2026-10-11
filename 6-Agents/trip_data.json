@@ -1,0 +1,10 @@
+{
+  "_note": "Sample data for the book's trip example. Prices are invented, in CAD, for a return train from Toronto and one hotel night. Edit freely.",
+  "origin": "Toronto",
+  "cities": {
+    "montreal":    {"latitude": 45.50, "longitude": -73.57, "train_return": 138, "hotel_per_night": 189},
+    "ottawa":      {"latitude": 45.42, "longitude": -75.70, "train_return": 112, "hotel_per_night": 164},
+    "quebec city": {"latitude": 46.81, "longitude": -71.21, "train_return": 196, "hotel_per_night": 172},
+    "kingston":    {"latitude": 44.23, "longitude": -76.49, "train_return": 84,  "hotel_per_night": 149}
+  }
+}

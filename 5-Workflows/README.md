@@ -213,32 +213,27 @@ Variant: [`04_orchestrator_workers_report_sections.py`](04_orchestrator_workers_
 
 ## Pattern 6 — Evaluator-Optimizer ([`05_evaluator_optimizer.py`](05_evaluator_optimizer.py))
 
-The only pattern with a **cycle**: a generator writes a joke, an evaluator grades it, and a conditional edge either exits or loops back *with feedback in state*.
+The only pattern with a **cycle**: a writer drafts a reply to an upset customer, a reviewer checks it against the company's reply policy, and a conditional edge either approves it or sends it back *with the critique in state*.
 
 ```mermaid
 flowchart LR
-    S([START]) --> G["generator"]
-    G --> E["evaluator"]
-    E -->|"not funny + feedback"| G
-    E -->|"funny"| X([END])
+    S([START]) --> D["draft_reply"]
+    D --> R["review_reply"]
+    R -->|"revise + critique"| D
+    R -->|"approve"| X([END])
 ```
 
-The loop improves rather than just retries because of one `if` in the generator:
+Three choices make the loop improve rather than just retry:
 
-```python
-if state.get("feedback"):
-    msg = llm.invoke(f"Write a joke about {state['topic']} but take into account the feedback: {state['feedback']}")
-else:
-    msg = llm.invoke(f"Write a joke about {state['topic']}")
-```
+- **Structured verdict.** The reviewer returns `Review(verdict: Literal["approve", "revise"], critique: str)`, so the router branches on a typed value.
+- **Revise, don't restart.** On a retry the writer's prompt carries its previous draft *and* the critique, so it fixes the flagged sentence instead of writing a new reply with a new problem.
+- **Code and model together.** The reviewer counts words in code (exact and free) and asks the model only the judgment questions (refund promises, a concrete next step).
 
-First pass: plain generation. Every retry: the evaluator's critique is injected into the prompt. Meanwhile the evaluator uses structured output (`grade: Literal["funny", "not funny"]` plus a `feedback` string) so the router has a reliable branch signal — the same trick as the routing pattern, now powering a loop instead of a dispatch.
+**Bound the loop before you copy it.** The base script stops only when the reviewer approves. LangGraph's recursion limit is a poor backstop here: in `langgraph==1.2.6` the default is **10,007 steps**, about 5,000 paid drafts and reviews. [`05_evaluator_optimizer_max_iterations.py`](05_evaluator_optimizer_max_iterations.py) adds a `rounds` counter and a third exit: after `MAX_ROUNDS` the draft goes to an `escalate` node for a human instead of looping again. It runs the same complaint with a normal and a strict (40-word) policy so you can watch both exits.
 
-**The stopping-criteria caveat — read this before copying the pattern:** the base script loops *until the evaluator says funny*, with no upper bound of its own. (LangGraph's built-in recursion limit — 25 super-steps by default, then a `GraphRecursionError` — will eventually kill a runaway loop, but "crash after ~12 rejected jokes" is a safety net, not a stopping strategy.) That's fine for a demo and dangerous in production: a strict evaluator plus a weak generator means unbounded API spend up to that crash. [`05_evaluator_optimizer_max_iterations.py`](05_evaluator_optimizer_max_iterations.py) shows the fix — an iteration counter in state and a router that force-exits after `MAX_ITERATIONS` regardless of the verdict. Always ship the bounded version.
-
-**Good fit:** output quality is checkable (by rubric or judge-LLM) and worth extra latency/cost — copy that must meet criteria, code that must pass checks.
-**Poor fit:** no meaningful evaluation signal (the loop just burns tokens), or first-draft quality is already acceptable.
-**Trade-offs:** every iteration costs a generate + an evaluate call; the evaluator is itself an LLM and can misjudge; convergence isn't guaranteed — hence the cap.
+**Good fit:** quality is checkable (a rubric, a policy, tests) and worth extra calls: replies that must follow rules, copy that must meet a brief, code that must pass tests.
+**Poor fit:** no meaningful check (the loop has nothing to steer by), or the first draft is usually fine (one review pass is enough).
+**Trade-offs:** every round costs a draft and a review; the reviewer can misjudge; fixing one rule can break another, which is why the cap matters.
 
 Deep dive: [`05_evaluator_optimizer.md`](05_evaluator_optimizer.md).
 
@@ -255,6 +250,7 @@ python "5-Workflows/01_prompt_chaining_joke_gate.py"         # chain + quality g
 python "5-Workflows/01_rag_retrieve_generate.py"             # local RAG: retrieve then generate
 python "5-Workflows/02_routing.py"                           # classify & dispatch
 python "5-Workflows/03_parallelization.py"                   # static fan-out/fan-in
+python "5-Workflows/04a_send_minimal.py"                    # Send with no model: one worker per word (no API key)
 python "5-Workflows/04_orchestrator_workers.py"              # dynamic workers via Send
 python "5-Workflows/05_evaluator_optimizer.py"               # feedback loop
 python "5-Workflows/05_evaluator_optimizer_max_iterations.py"# feedback loop, bounded

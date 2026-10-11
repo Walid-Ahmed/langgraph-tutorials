@@ -63,9 +63,9 @@ OPENAI_API_KEY=your_key_here
 | `5-workflows/ex1_tone_step.py` | Extend prompt chain with a casual tone step |
 | `5-workflows/ex2_parallel_haiku.py` | Add a haiku branch to the parallelization example |
 | `5-workflows/ex3_structured_router.py` | Classify input and route to a specialist node |
-| `5-workflows/ex4_evaluator_loop_guard.py` | Add a MAX_ITERATIONS guard to the evaluator-optimizer loop |
-| `5-workflows/ex5_evaluator_headline_writer.py` | Swap the domain: headline writer graded clear/unclear |
-| `5-workflows/ex6_evaluator_strict_score.py` | Stricter evaluator with a numeric 1–10 score, accept ≥ 8 |
+| `5-workflows/ex4_evaluator_loop_guard.py` | Add a MAX_ROUNDS exit to the support-reply review loop |
+| `5-workflows/ex5_evaluator_headline_writer.py` | Swap the domain: a news-headline writer graded clear/unclear, with two code checks |
+| `5-workflows/ex6_evaluator_strict_score.py` | A numeric 1–10 review score, approve at ≥ 8, plus the round cap |
 
 ### 6. Agents
 | File | Exercise |
@@ -224,30 +224,31 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    START([START]) --> GENERATE["generate"] --> EVALUATE["evaluate"]
-    EVALUATE --> ROUTE{"accepted or max iterations?"}
-    ROUTE -->|revise| IMPROVE["improve"] --> EVALUATE
-    ROUTE -->|done| END([END])
+    START([START]) --> DRAFT["draft_reply"] --> REVIEW["review_reply"]
+    REVIEW --> ROUTE{"approve, revise, or out of rounds?"}
+    ROUTE -->|revise| DRAFT
+    ROUTE -->|approve| OK["approved"] --> END([END])
+    ROUTE -->|out_of_rounds| GAVE["gave_up"] --> END
 ```
 
 `5-workflows/ex5_evaluator_headline_writer.py`
 
 ```mermaid
 flowchart TD
-    START([START]) --> DRAFT["draft_headline"] --> SCORE["score_headline"]
-    SCORE --> ROUTE{"good enough?"}
-    ROUTE -->|revise| REVISE["revise_headline"] --> SCORE
-    ROUTE -->|accept| END([END])
+    START([START]) --> DRAFT["draft_headline"] --> REVIEW["review_headline"]
+    REVIEW --> ROUTE{"clear, or out of rounds?"}
+    ROUTE -->|revise| DRAFT
+    ROUTE -->|done| END([END])
 ```
 
 `5-workflows/ex6_evaluator_strict_score.py`
 
 ```mermaid
 flowchart TD
-    START([START]) --> GENERATE["generate"] --> STRICT["strict_evaluate"]
-    STRICT --> ROUTE{"score threshold or cap?"}
-    ROUTE -->|revise| REVISE["revise"] --> STRICT
-    ROUTE -->|done| END([END])
+    START([START]) --> DRAFT["draft_reply"] --> REVIEW["review_reply"]
+    REVIEW --> ROUTE{"score >= 8, or out of rounds?"}
+    ROUTE -->|revise| DRAFT
+    ROUTE -->|approve / out_of_rounds| END([END])
 ```
 
 ### 6. Agents

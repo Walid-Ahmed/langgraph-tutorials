@@ -88,6 +88,7 @@ Run every command from the repository root.
 | 5 | [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | **semantic** memory saved and searched by the agent | `OPENAI_API_KEY`, `langmem` |
 | 6 | [`05_episodic_memory.py`](05_episodic_memory.py) | **episodic** memory as few-shot examples | `OPENAI_API_KEY` |
 | 7 | [`06_procedural_memory.py`](06_procedural_memory.py) | **procedural** memory rewritten from feedback | `OPENAI_API_KEY`, `langmem` |
+| 8 | [`07-skills/`](07-skills/README.md) | **skills**: procedural knowledge kept in `SKILL.md` files, loaded on demand | `OPENAI_API_KEY` |
 
 ```bash
 python "8-Long-Term-Memory/00_store_basics.py"
@@ -97,6 +98,7 @@ python "8-Long-Term-Memory/02_structured_cross_thread_memory.py"
 python "8-Long-Term-Memory/04_semantic_memory_tools.py"
 python "8-Long-Term-Memory/05_episodic_memory.py"
 python "8-Long-Term-Memory/06_procedural_memory.py"
+python "8-Long-Term-Memory/07-skills/03_agent_loads_skill.py"
 ```
 
 `OPENAI_API_KEY` goes in the repository-root `.env` file. `langmem` is listed
@@ -320,6 +322,7 @@ the backend: any of them can live in `InMemoryStore` or `PostgresStore`.
 | [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | semantic | the agent, via LangMem `manage_memory` (while answering) | embedding search via `search_memory` |
 | [`05_episodic_memory.py`](05_episodic_memory.py) | episodic | the app, after the user approves (background) | `store.search(namespace, query=request)` |
 | [`06_procedural_memory.py`](06_procedural_memory.py) | procedural | a LangMem prompt optimizer, from feedback (background) | exact `store.get(namespace, key)` |
+| [`07-skills/`](07-skills/README.md) | procedural, in files | people, versioned in git (same for every user) | a catalog of names in the prompt; full text loaded with a tool |
 
 All three use the namespace `("assistant", user_id, <kind>)` so each user's
 memories stay isolated. 04 and 05 create the Store with an embedding index
@@ -348,6 +351,14 @@ The system prompt is rebuilt from named instruction sections stored in the
 Store. When the user gives feedback, a LangMem optimizer rewrites only the
 section the feedback is about; the next answer follows the new rule, and other
 users keep the defaults.
+
+### Walkthrough 8 — Skills (`07-skills/`)
+
+The same paper-review method three ways: written into the system prompt, kept
+in `skills/paper_review/SKILL.md` and loaded by a node, and chosen by an agent
+that sees only a catalog of skill names and loads one skill's full text with a
+`load_skill` tool. A skill is procedural memory that people write, not an
+optimizer; see the folder's [README](07-skills/README.md).
 
 ## Design Guidance
 

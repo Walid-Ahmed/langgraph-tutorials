@@ -5,6 +5,7 @@ This mini-section shows what a checkpointer actually stores and how restored sta
 | File | What it proves |
 |---|---|
 | [`00_custom_state_reducer.py`](00_custom_state_reducer.py) | fields without reducers are overwritten; fields with reducers accumulate |
+| [`01_time_travel.py`](01_time_travel.py) | continue from an earlier checkpoint: unchanged (replay) or after editing the saved state (fork) |
 
 ## Why This Belongs in Checkpointing
 
@@ -30,4 +31,5 @@ From the repo root:
 
 ```bash
 python "7-Checkpointing/01-state-snapshots/00_custom_state_reducer.py"
+python "7-Checkpointing/01-state-snapshots/01_time_travel.py"
 ```

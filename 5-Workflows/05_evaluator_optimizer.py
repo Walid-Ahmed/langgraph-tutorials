@@ -1,9 +1,35 @@
 # Run from the repository root:
 #   python "5-Workflows/05_evaluator_optimizer.py"
 #
-# Evaluator-optimizer workflow: a generator writes a joke, an evaluator LLM
-# grades it via structured output, and a router loops back to the generator
-# with feedback until the joke is judged "funny" — an unbounded retry loop.
+# What it does:
+#   Drafts a reply to an upset customer, then has a reviewer check the draft
+#   against the company's reply policy. If the reviewer asks for changes, the
+#   draft goes back to the writer with the critique, and the loop repeats until
+#   the reviewer approves.
+#
+# What it demonstrates (Chapter 5 — evaluator–optimizer):
+#   - the only Chapter 5 pattern with a cycle: draft -> review -> (revise) -> review ...
+#   - the evaluator's verdict arrives as structured output, so the router can branch on it
+#   - the critique travels in state, and the writer revises its previous draft
+#     instead of starting over
+#   - the reviewer can be code AND a model: the word limit is counted in code,
+#     the judgment calls go to the model
+#   - this version has NO round cap: it stops only when the reviewer approves
+#     (or LangGraph's recursion limit fires). 05_evaluator_optimizer_max_iterations.py
+#     adds the cap you'd ship.
+#
+# Prerequisites:
+#   OPENAI_API_KEY in the repo-root .env.
+#
+# Expected output (wording varies):
+#   [round 1] draft: ~90 words
+#   [round 1] reviewer: revise — e.g. "Don't promise a refund; only billing can issue one."
+#   [round 2] draft: ...
+#   [round 2] reviewer: approve
+#   followed by the approved reply. Most runs approve on round 2 or 3.
+#
+# Then run:
+#   python "5-Workflows/05_evaluator_optimizer_max_iterations.py"
 
 import sys
 from pathlib import Path
@@ -19,133 +45,88 @@ from util import plot_graph
 
 load_dotenv()
 
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
+WORD_LIMIT = 120
 
-# ---------------------------------------------------------
-# 1. State
-#
-# Shared memory passed between nodes on every graph step.
-# - topic       : set once at invocation, never changes
-# - joke        : written by the generator, read by the evaluator
-# - funny_or_not: written by the evaluator, read by the router
-# - feedback    : written by the evaluator, fed back into the generator
-#                 when the joke is rejected so it can improve
-# ---------------------------------------------------------
+# The reviewer owns the policy. The writer never sees it, which is realistic:
+# a support agent writes, a team lead checks against the house rules.
+REPLY_POLICY = f"""\
+1. Name the customer's specific problem, so they know it was read.
+2. Apologize once, without blaming the customer.
+3. Give one concrete next step and when it will happen.
+4. Never promise a refund, credit, or compensation: only the billing team can grant one.
+5. Stay under {WORD_LIMIT} words."""
+
 
 class State(TypedDict):
-    joke: str
-    topic: str
-    feedback: str
-    funny_or_not: str
+    complaint: str      # set once by the caller
+    draft: str          # written by draft_reply, read by review_reply
+    verdict: str        # "approve" or "revise", written by review_reply, read by the router
+    critique: str       # what to fix, written by review_reply, read by draft_reply
+    rounds: int         # how many drafts have been reviewed
 
 
-# ---------------------------------------------------------
-# 2. Structured output schema for the evaluator
-#
-# with_structured_output forces the LLM to return a Feedback
-# object rather than free text, giving the router a reliable
-# "funny" / "not funny" signal to branch on.
-# ---------------------------------------------------------
-
-class Feedback(BaseModel):
-    grade: Literal["funny", "not funny"] = Field(
-        description="Decide if the joke is funny or not.",
-    )
-    feedback: str = Field(
-        description="If the joke is not funny, provide feedback on how to improve it.",
-    )
+class Review(BaseModel):
+    verdict: Literal["approve", "revise"] = Field(
+        description="approve only if the reply follows every rule in the policy")
+    critique: str = Field(
+        description="If revise: the specific changes to make, as instructions. If approve: empty.")
 
 
-evaluator = llm.with_structured_output(Feedback)
+reviewer = llm.with_structured_output(Review)
 
 
-# ---------------------------------------------------------
-# 3. Generator node
-#
-# On the first pass there is no feedback, so a plain prompt
-# is used.  On every retry the evaluator's feedback is
-# injected so the generator can incorporate the critique.
-# ---------------------------------------------------------
+def draft_reply(state: State) -> dict:
+    """Write the first draft, or revise the last one using the reviewer's critique."""
+    prompt = ("You are a friendly customer-support agent. Write a reply to this complaint.\n\n"
+              f"Complaint: {state['complaint']}")
+    if state.get("critique"):
+        # Revise, don't restart: the writer sees its own draft next to the critique.
+        prompt += (f"\n\nYour previous draft:\n{state['draft']}\n\n"
+                   f"A reviewer asked for these changes:\n{state['critique']}\n\n"
+                   "Rewrite the reply, keeping what was fine and fixing what was asked.")
+    reply = llm.invoke(prompt)
+    print(f"[round {state.get('rounds', 0) + 1}] draft: {len(reply.text.split())} words")
+    return {"draft": reply.text}
 
-def llm_call_generator(state: State):
-    """LLM generates a joke"""
 
-    if state.get("feedback"):
-        msg = llm.invoke(
-            f"Write a joke about {state['topic']} but take into account the feedback: {state['feedback']}"
-        )
+def review_reply(state: State) -> dict:
+    """Check the draft: the word limit in code, everything else with the model."""
+    rounds = state.get("rounds", 0) + 1
+    words = len(state["draft"].split())
+    if words > WORD_LIMIT:
+        # A rule code can check exactly: don't pay a model to count words.
+        verdict, critique = "revise", f"The reply is {words} words. Cut it to under {WORD_LIMIT}."
     else:
-        msg = llm.invoke(f"Write a joke about {state['topic']}")
-    return {"joke": msg.content}
+        review = cast(Review, reviewer.invoke(
+            f"You review customer-support replies against this policy:\n{REPLY_POLICY}\n\n"
+            f"Complaint: {state['complaint']}\n\nReply to review:\n{state['draft']}"))
+        verdict, critique = review.verdict, review.critique
+    print(f"[round {rounds}] reviewer: {verdict}" + (f" — {critique}" if verdict == "revise" else ""))
+    return {"verdict": verdict, "critique": critique, "rounds": rounds}
 
 
-# ---------------------------------------------------------
-# 4. Evaluator node
-#
-# Grades the current joke and always returns both a verdict
-# and improvement feedback.  The structured output schema
-# guarantees the grade is one of the two expected literals.
-# ---------------------------------------------------------
-
-def llm_call_evaluator(state: State):
-    """LLM evaluates the joke"""
-
-    # Cast needed because with_structured_output returns Runnable[..., dict]
-    # at the type level even though it actually returns a Feedback instance.
-    grade = cast(Feedback, evaluator.invoke(f"Grade the joke: {state['joke']}"))
-    return {"funny_or_not": grade.grade, "feedback": grade.feedback}
+def route_after_review(state: State) -> str:
+    """Two exits: approved, or back to the writer with the critique in state."""
+    return "approve" if state["verdict"] == "approve" else "revise"
 
 
-# ---------------------------------------------------------
-# 5. Conditional edge (router)
-#
-# The router reads the evaluator verdict and picks the next
-# node.  Returning "Accepted" exits the loop; returning
-# "Rejected + Feedback" sends execution back to the generator
-# with the evaluator's notes still in state.
-# ---------------------------------------------------------
+builder = StateGraph(State)
+builder.add_node("draft_reply", draft_reply)
+builder.add_node("review_reply", review_reply)
+builder.add_edge(START, "draft_reply")
+builder.add_edge("draft_reply", "review_reply")
+builder.add_conditional_edges("review_reply", route_after_review,
+                              {"approve": END, "revise": "draft_reply"})
+graph = builder.compile()
 
-def route_joke(state: State):
-    """Route back to joke generator or end based upon feedback from the evaluator"""
-
-    if state["funny_or_not"] == "funny":
-        return "Accepted"
-    elif state["funny_or_not"] == "not funny":
-        return "Rejected + Feedback"
+COMPLAINT = ("I was charged twice for my March subscription, and nobody has answered my "
+             "email for a week. I want my money back today, or I'm cancelling.")
 
 
-# ---------------------------------------------------------
-# 6. Build graph
-#
-# Linear spine: generator -> evaluator
-# Conditional back-edge: evaluator -> generator (on rejection)
-#                        evaluator -> END        (on acceptance)
-# ---------------------------------------------------------
-
-optimizer_builder = StateGraph(State)
-
-optimizer_builder.add_node("llm_call_generator", llm_call_generator)
-optimizer_builder.add_node("llm_call_evaluator", llm_call_evaluator)
-
-optimizer_builder.add_edge(START, "llm_call_generator")
-optimizer_builder.add_edge("llm_call_generator", "llm_call_evaluator")
-optimizer_builder.add_conditional_edges(
-    "llm_call_evaluator",
-    route_joke,
-    {  # label returned by route_joke : next node to visit
-        "Accepted": END,
-        "Rejected + Feedback": "llm_call_generator",
-    },
-)
-
-optimizer_workflow = optimizer_builder.compile()
-
-plot_graph(optimizer_workflow)
-
-# ---------------------------------------------------------
-# 7. Run
-# ---------------------------------------------------------
-
-state = optimizer_workflow.invoke({"topic": "Cats"})  # type: ignore[arg-type]
-print(state["joke"])
+if __name__ == "__main__":
+    plot_graph(graph, output_path=str(Path(__file__).parent / "diagrams" / "05_evaluator_optimizer_graph.png"),
+               print_mermaid=False)
+    result = graph.invoke({"complaint": COMPLAINT, "rounds": 0})  # type: ignore[arg-type]
+    print(f"\nApproved after {result['rounds']} round(s):\n\n{result['draft']}")

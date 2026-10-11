@@ -1,137 +1,106 @@
 # 05. Evaluator-Optimizer
 
-## Part 1 — Core Tutorial
+## Part 1 — The pattern
 
-An evaluator-optimizer workflow loops between two LLM calls: a **generator** that produces an output and an **evaluator** that grades it. If the output is good enough the loop exits; if not, the evaluator's feedback flows back into the generator for another attempt.
+An evaluator-optimizer workflow is a loop between two roles: a **writer** that produces a draft and a **reviewer** that judges it. If the draft passes, the loop ends. If not, the reviewer's critique travels back to the writer in state, and the writer revises.
 
-![Evaluator optimizer workflow](figures/workflow-06-evaluator-optimizer.png)
+It's the only workflow pattern with a cycle, and it's how a lot of human work runs: a support agent writes, a team lead reviews, the agent fixes what was flagged.
 
-### How it works
-
-```
-In → Generator → Evaluator ──accepted──→ Out
-                     │
-                  rejected
-                     │
-                     └──(+ feedback) ──→ Generator
+```text
+complaint → draft_reply → review_reply ──approve──→ done
+                 ▲              │
+                 └── revise ────┘   (critique + previous draft in state)
 ```
 
-The key idea is the **feedback loop**: the evaluator does not just say "try again" — it explains *why* the output failed. The generator uses that critique on the next pass, so quality improves with each iteration rather than restarting from scratch.
+Three design choices separate a loop that improves from one that merely retries:
 
-## When To Use
+1. **The verdict is structured.** The reviewer returns a typed object, so the router branches on `"approve"` / `"revise"` instead of parsing prose.
+2. **The writer revises, it doesn't restart.** On a retry the prompt carries the previous draft *and* the critique. A writer that sees only the critique writes a new reply with new problems.
+3. **The reviewer is code plus a model.** Anything code can check exactly (length, required fields, a regex, a test suite) runs first, for free. The model gets only the questions that need judgment.
 
-Use this pattern when:
+## When to use it
 
-- A single LLM pass is not reliably good enough
-- You can write a clear acceptance criterion (structured `pass / fail` verdict)
-- Incremental improvement is possible (the generator can act on critique)
+Use it when:
 
-Real-world examples:
+- one pass is often not good enough, and
+- "good enough" can be written down: a policy, a rubric, a checklist, tests, and
+- the writer can act on a critique.
 
-- Writing assistant — draft → critique → rewrite
-- Code review — generate code → run linter / tests → fix errors
-- Answer quality checker — answer → fact-check → correct
+Examples: support replies that must follow a policy, marketing copy that must meet a brief, a summary that must keep every number, code that must pass its tests.
 
-> **Always define a stopping rule.** Without a maximum iteration count, a hard evaluator can trap the graph in an infinite loop.
+Skip it when there's no real check (the loop has nothing to steer by) or when the first draft is usually fine (one review pass, no loop, is enough).
 
-## Part 2 — Joke Optimizer Example
+## Part 2 — Support-reply reviewer
 
-This example runs the pattern on a deliberately lightweight task (joke generation) so the loop structure is easy to follow without domain knowledge getting in the way.
+File: `05_evaluator_optimizer.py`
+
+A customer was charged twice and wants their money back today. The writer drafts a reply without seeing the policy. The reviewer owns the policy:
+
+1. Name the customer's specific problem.
+2. Apologize once, without blaming the customer.
+3. Give one concrete next step and when it will happen.
+4. Never promise a refund, credit, or compensation: only billing can.
+5. Stay under 120 words.
 
 ### State
 
-| Field | Set by | Used by |
+| Field | Written by | Read by |
 |---|---|---|
-| `topic` | caller | generator (first prompt) |
-| `joke` | generator | evaluator |
-| `funny_or_not` | evaluator | router |
-| `feedback` | evaluator | generator (retry prompt) |
+| `complaint` | caller | writer, reviewer |
+| `draft` | `draft_reply` | `review_reply`, and the writer on a retry |
+| `verdict` | `review_reply` | router |
+| `critique` | `review_reply` | `draft_reply` |
+| `rounds` | `review_reply` | printing (and the cap in Part 3) |
 
-### Structured output
-
-The evaluator uses `with_structured_output(Feedback)` to return a reliable `"funny"` / `"not funny"` verdict alongside plain-text feedback. Structured output removes the need to parse free text in the router.
+### The reviewer's verdict
 
 ```python
-class Feedback(BaseModel):
-    grade: Literal["funny", "not funny"]
-    feedback: str
+class Review(BaseModel):
+    verdict: Literal["approve", "revise"]
+    critique: str   # instructions for the writer; empty when approved
 ```
 
-### Conditional edge
-
-The router function reads `funny_or_not` and returns a string label that LangGraph maps to the next node:
-
-```
-"Accepted"          → END
-"Rejected + Feedback" → llm_call_generator
-```
+`review_reply` checks the word count in code first. Only a draft that fits is sent to the model with the policy.
 
 ### Graph
 
 ```mermaid
 flowchart LR
-    START --> llm_call_generator
-    llm_call_generator --> llm_call_evaluator
-    llm_call_evaluator -->|Accepted| END
-    llm_call_evaluator -->|Rejected + Feedback| llm_call_generator
+    START --> draft_reply
+    draft_reply --> review_reply
+    review_reply -->|approve| END
+    review_reply -->|revise| draft_reply
 ```
 
-## Part 3 — Joke Optimizer with Max Iterations
+A typical run: round 1 fails the word count (code), round 2 promises a refund (model), round 3 is approved.
+
+## Part 3 — Bound the loop
 
 File: `05_evaluator_optimizer_max_iterations.py`
 
-The base example loops until the evaluator accepts the joke, which could in theory run forever if the LLM keeps rejecting. This variant adds a hard stop: after `MAX_ITERATIONS` rejections the graph exits regardless of the verdict.
+The base graph exits only on approval. If the reviewer never approves, or the router misreads the verdict, the loop runs until LangGraph's recursion limit. In `langgraph==1.2.6` that default is **10,007 steps**: thousands of paid calls. Never rely on it for a loop that calls a model; set `config={"recursion_limit": ...}` and, better, design your own exit.
 
-### What changed
+The bounded version adds:
 
-**State** — one new field:
-
-```python
-class State(TypedDict):
-    ...
-    iterations: int   # incremented by the evaluator on every pass
-```
-
-**Evaluator node** — increments the counter on every call:
-
-```python
-return {
-    "funny_or_not": grade.grade,
-    "feedback": grade.feedback,
-    "iterations": state.get("iterations", 0) + 1,
-}
-```
-
-**Router** — checks the counter before deciding to retry:
-
-```python
-def route_joke(state: State):
-    if state["funny_or_not"] == "funny":
-        return "Accepted"
-    if state["iterations"] >= MAX_ITERATIONS:
-        return "Max iterations reached"
-    return "Rejected + Feedback"
-```
-
-The graph maps both `"Accepted"` and `"Max iterations reached"` to `END`, so the loop always terminates.
-
-### Graph
+- `rounds` in state, incremented in `review_reply` (it counts reviews, where the draft is judged);
+- a third router exit, `"out_of_rounds"`, after `MAX_ROUNDS = 3`;
+- an `escalate` node: a draft that never passed review goes to a person with the open critique, instead of to the customer.
 
 ```mermaid
 flowchart LR
-    START --> llm_call_generator
-    llm_call_generator --> llm_call_evaluator
-    llm_call_evaluator -->|Accepted| END
-    llm_call_evaluator -->|Max iterations reached| END
-    llm_call_evaluator -->|Rejected + Feedback| llm_call_generator
+    START --> draft_reply
+    draft_reply --> review_reply
+    review_reply -->|approve| approve --> END
+    review_reply -->|revise| draft_reply
+    review_reply -->|out_of_rounds| escalate --> END
 ```
 
-### Key idea
-
-Incrementing in the **evaluator** (not the generator or router) means the count reflects how many times the output was actually judged — a cleaner place to track it than hiding the increment inside the routing logic.
+The script runs the complaint twice: with the normal 120-word policy (usually approved in 1–3 rounds) and with a 40-word policy, which usually ends in `escalated`. Watch how fixing one rule often breaks another; that trading is why the cap exists.
 
 ## Part 4 — Exercises
 
-1. **Add a loop guard** — add an `iterations` counter to `State` and stop after 3 attempts regardless of the verdict.
-2. **Swap the domain** — replace the joke generator with a headline writer and update the evaluator schema to grade on `"clear"` / `"unclear"`.
-3. **Stricter evaluator** — make the `Feedback` schema include a `score: int` (1–10) and only accept jokes scoring 8 or higher.
+Solutions are in `Exercise-Solutions/5-workflows/`.
+
+1. **Add a round cap** to `05_evaluator_optimizer.py` (`ex4_evaluator_loop_guard.py`).
+2. **Swap the domain**: the same loop for news headlines, graded `"clear"` / `"unclear"`, with code checks for length and clickbait phrases in front of the judge (`ex5_evaluator_headline_writer.py`).
+3. **A numeric bar**: have the reviewer return a `score` from 1 to 10 and approve only at 8 or above, with the threshold in code (`ex6_evaluator_strict_score.py`).

@@ -18,6 +18,7 @@
 - [`10_two_agents_with_state.py`](10_two_agents_with_state.py) — the same two agents as nodes on `START → analyst → writer → END`; handoff is state fields `analysis` / `report`
 - [`11_parallel_subgraphs.py`](11_parallel_subgraphs.py) — **two agents in parallel as subgraphs**: a weather agent and a budget agent get the same question, each writes its own state field, and a `combine` node merges them (tools in [`trip_tools.py`](trip_tools.py), sample prices in [`trip_data.json`](trip_data.json))
 - [`12_subgraph_shared_keys.py`](12_subgraph_shared_keys.py) — the other way to attach a subgraph: a compiled graph passed straight to `add_node`, sharing state keys with its parent (no API key)
+- [`13_supervisor.py`](13_supervisor.py) — **a supervisor agent**: a hub node reads each report and picks the next specialist (a nutrition agent or a cost agent) with structured output and `Command`, sends a weak report back with feedback, stops at a run cap set in code, then hands off to a writer that saves a recipe card (book Chapter 8, §8.4)
 - [`doc_tools.py`](doc_tools.py) — the shared `search_docs` tool used by examples 04 and 05
 
 **Requires:** `OPENAI_API_KEY` in the repo-root `.env`. Optional: `OPENWEATHER_API_KEY` (live weather) and `TAVILY_API_KEY` (web search) — the second example degrades gracefully without them.
@@ -231,6 +232,7 @@ python "6-Agents/09_two_agents_direct.py"           # two create_agent graphs, P
 python "6-Agents/10_two_agents_with_state.py"       # two create_agent graphs, StateGraph handoff
 python "6-Agents/11_parallel_subgraphs.py"          # two agents in parallel as subgraphs + a combiner
 python "6-Agents/12_subgraph_shared_keys.py"        # subgraph passed to add_node (no API key)
+python "6-Agents/13_supervisor.py"                  # supervisor picks the next specialist, with feedback and a cap
 ```
 
 The two alternative examples also save their complete message traces:
@@ -264,7 +266,7 @@ Companion deep-dives: [`00_tool_calling_agent_simple.md`](00_tool_calling_agent_
 ## Design Questions Worth Asking
 
 - **Why must tool results go back through the LLM instead of straight to the user?** Raw tool output (`"14"`, a JSON weather blob) isn't an answer. The final model pass interprets results in context — and decides whether it's actually done or needs another tool.
-- **What stops an infinite loop?** In these examples: only the model's own judgment, backstopped by LangGraph's recursion limit — **25 super-steps by default**, after which the run raises `GraphRecursionError`. Since each lap of this loop costs two steps (llm + tools), that's roughly 12 tool rounds before the backstop fires. You can raise it per run with `graph.invoke(state, config={"recursion_limit": 50})`, but a crash is not a stopping strategy: production agents need their own cap — an iteration counter in state and a router override, exactly like tutorial 5's evaluator guard (Exercise 2).
+- **What stops an infinite loop?** In these examples: only the model's own judgment, backstopped by LangGraph's recursion limit, after which the run raises `GraphRecursionError`. In `langgraph==1.2.6` the default is **10,007 super-steps** (older releases used 25), and each lap of this loop costs two (llm + tools), so left alone that's about 5,000 paid tool rounds. Set it per run with `graph.invoke(state, config={"recursion_limit": 10})`, but a crash is not a stopping strategy: production agents need their own cap — an iteration counter in state and a router override, exactly like tutorial 5's evaluator guard (Exercise 2).
 - **What happens when a tool raises an exception?** With the prebuilt `ToolNode`, the exception doesn't crash the graph — it's caught and fed back to the model as a `ToolMessage` containing the error, so the model can retry with different arguments, pick another tool, or explain the failure. The `get_weather` tool in the full example does this manually by *returning* its error strings instead of raising; either way, the principle is the same: **errors are information for the model, not crashes for the graph.**
 - **Why does the simple version prepend a `SystemMessage` inside the node rather than storing it in state?** The system prompt is configuration, not conversation. Injecting it at call time (`[SystemMessage(...)] + state["messages"]`) keeps it out of the history and guarantees it's present on *every* pass through the loop.
 - **What's the failure mode of a badly described tool?** The model either never calls it or calls it with wrong arguments — no exception, just quietly poor behavior. When an agent misbehaves, audit the tool docstrings before blaming the prompt.
@@ -288,6 +290,7 @@ Solutions live in [`Exercise-Solutions/6-agents/`](../Exercise-Solutions/6-agent
 5. The model decides when to stop — so **you** must add an iteration cap before trusting an agent with a budget.
 6. Conditional edges, `Command`, and `create_agent` are progressively higher-level ways to express the same tool loop.
 7. Two `create_agent` specialists are still two graphs. Connect them with a Python variable (`09`) or an outer `StateGraph` (`10`).
+8. A supervisor (`13`) is a hub: specialists report back, and one node chooses the next hop from a structured decision. Cap it in code, because every lap is a paid agent run.
 
 ## Next Step
 

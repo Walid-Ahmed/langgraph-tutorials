@@ -1,15 +1,26 @@
 # Run from the repository root:
 #   python "Exercise-Solutions/5-workflows/ex6_evaluator_strict_score.py"
 #
-# Exercise 6 — Stricter evaluator with a numeric score
+# What it does:
+#   Exercise 5.5, part 2 (and Part 4 Exercise 3 in 5-Workflows/05_evaluator_optimizer.md):
+#   the bounded support-reply loop, but the reviewer returns a numeric score
+#   from 1 to 10 instead of approve/revise. Code turns the score into a
+#   decision: approve only at PASS_SCORE or above, and stop after MAX_ROUNDS.
 #
-# Extends the Feedback schema with score: int (1-10).
-# The router only accepts jokes scoring 8 or higher.
-# Lower-scoring jokes are retried up to MAX_ITERATIONS times.
-# Solution to Part 4 Exercise 3 in 05_evaluator_optimizer.md.
+# What it demonstrates:
+#   - a numeric score gives you a threshold you can tune and a trend you can log
+#   - the threshold lives in code (PASS_SCORE), not in the prompt, so changing
+#     the bar never means rewording what you ask the model
+#   - the round cap still guarantees the loop ends
+#
+# Prerequisites:
+#   OPENAI_API_KEY in the repo-root .env.
+#
+# Expected output (wording varies):
+#   [round 1] score 6/10 — ...
+#   [round 2] score 8/10
+#   Scores by round: [6, 8] -> approved
 
-import sys
-from pathlib import Path
 from typing import TypedDict, cast
 
 from dotenv import load_dotenv
@@ -17,82 +28,76 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
-from util import plot_graph
-
 load_dotenv()
 
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
-MAX_ITERATIONS = 3
-MIN_SCORE = 8
+MAX_ROUNDS = 3
+PASS_SCORE = 8
+
+REPLY_POLICY = """\
+1. Name the customer's specific problem.
+2. Apologize once, without blaming the customer.
+3. Give one concrete next step and when it will happen.
+4. Never promise a refund, credit, or compensation.
+5. Stay under 120 words."""
 
 
 class State(TypedDict):
-    topic: str
-    joke: str
-    feedback: str
+    complaint: str
+    draft: str
     score: int
-    iterations: int
+    critique: str
+    scores: list[int]   # one per round, so you can see the trend
+    rounds: int
 
 
-class Feedback(BaseModel):
-    score: int = Field(
-        description="Rate the joke from 1 (not funny at all) to 10 (hilarious).",
-    )
-    feedback: str = Field(
-        description="Explain the score and suggest how to improve the joke if the score is below 8.",
-    )
+class ScoredReview(BaseModel):
+    score: int = Field(ge=1, le=10, description="How well the reply follows the policy, 1-10")
+    critique: str = Field(description="The changes that would raise the score")
 
 
-evaluator = llm.with_structured_output(Feedback)
+reviewer = llm.with_structured_output(ScoredReview)
 
 
-def llm_call_generator(state: State):
-    if state.get("feedback"):
-        msg = llm.invoke(
-            f"Write a joke about {state['topic']} but take into account the feedback: {state['feedback']}"
-        )
-    else:
-        msg = llm.invoke(f"Write a joke about {state['topic']}")
-    return {"joke": msg.content}
+def draft_reply(state: State) -> dict:
+    prompt = f"You are a friendly support agent. Reply to this complaint:\n{state['complaint']}"
+    if state.get("critique"):
+        prompt += f"\n\nYour previous draft:\n{state['draft']}\n\nFix these points:\n{state['critique']}"
+    return {"draft": llm.invoke(prompt).text}
 
 
-def llm_call_evaluator(state: State):
-    grade = cast(Feedback, evaluator.invoke(f"Grade this joke: {state['joke']}"))
-    return {
-        "score": grade.score,
-        "feedback": grade.feedback,
-        "iterations": state.get("iterations", 0) + 1,
-    }
+def review_reply(state: State) -> dict:
+    review = cast(ScoredReview, reviewer.invoke(
+        f"Score this reply against the policy.\n\nPolicy:\n{REPLY_POLICY}\n\n"
+        f"Complaint: {state['complaint']}\n\nReply:\n{state['draft']}"))
+    rounds = state["rounds"] + 1
+    print(f"[round {rounds}] score {review.score}/10"
+          + (f" — {review.critique}" if review.score < PASS_SCORE else ""))
+    return {"score": review.score, "critique": review.critique,
+            "scores": state["scores"] + [review.score], "rounds": rounds}
 
 
-def route_joke(state: State):
-    if state["score"] >= MIN_SCORE:
-        return "Accepted"
-    if state["iterations"] >= MAX_ITERATIONS:
-        return "Max iterations reached"
-    return "Rejected + Feedback"
+def route_after_review(state: State) -> str:
+    if state["score"] >= PASS_SCORE:      # the bar, in code
+        return "approve"
+    if state["rounds"] >= MAX_ROUNDS:
+        return "out_of_rounds"
+    return "revise"
 
 
 builder = StateGraph(State)
-builder.add_node("llm_call_generator", llm_call_generator)
-builder.add_node("llm_call_evaluator", llm_call_evaluator)
-builder.add_edge(START, "llm_call_generator")
-builder.add_edge("llm_call_generator", "llm_call_evaluator")
-builder.add_conditional_edges(
-    "llm_call_evaluator",
-    route_joke,
-    {
-        "Accepted": END,
-        "Max iterations reached": END,
-        "Rejected + Feedback": "llm_call_generator",
-    },
-)
+builder.add_node("draft_reply", draft_reply)
+builder.add_node("review_reply", review_reply)
+builder.add_edge(START, "draft_reply")
+builder.add_edge("draft_reply", "review_reply")
+builder.add_conditional_edges("review_reply", route_after_review,
+                              {"approve": END, "out_of_rounds": END, "revise": "draft_reply"})
+graph = builder.compile()
 
-workflow = builder.compile()
-plot_graph(workflow)
-
-state = workflow.invoke({"topic": "Cats", "iterations": 0})  # type: ignore[arg-type]
-print(state["joke"])
-print(f"\nFinal score: {state['score']}/10 — stopped after {state['iterations']} iteration(s)")
+if __name__ == "__main__":
+    result = graph.invoke({"complaint": "I was charged twice for March, and nobody has answered "  # type: ignore[arg-type]
+                                        "my email for a week. I want my money back today.",
+                           "scores": [], "rounds": 0})
+    outcome = "approved" if result["score"] >= PASS_SCORE else "out of rounds"
+    print(f"\nScores by round: {result['scores']} -> {outcome}\n\n{result['draft']}")

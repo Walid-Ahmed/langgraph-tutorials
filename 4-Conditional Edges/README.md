@@ -1,6 +1,8 @@
 # 4. Conditional Edges — Graphs That Choose Their Path
 
 **Example file:** [`05_conditional_edges.py`](05_conditional_edges.py)
+
+**Also:** [`05a_label_mapping.py`](05a_label_mapping.py) — the router returns the labels `good` / `bad`, and the mapping decides which node each one means; the same router is wired two ways (no API key; book Chapter 4)
 No API key needed — the "grading" is deliberately fake so you can focus entirely on control flow.
 
 Every graph so far has been a straight line: the path was fully determined before `invoke()` ran. This tutorial introduces the piece that makes graphs *interesting* — an edge whose destination is decided at runtime by looking at the state.
@@ -136,6 +138,7 @@ From the repo root:
 
 ```bash
 python "4-Conditional Edges/05_conditional_edges.py"
+python "4-Conditional Edges/05a_label_mapping.py"
 ```
 
 Expected output for the default input:
@@ -151,7 +154,7 @@ The script also saves `graph.png` — look at it and note that *both* branches a
 
 - **What happens if the router returns a name not in the mapping?** A runtime error — the mapping is the contract of allowed destinations. Keep the router's possible return values and the mapping dict in sync.
 - **Could the router call an LLM?** Yes — a router is any function of state returning a label. But the cleaner pattern (used in tutorial 5's routing workflow) is: an LLM *node* writes a structured decision into state, then a plain-Python router reads it. That keeps expensive, fallible calls in nodes where their output is captured, and keeps routers trivial and testable.
-- **What if a run's branch never reaches END?** `compile()` validates reachability where it can, but a *logical* dead loop (a cycle with no exit condition) runs until LangGraph's recursion limit stops it: after **25 super-steps by default**, the run raises a `GraphRecursionError`. You can raise the ceiling per run — `app.invoke(state, config={"recursion_limit": 50})` — but treat that as headroom for legitimately long loops, not as a fix. Every loop still needs its own counted or condition-based exit — Exercise 2 makes you build one.
+- **What if a run's branch never reaches END?** `compile()` validates reachability where it can, but a *logical* dead loop (a cycle with no exit condition) runs until LangGraph's recursion limit stops it: the run raises a `GraphRecursionError`. In `langgraph==1.2.6` the default is **10,007 super-steps** (older releases used 25): harmless for plain Python, expensive for a loop that calls a model. Set the ceiling per run — `app.invoke(state, config={"recursion_limit": 50})` — but treat it as a backstop, not a fix. Every loop still needs its own counted or condition-based exit — Exercise 2 makes you build one.
 
 ## Exercises
 

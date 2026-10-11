@@ -1,14 +1,27 @@
 # Run from the repository root:
 #   python "Exercise-Solutions/5-workflows/ex4_evaluator_loop_guard.py"
 #
-# Exercise 4 — Add a loop guard to the evaluator-optimizer
+# What it does:
+#   Exercise 5.5, part 1 (and Part 4 Exercise 1 in 5-Workflows/05_evaluator_optimizer.md):
+#   adds a round cap to the uncapped support-reply loop in
+#   5-Workflows/05_evaluator_optimizer.py. The router gets a third exit,
+#   "out_of_rounds", so the loop ends after MAX_ROUNDS reviews even when the
+#   reviewer never approves.
 #
-# Adds an iterations counter to State. The loop stops after
-# MAX_ITERATIONS rejections regardless of the evaluator verdict.
-# Solution to Part 4 Exercise 1 in 05_evaluator_optimizer.md.
+# What it demonstrates:
+#   - the verdict is a stopping signal; the round counter is the guarantee
+#   - the counter is incremented where the draft is judged (review_reply), so it
+#     counts reviews, not attempts to write
+#   - the run uses a very strict 15-word policy, so the cap often has to fire
+#
+# Prerequisites:
+#   OPENAI_API_KEY in the repo-root .env.
+#
+# Expected output (wording varies):
+#   [round 1] reviewer: revise — The reply is ... words. Cut it to under 15.
+#   ...
+#   Stopped by: approve or out_of_rounds, never after more than 3 round(s)
 
-import sys
-from pathlib import Path
 from typing import Literal, TypedDict, cast
 
 from dotenv import load_dotenv
@@ -16,81 +29,87 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
-from util import plot_graph
-
 load_dotenv()
 
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
-MAX_ITERATIONS = 3
+MAX_ROUNDS = 3
+WORD_LIMIT = 15     # deliberately strict, so the guard often has to fire
+
+REPLY_POLICY = f"""\
+1. Name the customer's specific problem.
+2. Apologize once, without blaming the customer.
+3. Give one concrete next step and when it will happen.
+4. Never promise a refund, credit, or compensation.
+5. Stay under {WORD_LIMIT} words."""
 
 
 class State(TypedDict):
-    topic: str
-    joke: str
-    feedback: str
-    funny_or_not: str
-    iterations: int  # incremented by evaluator on every pass
+    complaint: str
+    draft: str
+    verdict: str
+    critique: str
+    rounds: int
+    stopped_by: str
 
 
-class Feedback(BaseModel):
-    grade: Literal["funny", "not funny"] = Field(
-        description="Decide if the joke is funny or not.",
-    )
-    feedback: str = Field(
-        description="If the joke is not funny, provide feedback on how to improve it.",
-    )
+class Review(BaseModel):
+    verdict: Literal["approve", "revise"] = Field(description="approve only if every rule is followed")
+    critique: str = Field(description="If revise: the specific changes to make. If approve: empty.")
 
 
-evaluator = llm.with_structured_output(Feedback)
+reviewer = llm.with_structured_output(Review)
 
 
-def llm_call_generator(state: State):
-    if state.get("feedback"):
-        msg = llm.invoke(
-            f"Write a joke about {state['topic']} but take into account the feedback: {state['feedback']}"
-        )
+def draft_reply(state: State) -> dict:
+    prompt = f"You are a friendly support agent. Reply to this complaint:\n{state['complaint']}"
+    if state.get("critique"):
+        prompt += (f"\n\nYour previous draft:\n{state['draft']}\n\n"
+                   f"Fix these points:\n{state['critique']}")
+    return {"draft": llm.invoke(prompt).text}
+
+
+def review_reply(state: State) -> dict:
+    rounds = state["rounds"] + 1      # count reviews here, where the draft is judged
+    words = len(state["draft"].split())
+    if words > WORD_LIMIT:
+        verdict, critique = "revise", f"The reply is {words} words. Cut it to under {WORD_LIMIT}."
     else:
-        msg = llm.invoke(f"Write a joke about {state['topic']}")
-    return {"joke": msg.content}
+        review = cast(Review, reviewer.invoke(
+            f"Policy:\n{REPLY_POLICY}\n\nComplaint: {state['complaint']}\n\nReply:\n{state['draft']}"))
+        verdict, critique = review.verdict, review.critique
+    print(f"[round {rounds}] reviewer: {verdict}" + (f" — {critique}" if verdict == "revise" else ""))
+    return {"verdict": verdict, "critique": critique, "rounds": rounds}
 
 
-def llm_call_evaluator(state: State):
-    grade = cast(Feedback, evaluator.invoke(f"Grade the joke: {state['joke']}"))
-    return {
-        "funny_or_not": grade.grade,
-        "feedback": grade.feedback,
-        "iterations": state.get("iterations", 0) + 1,
-    }
+def route_after_review(state: State) -> str:
+    if state["verdict"] == "approve":
+        return "approve"
+    if state["rounds"] >= MAX_ROUNDS:   # the guarantee: checked before looping again
+        return "out_of_rounds"
+    return "revise"
 
 
-def route_joke(state: State):
-    if state["funny_or_not"] == "funny":
-        return "Accepted"
-    if state["iterations"] >= MAX_ITERATIONS:
-        return "Max iterations reached"
-    return "Rejected + Feedback"
+def mark_stop(label: str):
+    """A tiny node that records which exit ended the run."""
+    return lambda state: {"stopped_by": label}
 
 
 builder = StateGraph(State)
-builder.add_node("llm_call_generator", llm_call_generator)
-builder.add_node("llm_call_evaluator", llm_call_evaluator)
-builder.add_edge(START, "llm_call_generator")
-builder.add_edge("llm_call_generator", "llm_call_evaluator")
-builder.add_conditional_edges(
-    "llm_call_evaluator",
-    route_joke,
-    {
-        "Accepted": END,
-        "Max iterations reached": END,
-        "Rejected + Feedback": "llm_call_generator",
-    },
-)
+builder.add_node("draft_reply", draft_reply)
+builder.add_node("review_reply", review_reply)
+builder.add_node("approved", mark_stop("approve"))
+builder.add_node("gave_up", mark_stop("out_of_rounds"))
+builder.add_edge(START, "draft_reply")
+builder.add_edge("draft_reply", "review_reply")
+builder.add_conditional_edges("review_reply", route_after_review,
+                              {"approve": "approved", "revise": "draft_reply",
+                               "out_of_rounds": "gave_up"})
+builder.add_edge("approved", END)
+builder.add_edge("gave_up", END)
+graph = builder.compile()
 
-workflow = builder.compile()
-plot_graph(workflow)
-
-state = workflow.invoke({"topic": "Cats", "iterations": 0})  # type: ignore[arg-type]
-print(state["joke"])
-print(f"\nStopped after {state['iterations']} iteration(s) — verdict: {state['funny_or_not']}")
+if __name__ == "__main__":
+    result = graph.invoke({"complaint": "I was charged twice for March and nobody answers my emails.",  # type: ignore[arg-type]
+                           "rounds": 0})
+    print(f"\nStopped by: {result['stopped_by']} after {result['rounds']} round(s)\n\n{result['draft']}")

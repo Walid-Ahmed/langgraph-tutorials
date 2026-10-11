@@ -529,6 +529,7 @@ Examples 04–06 go past the single profile of 01–02 and show the three kinds 
 | [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | **semantic** — facts about the user | the agent, via LangMem `manage_memory` (hot path) | embedding search via `search_memory` |
 | [`05_episodic_memory.py`](05_episodic_memory.py) | **episodic** — approved past answers used as few-shot examples | the app, after the user approves (background) | `store.search(namespace, query=request)` |
 | [`06_procedural_memory.py`](06_procedural_memory.py) | **procedural** — the assistant's instructions | a LangMem prompt optimizer, from feedback (background) | exact `store.get(namespace, key)` |
+| [`07-skills/`](07-skills/) | **procedural, in files** — skills: written methods for one kind of task | people, versioned in git (same for every user) | a catalog of names in the prompt; full text loaded on demand |
 
 All three use the namespace `("assistant", user_id, <kind>)`, so each user's memories stay isolated. The email assistant in `9-Email-Assistant/` combines the same three ideas in one application.
 
@@ -536,4 +537,5 @@ All three use the namespace `("assistant", user_id, <kind>)`, so each user's mem
 python "8-Long-Term-Memory/04_semantic_memory_tools.py"
 python "8-Long-Term-Memory/05_episodic_memory.py"
 python "8-Long-Term-Memory/06_procedural_memory.py"
+python "8-Long-Term-Memory/07-skills/03_agent_loads_skill.py"
 ```

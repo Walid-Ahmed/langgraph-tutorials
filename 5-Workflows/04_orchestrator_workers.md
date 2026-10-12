@@ -77,32 +77,32 @@ Renewable energy adoption barriers in developing countries
 The graph first asks the LLM to create 3-5 research areas. Then LangGraph dynamically creates one worker call for each area.
 
 
-### Example B — Report Sections With `Send`
+### Example B — A Weekly Study Plan With `Send`
 
-The second runnable example creates a report by dynamically assigning one worker per section:
+The second runnable example turns a learning goal into a weekly study plan, with one worker per week:
 
-- `orchestrator` creates a structured report plan
-- `assign_workers` sends each `Section` to a separate worker with `Send`
-- `write_section` writes one section in markdown
-- `synthesizer` joins all completed sections into `final_report`
+- `plan_weeks` asks the model, with structured output, to split the goal into 3–6 weeks; the model decides how many
+- `dispatch_weeks` returns one `Send("write_week", ...)` per planned week
+- `write_week` writes one week (three tasks and an exercise) and appends `(week_number, text)` to `week_plans`
+- `assemble_plan` sorts the weeks, because workers finish in any order, and joins them into `study_plan`
 
 Generated LangGraph plot from the code:
 
-![Orchestrator-workers report sections graph](diagrams/04_orchestrator_workers_report_sections_graph.png)
+![Orchestrator-workers study plan graph](diagrams/04_orchestrator_workers_study_plan_graph.png)
 
 Run it:
 
 ```bash
-python 5-Workflows/04_orchestrator_workers_report_sections.py
+python 5-Workflows/04_orchestrator_workers_study_plan.py
 ```
 
-The example topic is:
+The example goal is:
 
 ```text
-Create a report on LLM scaling laws
+Learn enough SQL to analyze my team's sales data
 ```
 
-This is close to the common LangGraph example where an orchestrator plans report sections, then uses `Send` to kick off one worker for each section. The notebook-specific `display(Image(...))` and `Markdown(...)` calls were replaced with `plot_graph(...)` and normal terminal output so the example works as a regular Python script.
+Two details are worth noticing. Each worker receives a small `WeekTask` (the goal and its own week), not the whole state. And `week_plans` is `Annotated[list, operator.add]`, because every worker writes to it in the same step; without the reducer LangGraph raises `InvalidUpdateError`.
 
 ## Code Explanation
 

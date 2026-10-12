@@ -10,12 +10,12 @@ These show the **compiled topology** — the nodes and edges LangGraph sees afte
 |---|---|
 | `00_augmented_llm_structured_output_graph.png` | [`../00_augmented_llm_structured_output.py`](../00_augmented_llm_structured_output.py) |
 | `01_prompt_chaining_graph.png` | [`../01_prompt_chaining.py`](../01_prompt_chaining.py) |
-| `01_prompt_chaining_joke_gate_graph.png` | [`../01_prompt_chaining_joke_gate.py`](../01_prompt_chaining_joke_gate.py) |
+| `01_prompt_chaining_quality_gate_graph.png` | [`../01_prompt_chaining_quality_gate.py`](../01_prompt_chaining_quality_gate.py) |
 | `01_rag_retrieve_generate_graph.png` | [`../01_rag_retrieve_generate.py`](../01_rag_retrieve_generate.py) |
 | `03_parallelization_graph.png` | [`../03_parallelization.py`](../03_parallelization.py) |
 | `03_parallelization_creative_graph.png` | [`../03_parallelization_creative.py`](../03_parallelization_creative.py) |
 | `03_parallelization_translation_graph.png` | [`../03_parallelization_translation.py`](../03_parallelization_translation.py) |
 | `04_orchestrator_workers_graph.png` | [`../04_orchestrator_workers.py`](../04_orchestrator_workers.py) |
-| `04_orchestrator_workers_report_sections_graph.png` | [`../04_orchestrator_workers_report_sections.py`](../04_orchestrator_workers_report_sections.py) |
+| `04_orchestrator_workers_study_plan_graph.png` | [`../04_orchestrator_workers_study_plan.py`](../04_orchestrator_workers_study_plan.py) |
 
 > **Reading the orchestrator-workers plots:** the static topology shows a single `research_worker` node between the orchestrator and the synthesizer — *not* one box per worker. That's expected. The fan-out to N workers happens at **runtime** through `Send`, and the number of workers is only decided when the graph runs. A compile-time diagram can't show a count that doesn't exist yet. See the [tutorial's orchestrator-workers section](../README.md#pattern-5--orchestrator-workers-04_orchestrator_workerspy) for how the dynamic dispatch actually unfolds.

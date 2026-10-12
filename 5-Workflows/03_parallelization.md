@@ -50,20 +50,20 @@ Avoid this pattern when the steps must happen in a strict order. If task B needs
 
 ## Part 2 — Code Examples That Reinforce The Concept
 
-### Example A — Joke, Story, And Poem
+### Example A — A Study Pack
 
 Start here. This is the smallest version of the pattern.
 
 The graph receives one topic, then runs three independent LLM calls:
 
-- `generate_joke` writes `joke`
-- `generate_story` writes `story`
-- `generate_poem` writes `poem`
-- `aggregator` combines all three into `combined_output`
+- `write_summary` writes `summary`
+- `write_quiz` writes `quiz`
+- `write_analogy` writes `analogy`
+- `assemble_pack` combines all three into `study_pack`
 
 Generated LangGraph plot from the code:
 
-![Creative parallelization graph](diagrams/03_parallelization_creative_graph.png)
+![Study pack parallelization graph](diagrams/03_parallelization_creative_graph.png)
 
 Run it:
 
@@ -71,20 +71,14 @@ Run it:
 python 5-Workflows/03_parallelization_creative.py
 ```
 
-The fan-out happens here:
+The fan-out and fan-in are one loop over the three writers:
 
 ```python
-parallel_builder.add_edge(START, "generate_joke")
-parallel_builder.add_edge(START, "generate_story")
-parallel_builder.add_edge(START, "generate_poem")
-```
-
-The fan-in happens here:
-
-```python
-parallel_builder.add_edge("generate_joke", "aggregator")
-parallel_builder.add_edge("generate_story", "aggregator")
-parallel_builder.add_edge("generate_poem", "aggregator")
+for name, writer in [("write_summary", write_summary), ("write_quiz", write_quiz),
+                     ("write_analogy", write_analogy)]:
+    builder.add_node(name, writer)
+    builder.add_edge(START, name)              # fan-out
+    builder.add_edge(name, "assemble_pack")    # fan-in
 ```
 
 ### Example B — Translate One Paragraph Into Three Languages
@@ -180,6 +174,6 @@ def aggregate_translations(state: TranslationState) -> dict:
     return {"combined_output": combined_output}
 ```
 
-The creative example and social media example use the same idea with different state fields. Same graph shape, different task.
+The study-pack and social-media examples use the same idea with different state fields. Same graph shape, different task.
 
 So the key lesson is simple: use parallelization when branches are independent, and join them only when the graph has enough information to build the final answer.

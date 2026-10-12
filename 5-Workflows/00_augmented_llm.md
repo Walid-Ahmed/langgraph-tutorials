@@ -26,6 +26,10 @@ An augmented LLM can use extra capabilities. For example:
 - a Pydantic schema for structured JSON-like output
 - a retriever for private documents
 
+Three of those upgrades, each still a single model call:
+
+![One model call with three upgrades: a tool the model asks for, a schema the reply must fit, and earlier messages sent with the call](figures/workflow-07-augmented-llm-flow.png)
+
 The important distinction:
 
 ```text

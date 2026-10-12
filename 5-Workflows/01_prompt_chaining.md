@@ -144,6 +144,8 @@ File:
 01_prompt_chaining_quality_gate.py
 ```
 
+![Prompt chaining with a quality gate: the first call's draft goes to a gate that either stops the chain or sends it on to two more calls](figures/workflow-09-prompt-chaining-quality-gate.png)
+
 This second example is still prompt chaining, but it adds one conditional edge. The first call drafts a product description for an online store; a gate then checks the draft in plain code: at most 50 words, and the price must appear. A draft that passes ends the run. One that fails continues through two more calls.
 
 ```mermaid

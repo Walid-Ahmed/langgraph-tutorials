@@ -8,7 +8,7 @@ Parallelization runs independent tasks at the same time, then combines the resul
 
 The hand-drawn view below shows the same idea in plain language: one input fans out to several LLM calls, then an aggregator joins their results into one output.
 
-![Parallelization fan-out fan-in concept](figures/workflow-10-parallelization-fan-out-fan-in.png)
+![Parallelization: one input fans out to three independent LLM calls, each writing its own field, then fans in to an aggregator](figures/workflow-10-parallelization-fan-out-fan-in.png)
 
 ```mermaid
 flowchart TD

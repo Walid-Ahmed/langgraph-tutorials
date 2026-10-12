@@ -84,7 +84,7 @@ State evolution:
 **Good fit:** tasks that decompose into a known, ordered sequence where later steps consume earlier output.
 **Poor fit:** subtasks that don't depend on each other (parallelize instead), or a flow that varies by input (route instead).
 
-Variants: [`01_prompt_chaining_joke_gate.py`](01_prompt_chaining_joke_gate.py) adds a mid-chain **quality gate** — a router after the first node that ends early on "Pass" or continues through improvement nodes on "Fail." [`01_prompt_chaining_essay_drafter.py`](01_prompt_chaining_essay_drafter.py) is a draft → reflect → revise pipeline.
+Variants: [`01_prompt_chaining_quality_gate.py`](01_prompt_chaining_quality_gate.py) adds a mid-chain **quality gate**: after a product description is drafted, a router checks it in code (length, price mentioned) and ends early on "pass" or continues through two improvement nodes on "fail". [`01_prompt_chaining_essay_drafter.py`](01_prompt_chaining_essay_drafter.py) is a draft → reflect → revise pipeline.
 
 **Local RAG** ([`01_rag_retrieve_generate.py`](01_rag_retrieve_generate.py)) is the same chaining shape with a different first node: `retrieve → generate`. You load a folder of `.txt` files into FAISS once (`build_vectorstore` in [`../rag_index.py`](../rag_index.py)), then every question takes that fixed path. Retrieval always runs; the model does not choose. The same index becomes a **tool** in [`../6-Agents/04_rag_as_tool.py`](../6-Agents/04_rag_as_tool.py) (the model decides when to search) and again in [`../10-observability/03_multi_tool_agent/`](../10-observability/03_multi_tool_agent/) (local docs plus web search, traced in LangSmith). Deep dive: [`01_prompt_chaining.md`](01_prompt_chaining.md) and [`01_rag_retrieve_generate.md`](01_rag_retrieve_generate.md).
 
@@ -92,21 +92,21 @@ Variants: [`01_prompt_chaining_joke_gate.py`](01_prompt_chaining_joke_gate.py) a
 
 ## Pattern 3 — Routing ([`02_routing.py`](02_routing.py))
 
-Classify the input once, then dispatch to a specialized handler. The example routes a user request to a story, joke, or poem writer.
+Classify the input once, then dispatch to a specialized handler. The example routes a student's question to a math, code, or writing tutor.
 
 The load-bearing detail is *how the classification becomes reliable*:
 
 ```python
-class Route(BaseModel):
-    step: Literal["poem", "story", "joke"]
+class TutorChoice(BaseModel):
+    subject: Literal["math", "code", "writing"]
 
-router = llm.with_structured_output(Route)
+classifier = llm.with_structured_output(TutorChoice)
 ```
 
-The `Literal` type means the model **cannot** answer anything except one of the three labels — no fuzzy string matching on "Sure! I'd classify this as a joke request." Then the two-piece pattern from tutorial 4 applies exactly:
+The `Literal` type means the model **cannot** answer anything except one of the three labels — no fuzzy string matching on "This looks like a coding question, though it involves some math." Then the two-piece pattern from tutorial 4 applies exactly:
 
-1. `llm_call_router` — a **node**: makes the LLM call, writes `decision` to state.
-2. `route_decision` — a **router function**: pure Python, reads `decision`, returns the worker node's name.
+1. `classify_question` — a **node**: makes the LLM call, writes `subject` to state.
+2. `route_to_tutor` — a **router function**: pure Python, reads `subject`; the mapping turns it into a tutor node's name.
 
 The expensive, fallible LLM call lives in a node (its output is captured in state, inspectable); the branching function stays trivial and testable. This division is the recommended way to do LLM-driven routing.
 
@@ -135,7 +135,7 @@ LangGraph runs nodes whose dependencies are satisfied concurrently — the fan-i
 **Good fit:** independent subtasks over the same input; also N-way "drafts + pick the best" sampling.
 **Poor fit:** steps with data dependencies (that's a chain); rate-limit-constrained environments where concurrency hurts you.
 
-Variants: [`03_parallelization_creative.py`](03_parallelization_creative.py) (joke/story/poem) and [`03_parallelization_translation.py`](03_parallelization_translation.py) (one paragraph → Arabic/French/Italian). Deep dive: [`03_parallelization.md`](03_parallelization.md).
+Variants: [`03_parallelization_creative.py`](03_parallelization_creative.py) (a study pack: summary, quiz and analogy) and [`03_parallelization_translation.py`](03_parallelization_translation.py) (one paragraph → Arabic/French/Italian). Deep dive: [`03_parallelization.md`](03_parallelization.md).
 
 ---
 
@@ -207,7 +207,7 @@ Finally the synthesizer reads the accumulated findings and writes one integrated
 **Poor fit:** subtask count knowable at build time (static parallelization is simpler to reason about and debug); subtasks that depend on each other's output.
 **Trade-offs:** one extra planning call and a synthesis call; token cost scales with N; debugging is harder because worker count and inputs vary per run.
 
-Variant: [`04_orchestrator_workers_report_sections.py`](04_orchestrator_workers_report_sections.py) — plan a report's sections, one worker per section, stitch into markdown. Deep dive: [`04_orchestrator_workers.md`](04_orchestrator_workers.md).
+Variant: [`04_orchestrator_workers_study_plan.py`](04_orchestrator_workers_study_plan.py) — split a learning goal into weeks (the model picks how many), one worker per week, sorted and joined into a study plan. Deep dive: [`04_orchestrator_workers.md`](04_orchestrator_workers.md).
 
 ---
 
@@ -246,7 +246,7 @@ All from the repo root; suggested order:
 ```bash
 python "5-Workflows/00_augmented_llm_structured_output.py"   # structured output
 python "5-Workflows/01_prompt_chaining.py"                   # sequential chain (+ HTML report)
-python "5-Workflows/01_prompt_chaining_joke_gate.py"         # chain + quality gate
+python "5-Workflows/01_prompt_chaining_quality_gate.py"      # chain + quality gate
 python "5-Workflows/01_rag_retrieve_generate.py"             # local RAG: retrieve then generate
 python "5-Workflows/02_routing.py"                           # classify & dispatch
 python "5-Workflows/03_parallelization.py"                   # static fan-out/fan-in
@@ -274,7 +274,7 @@ Each script saves its graph PNG under [`diagrams/`](diagrams/) — comparing tho
 
 **Exercise 1 — Tone step in the chain.** In `01_prompt_chaining.py`, add a node after `improve_content` that rewrites the content casually into a new `casual_version` field.
 
-**Exercise 2 — Fourth parallel branch.** In `03_parallelization_creative.py`, add a haiku branch: new state field, new node, fan-out and fan-in edges.
+**Exercise 2 — Fourth parallel branch.** In `03_parallelization.py`, add a fourth writer, a newsletter blurb: new state field, new node, fan-out and fan-in edges.
 
 **Exercise 3 — Structured-output router.** Build a graph that classifies a question as `"factual"` / `"creative"` / `"technical"` via a Pydantic `Literal` schema, then routes to a category-specific prompt node.
 

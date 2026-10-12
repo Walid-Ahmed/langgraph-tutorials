@@ -1,156 +1,111 @@
 # Run from the repository root:
 #   python "5-Workflows/02_routing.py"
 #
-# Routing workflow: a router node classifies the user's request into one of
-# three literals ("poem", "story", "joke") via structured output, then a
-# conditional edge dispatches to the matching worker node.
+# What it does:
+#   Routes a student's question to the right tutor. A classifier node asks the
+#   model which subject the question belongs to (math, code or writing) and
+#   writes that label into state; a plain-Python router reads the label and
+#   sends the question to the matching tutor node, which answers in that
+#   subject's style.
+#
+# What it demonstrates (Chapter 5 — routing):
+#   - structured output with a Literal: the model can only answer one of three labels
+#   - the two-piece split: the model call lives in a NODE (classify_question),
+#     the branching lives in a ROUTER (route_to_tutor) that only reads state
+#   - each route gets its own prompt; that's why the categories deserve separate nodes
+#
+# Prerequisites:
+#   OPENAI_API_KEY in the repo-root .env.
+#
+# Expected output (answers vary; the labels should match):
+#   Q: What's the derivative of x^2 * sin(x)? -> math
+#   Q: Why does my Python loop print the last value three times? -> code
+#   Q: How do I make my essay's opening paragraph stronger? -> writing
 
 import sys
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import Literal, TypedDict, cast
 
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
-from typing_extensions import Literal
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from util import plot_graph
 
 load_dotenv()
 
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-
-# ---------------------------------------------------------
-# 1. Structured output schema for the router
-#
-# The LLM must return one of three literals so the router
-# has a reliable label to branch on — no free-text parsing.
-# ---------------------------------------------------------
-
-class Route(BaseModel):
-    step: Literal["poem", "story", "joke"] = Field(
-        description="The next step in the routing process"
-    )
-
-
-router = llm.with_structured_output(Route)
-
-
-# ---------------------------------------------------------
-# 2. State
-#
-# - input   : the user's request, read by the router and workers
-# - decision: the route label written by the router node
-# - output  : the final text written by whichever worker runs
-# ---------------------------------------------------------
 
 class State(TypedDict):
-    input: str
-    decision: str
-    output: str
+    question: str
+    subject: str      # written by classify_question, read by route_to_tutor
+    answer: str
 
 
-# ---------------------------------------------------------
-# 3. Worker nodes
-#
-# Each node handles one content type. They share the same
-# structure — invoke the LLM with the user input and write
-# the result to output.
-# ---------------------------------------------------------
-
-def llm_call_1(state: State):
-    """Write a story"""
-    result = llm.invoke(state["input"])
-    return {"output": result.content}
+class TutorChoice(BaseModel):
+    subject: Literal["math", "code", "writing"] = Field(
+        description="math = calculation or proof; code = programming; writing = essays, grammar, style")
 
 
-def llm_call_2(state: State):
-    """Write a joke"""
-    result = llm.invoke(state["input"])
-    return {"output": result.content}
+classifier = llm.with_structured_output(TutorChoice)
 
 
-def llm_call_3(state: State):
-    """Write a poem"""
-    result = llm.invoke(state["input"])
-    return {"output": result.content}
+def classify_question(state: State) -> dict:          # a NODE: makes the call, writes the label
+    choice = cast(TutorChoice, classifier.invoke([
+        SystemMessage("Decide which tutor should answer this student's question."),
+        HumanMessage(state["question"]),
+    ]))
+    return {"subject": choice.subject}
 
 
-# ---------------------------------------------------------
-# 4. Router node
-#
-# Uses structured output to classify the input and write a
-# reliable route label ("story", "joke", or "poem") to state.
-# ---------------------------------------------------------
-
-def llm_call_router(state: State):
-    """Route the input to the appropriate node"""
-
-    decision = cast(Route, router.invoke(
-        [
-            SystemMessage(
-                content="Route the input to story, joke, or poem based on the user's request."
-            ),
-            HumanMessage(content=state["input"]),
-        ]
-    ))
-    return {"decision": decision.step}
+def route_to_tutor(state: State) -> str:              # a ROUTER: pure Python, reads the label
+    return state["subject"]
 
 
-# ---------------------------------------------------------
-# 5. Conditional edge
-#
-# Reads the decision written by the router node and returns
-# the name of the worker node to visit next.
-# ---------------------------------------------------------
-
-def route_decision(state: State):
-    """Route to the correct worker based on the router's decision"""
-
-    if state["decision"] == "story":
-        return "llm_call_1"
-    elif state["decision"] == "joke":
-        return "llm_call_2"
-    elif state["decision"] == "poem":
-        return "llm_call_3"
+TUTOR_STYLE = {
+    "math": "You are a math tutor. Show each step, then check the result.",
+    "code": "You are a programming tutor. Explain the cause, then show a fixed snippet.",
+    "writing": "You are a writing tutor. Give two concrete suggestions with a before/after example.",
+}
 
 
-# ---------------------------------------------------------
-# 6. Build graph
-# ---------------------------------------------------------
+def make_tutor(subject: str):
+    """One tutor node per subject: same shape, its own prompt."""
+    def tutor(state: State) -> dict:
+        reply = llm.invoke([SystemMessage(TUTOR_STYLE[subject]), HumanMessage(state["question"])])
+        return {"answer": reply.text}
+    return tutor
 
-router_builder = StateGraph(State)
 
-router_builder.add_node("llm_call_router", llm_call_router)
-router_builder.add_node("llm_call_1", llm_call_1)
-router_builder.add_node("llm_call_2", llm_call_2)
-router_builder.add_node("llm_call_3", llm_call_3)
+builder = StateGraph(State)
+builder.add_node("classify_question", classify_question)
+for subject in TUTOR_STYLE:
+    builder.add_node(f"{subject}_tutor", make_tutor(subject))
+    builder.add_edge(f"{subject}_tutor", END)
+builder.add_edge(START, "classify_question")
+builder.add_conditional_edges("classify_question", route_to_tutor,
+                              {"math": "math_tutor", "code": "code_tutor", "writing": "writing_tutor"})
+graph = builder.compile()
 
-router_builder.add_edge(START, "llm_call_router")
-router_builder.add_conditional_edges(
-    "llm_call_router",
-    route_decision,
-    {  # label returned by route_decision : next node to visit
-        "llm_call_1": "llm_call_1",
-        "llm_call_2": "llm_call_2",
-        "llm_call_3": "llm_call_3",
-    },
-)
-router_builder.add_edge("llm_call_1", END)
-router_builder.add_edge("llm_call_2", END)
-router_builder.add_edge("llm_call_3", END)
+QUESTIONS = [
+    "What's the derivative of x^2 * sin(x)?",
+    "Why does my Python loop print the last value three times?",
+    "How do I make my essay's opening paragraph stronger?",
+]
 
-router_workflow = router_builder.compile()
 
-plot_graph(router_workflow)
+def main() -> None:
+    plot_graph(graph, str(Path(__file__).resolve().parent / "diagrams" / "02_routing_graph.png"),
+               print_mermaid=False)
+    for question in QUESTIONS:
+        result = graph.invoke({"question": question})  # type: ignore[arg-type]
+        print(f"\nQ: {question} -> {result['subject']}")
+        print("   " + result["answer"].strip().splitlines()[0][:110] + " ...")
 
-# ---------------------------------------------------------
-# 7. Run
-# ---------------------------------------------------------
 
-state = router_workflow.invoke({"input": "Write me a joke about cats"})  # type: ignore[arg-type]
-print(state["output"])
+if __name__ == "__main__":
+    main()

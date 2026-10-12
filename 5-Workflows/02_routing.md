@@ -2,104 +2,78 @@
 
 ## Part 1 — Core Tutorial
 
-Routing sends work to different paths depending on the input. The router uses structured output so the graph receives a reliable label — no free-text parsing needed.
-
-![Routing workflow](figures/workflow-03-routing.png)
+Routing sends work down different paths depending on the input. One model call classifies the input into a small, fixed set of labels; plain code then sends it to the node that handles that label. Structured output makes the label reliable: no free-text parsing.
 
 ```mermaid
 flowchart LR
-    START --> llm_call_router
-    llm_call_router -->|story| llm_call_1
-    llm_call_router -->|joke| llm_call_2
-    llm_call_router -->|poem| llm_call_3
-    llm_call_1 --> END
-    llm_call_2 --> END
-    llm_call_3 --> END
+    START --> classify_question
+    classify_question -->|math| math_tutor
+    classify_question -->|code| code_tutor
+    classify_question -->|writing| writing_tutor
+    math_tutor --> END
+    code_tutor --> END
+    writing_tutor --> END
 ```
 
 ## When To Use
 
-Use this pattern when different inputs need different handling and you can define a small fixed set of destinations upfront.
+Use this pattern when different inputs need different handling (a different prompt, model, or flow) and you can list the destinations up front.
 
 Examples:
 
-- easy question vs hard question
-- billing issue vs technical issue
-- story vs joke vs poem
+- a student's question → the math, code, or writing tutor
+- customer feedback → positive, negative, or neutral handling (`02b_routing_feedback.py`)
+- a support ticket → billing or technical
+
+If the categories would share nearly identical code, one parameterized prompt is simpler than a router.
 
 ## Part 2 — Code Example
 
 File: `02_routing.py`
 
-
-Graph from the code:
-
-```mermaid
-flowchart TD
-    START([START]) --> ROUTER["route_question"]
-    ROUTER --> DECIDE{"route"}
-    DECIDE -->|poem| POEM["llm_call_1"]
-    DECIDE -->|story| STORY["llm_call_2"]
-    DECIDE -->|joke| JOKE["llm_call_3"]
-    POEM --> END([END])
-    STORY --> END
-    JOKE --> END
-```
+![Routing graph](diagrams/02_routing_graph.png)
 
 ### How it works
 
-**Router node** — classifies the input using structured output and writes the decision to state:
+**Classifier node** — the one model call. It returns a typed label and writes it to state:
 
 ```python
-class Route(BaseModel):
-    step: Literal["poem", "story", "joke"]
+class TutorChoice(BaseModel):
+    subject: Literal["math", "code", "writing"]
 
-router = llm.with_structured_output(Route)
+classifier = llm.with_structured_output(TutorChoice)
 
-def llm_call_router(state: State):
-    decision = router.invoke([SystemMessage(...), HumanMessage(content=state["input"])])
-    return {"decision": decision.step}
+def classify_question(state: State) -> dict:
+    choice = classifier.invoke([SystemMessage(...), HumanMessage(state["question"])])
+    return {"subject": choice.subject}
 ```
 
-**Conditional edge** — reads `decision` from state and returns the worker node name:
+**Router** — pure Python. It reads the label and returns it; the mapping turns labels into node names:
 
 ```python
-def route_decision(state: State):
-    if state["decision"] == "story":
-        return "llm_call_1"
-    elif state["decision"] == "joke":
-        return "llm_call_2"
-    elif state["decision"] == "poem":
-        return "llm_call_3"
+def route_to_tutor(state: State) -> str:
+    return state["subject"]
+
+builder.add_conditional_edges("classify_question", route_to_tutor,
+    {"math": "math_tutor", "code": "code_tutor", "writing": "writing_tutor"})
 ```
 
-**Worker nodes** — each handles one content type, all share the same structure:
-
-```python
-def llm_call_2(state: State):
-    """Write a joke"""
-    result = llm.invoke(state["input"])
-    return {"output": result.content}
-```
+**Tutor nodes** — same shape, each with its own system prompt (`TUTOR_STYLE`), built by a small `make_tutor(subject)` factory.
 
 ### State
 
 | Field | Set by | Used by |
 |---|---|---|
-| `input` | caller | router + workers |
-| `decision` | router node | conditional edge |
-| `output` | worker node | caller |
+| `question` | caller | classifier + tutors |
+| `subject` | `classify_question` | `route_to_tutor` |
+| `answer` | the chosen tutor | caller |
 
 ### Key idea
 
-Structured output is what makes routing reliable. Without it, the router returns free text that you'd have to parse. With it, `decision` is always exactly `"story"`, `"joke"`, or `"poem"` — the conditional edge reads it directly.
+The model call lives in a **node**, where its output is captured in state; the branching lives in a **router** that only reads state. Because `subject` is a `Literal`, it is always exactly `"math"`, `"code"`, or `"writing"`, so the router never guesses.
 
 ## Exercises
 
-**Exercise 1 — Add a fourth route**
+**Exercise 1 — Add a fourth route.** Add `"science"` to `TutorChoice`, a `TUTOR_STYLE` entry, and the mapping. Test with "Why is the sky blue?".
 
-Add a `"haiku"` option to the `Route` schema and a `llm_call_4` node that writes a haiku. Wire it into the graph and test with `"Write me a haiku about rain"`.
-
-**Exercise 2 — Shared prompt**
-
-The three worker nodes currently pass `state["input"]` directly to the LLM. Update each one to prepend a short system prompt that fits its content type (e.g. `"You are a comedian. Write only jokes."`). Verify the output style changes.
+**Exercise 2 — A cheaper router.** Use a smaller, faster model for `classify_question` only, and keep the stronger one for the tutors. Does the routing change on the three sample questions?

@@ -1,11 +1,11 @@
 # 01. Prompt Chaining
 
-This tutorial teaches **prompt chaining** with three examples: a content pipeline, a joke pipeline with a quality gate, and an essay drafter with reflection.
+This tutorial teaches **prompt chaining** with three examples: a content pipeline, a product-description chain with a quality gate, and an essay drafter with reflection.
 
 This tutorial includes four examples:
 
 1. a content generation pipeline with quality control
-2. a joke generation chain with a conditional quality gate
+2. a product-description chain with a conditional quality gate
 3. an essay drafter that drafts, reflects, and revises
 4. local RAG: retrieve from a docs folder, then generate ([`01_rag_retrieve_generate.py`](01_rag_retrieve_generate.py))
 
@@ -136,49 +136,43 @@ The repo also includes a checked-in sample report you can view without running t
 5-Workflows/examples/prompt_chaining_output.html
 ```
 
-## Part 3 — Code Example B: Joke Chain With A Gate
+## Part 3 — Code Example B: Product Description With A Quality Gate
 
 File:
 
 ```text
-01_prompt_chaining_joke_gate.py
+01_prompt_chaining_quality_gate.py
 ```
 
-This second example is still prompt chaining, but it adds one conditional edge. The graph first generates a joke, then checks whether it appears to have a punchline.
-
-The hand-drawn flow below shows the idea: one LLM call creates the first joke, a gate checks it, and only failed jokes continue into more LLM steps.
-
-![Prompt chaining joke gate concept](figures/workflow-09-prompt-chaining-joke-gate.png)
+This second example is still prompt chaining, but it adds one conditional edge. The first call drafts a product description for an online store; a gate then checks the draft in plain code: at most 50 words, and the price must appear. A draft that passes ends the run. One that fails continues through two more calls.
 
 ```mermaid
 flowchart TD
-    START([START]) --> JOKE["generate_joke"]
-    JOKE -. "Pass" .-> END([END])
-    JOKE -. "Fail" .-> IMPROVE["improve_joke"]
-    IMPROVE --> POLISH["polish_joke"]
-    POLISH --> END
+    START([START]) --> DRAFT["draft_description"]
+    DRAFT -. "pass" .-> END([END])
+    DRAFT -. "fail" .-> TIGHTEN["tighten_description"]
+    TIGHTEN --> CTA["add_call_to_action"]
+    CTA --> END
 ```
 
 Generated LangGraph plot from the code:
 
-![Prompt chaining joke gate graph](diagrams/01_prompt_chaining_joke_gate_graph.png)
+![Prompt chaining quality gate graph](diagrams/01_prompt_chaining_quality_gate_graph.png)
 
 Run from the repo root:
 
 ```bash
-python "5-Workflows/01_prompt_chaining_joke_gate.py"
+python "5-Workflows/01_prompt_chaining_quality_gate.py"
 ```
 
 What makes this example interesting:
 
-- `generate_joke()` is the first LLM call
-- `check_punchline()` is a router, not a state-updating node
-- if the joke passes, the graph ends early
-- if it fails, the graph chains into `improve_joke()` and `polish_joke()`
+- `draft_description()` is the first LLM call
+- `meets_brief()` is a router, not a state-updating node: it reads the draft and returns `"pass"` or `"fail"`
+- the gate's checks are deterministic (a word count and a substring), so they cost nothing and never vary
+- if the draft passes, the graph ends early; if it fails, the chain continues into `tighten_description()` and `add_call_to_action()`
 
-This is a nice bridge between prompt chaining and conditional edges: the chain is mostly sequential, but a quality gate decides whether more steps are needed.
-
-The original notebook-style version used `IPython.display` to show the graph inline. In this repo version, the graph is saved as a PNG so it works from a normal Python script.
+This is a bridge between prompt chaining and conditional edges: the chain is mostly sequential, but a quality gate decides whether more steps are needed.
 
 ## Code Explanation A: Content Pipeline
 
@@ -234,41 +228,34 @@ graph_builder.add_edge("improve_content", "format_output")
 
 These normal edges create the chain. There is no branching here: every step always runs in order.
 
-## Code Explanation B: Joke Chain With A Gate
+## Code Explanation B: Product Description With A Quality Gate
 
 ```python
-def generate_joke(state: JokeState) -> dict:
-    msg = llm.invoke(f"Write a short joke about {state['topic']}.")
-    return {"joke": msg.content}
+def draft_description(state: State) -> dict:
+    reply = llm.invoke(f"Write a product description for an online store.\n"
+                       f"Product: {state['product']}\nPrice: {state['price']}")
+    return {"draft": reply.text}
 ```
 
-The first node creates the initial joke and writes only the `joke` field.
+The first node writes only the `draft` field.
 
 ```python
-def check_punchline(state: JokeState) -> str:
-    if "?" in state["joke"] or "!" in state["joke"]:
-        return "Pass"
-    return "Fail"
+def meets_brief(state: State) -> str:
+    words = len(state["draft"].split())
+    has_price = state["price"] in state["draft"]
+    return "pass" if words <= MAX_WORDS and has_price else "fail"
 ```
 
-This function is a router. It reads state and returns a route label. It does not update state.
+This function is a router. It reads state and returns a route label. It doesn't update state, and its checks are ones code can do exactly.
 
 ```python
-graph_builder.add_conditional_edges(
-    "generate_joke",
-    check_punchline,
-    {"Fail": "improve_joke", "Pass": END},
-)
+builder.add_conditional_edges("draft_description", meets_brief,
+                              {"pass": END, "fail": "tighten_description"})
+builder.add_edge("tighten_description", "add_call_to_action")
+builder.add_edge("add_call_to_action", END)
 ```
 
-This conditional edge means: after the first joke, either stop immediately or continue the chain.
-
-```python
-graph_builder.add_edge("improve_joke", "polish_joke")
-graph_builder.add_edge("polish_joke", END)
-```
-
-If the joke fails the gate, the graph continues through two more LLM calls before ending.
+After the first draft the graph either stops or continues the chain. Each field (`draft`, `tightened`, `final`) is written by exactly one node, so no reducer is needed.
 
 ## Part 4 — Code Example C: Essay Drafter With Reflection
 

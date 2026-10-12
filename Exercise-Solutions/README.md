@@ -61,7 +61,7 @@ OPENAI_API_KEY=your_key_here
 | File | Exercise |
 |------|----------|
 | `5-workflows/ex1_tone_step.py` | Extend prompt chain with a casual tone step |
-| `5-workflows/ex2_parallel_haiku.py` | Add a haiku branch to the parallelization example |
+| `5-workflows/ex2_parallel_fourth_branch.py` | Add a fourth branch (a newsletter blurb) to the social-media parallelization example |
 | `5-workflows/ex3_structured_router.py` | Classify input and route to a specialist node |
 | `5-workflows/ex4_evaluator_loop_guard.py` | Add a MAX_ROUNDS exit to the support-reply review loop |
 | `5-workflows/ex5_evaluator_headline_writer.py` | Swap the domain: a news-headline writer graded clear/unclear, with two code checks |
@@ -194,18 +194,18 @@ flowchart LR
     START([START]) --> DRAFT["generate_draft"] --> CHECK["fact_check"] --> IMPROVE["improve_content"] --> TONE["casual_tone"] --> END([END])
 ```
 
-`5-workflows/ex2_parallel_haiku.py`
+`5-workflows/ex2_parallel_fourth_branch.py`
 
 ```mermaid
 flowchart TD
-    START([START]) --> JOKE["generate_joke"]
-    START --> STORY["generate_story"]
-    START --> POEM["generate_poem"]
-    START --> HAIKU["generate_haiku"]
-    JOKE --> AGG["aggregator"]
-    STORY --> AGG
-    POEM --> AGG
-    HAIKU --> AGG
+    START([START]) --> IG["generate_instagram_post"]
+    START --> TW["generate_twitter_post"]
+    START --> LI["generate_linkedin_post"]
+    START --> NL["generate_newsletter_blurb"]
+    IG --> AGG["aggregate_posts"]
+    TW --> AGG
+    LI --> AGG
+    NL --> AGG
     AGG --> END([END])
 ```
 

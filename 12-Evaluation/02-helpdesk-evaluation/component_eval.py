@@ -20,7 +20,7 @@
 # 1. Run run_experiment.py once first, so the dataset exists in LangSmith.
 # 2. The same .env as run_experiment.py.
 #
-# Run it with (from the 12-Evaluation folder):
+# Run it with (from the 12-Evaluation/02-helpdesk-evaluation folder):
 #    python component_eval.py v1
 #    python component_eval.py v2
 #

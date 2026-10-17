@@ -17,7 +17,7 @@
 # 1. Run online_feedback.py and review_queue.py first.
 # 2. LANGSMITH_API_KEY in a .env file in this folder or the repository root.
 #
-# Run it with (from the 12-Evaluation folder):
+# Run it with (from the 12-Evaluation/02-helpdesk-evaluation folder):
 #    python promote_example.py
 #
 # Expected result: "added group-quote (from run <id>)" the first time, and

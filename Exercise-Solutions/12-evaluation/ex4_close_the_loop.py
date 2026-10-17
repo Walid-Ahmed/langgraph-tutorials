@@ -8,7 +8,7 @@
 #        evaluator and runs v2 with all four, the baseline: group-quote fails
 #        grounded_numbers, because the desk multiplies 150 by 3 itself;
 #     2. registers a new desk version, v4: v2's prompt with a rental_quote that
-#        takes a `quantity` argument (12-Evaluation/desk.py is not edited);
+#        takes a `quantity` argument (12-Evaluation/02-helpdesk-evaluation/desk.py is not edited);
 #     3. runs the chapter's regression gate (regression_gate.gate) for v2 -> v4,
 #        grading the candidate with the same four evaluators.
 #   It prints group-quote's route, tool results and reply for both versions.
@@ -26,7 +26,7 @@
 # Prerequisites:
 #   pip install -r requirements.txt, then OPENAI_API_KEY, LANGSMITH_API_KEY and
 #   LANGSMITH_TRACING=true in the repo-root .env or the environment. The chapter's
-#   dataset must already hold group-quote (run promote_example.py in 12-Evaluation).
+#   dataset must already hold group-quote (run promote_example.py in 12-Evaluation/02-helpdesk-evaluation).
 #   Two experiments over 13 examples: about 55 gpt-4o-mini calls and 26 gpt-4o
 #   judge calls, a few US cents.
 #

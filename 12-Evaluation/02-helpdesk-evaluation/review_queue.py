@@ -19,7 +19,7 @@
 # 1. Run online_feedback.py first, so the project has runs with feedback.
 # 2. LANGSMITH_API_KEY in a .env file in this folder or the repository root.
 #
-# Run it with (from the 12-Evaluation folder):
+# Run it with (from the 12-Evaluation/02-helpdesk-evaluation folder):
 #    python review_queue.py
 #
 # Expected result: three lines, one per flagged question (opening hours, return

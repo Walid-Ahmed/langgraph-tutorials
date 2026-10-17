@@ -10,7 +10,7 @@
 #
 # Prerequisites: pip install -r requirements.txt (repository root), the chapter's
 # .env keys, and a stored v2 baseline (`python run_experiment.py v2`).
-# Run from 12-Evaluation:
+# Run from 12-Evaluation/02-helpdesk-evaluation:
 #   python regression_gate.py v2 v3
 #   python regression_gate.py v2 v3 --baseline-experiment desk-v2-<suffix>
 # Expected: price-boundary regresses, FAIL, exit 1. Incomplete results also fail.

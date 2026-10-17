@@ -30,7 +30,7 @@
 # Prerequisites:
 #   pip install -r requirements.txt, then OPENAI_API_KEY and LANGSMITH_API_KEY in
 #   the repo-root .env or the environment, and a desk-v1 experiment (run
-#   `python run_experiment.py v1` in 12-Evaluation once).
+#   `python run_experiment.py v1` in 12-Evaluation/02-helpdesk-evaluation once).
 #   compare: 72 judge calls (12 replies x 3 repeats x 2 models), a few US cents.
 #
 # Expected result (our runs, on experiment desk-v1-e18b3ce8):
@@ -69,7 +69,7 @@ def latest_v1_experiment():
         runs = list(client.list_runs(project_name=experiment.name, is_root=True))
         if runs:
             return experiment.name, runs
-    sys.exit("no desk-v1 experiment found: run `python run_experiment.py v1` in 12-Evaluation")
+    sys.exit("no desk-v1 experiment found: run `python run_experiment.py v1` in 12-Evaluation/02-helpdesk-evaluation")
 
 
 def collect():

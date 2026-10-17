@@ -24,7 +24,7 @@
 # 2. A .env file in this folder or the repository root with OPENAI_API_KEY,
 #    LANGSMITH_API_KEY and LANGSMITH_TRACING=true.
 #
-# Run it with (from the 12-Evaluation folder):
+# Run it with (from the 12-Evaluation/02-helpdesk-evaluation folder):
 #    python online_feedback.py
 #
 # Expected result: four lines, one per question, each showing the reply and its

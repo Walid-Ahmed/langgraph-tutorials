@@ -1,7 +1,7 @@
 # Unit tests and a code-evaluator test for the same price boundary.
 # Why: exercise the real pricing tool without an LLM, API key or LangSmith call.
 # Prerequisite: pip install -r requirements-dev.txt (repository root).
-# Run from the repository root: python -m pytest -q 12-Evaluation/test_pricing.py
+# Run from the repository root: python -m pytest -q 12-Evaluation/02-helpdesk-evaluation/test_pricing.py
 # Expected: 4 passed. The v3 example deliberately keeps its teaching bug.
 
 import pytest

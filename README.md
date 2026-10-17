@@ -72,7 +72,8 @@ flowchart TD
     H --> I["9. Email Assistant"]
     I --> K["10. Observability"]
     K --> L["11. Guardrails"]
-    L -.-> J["Exercise Solutions"]
+    L --> M["12. Evaluation"]
+    M -.-> J["Exercise Solutions"]
 ```
 
 | # | Folder | What you learn | Needs |
@@ -88,6 +89,7 @@ flowchart TD
 | 9 | [`9-Email-Assistant/`](9-Email-Assistant/) | A complete assistant built gradually: routing, tools, and every memory type | OpenAI |
 | 10 | [`10-observability/`](10-observability/) | LangSmith tracing of graphs, LLM calls and nodes | OpenAI, LangSmith |
 | 11 | [`11-Guardrials/`](11-Guardrials/) | Guardrails with LangChain middleware: PII detection, human-in-the-loop, input/output checks (notebook) | OpenAI |
+| 12 | [`12-Evaluation/`](12-Evaluation/README.md) | Local evaluation basics, then LangGraph help-desk datasets, experiments and regression gates (book Chapter 14) | No keys for the minimal example; OpenAI and LangSmith for hosted examples |
 | — | [`Exercise-Solutions/`](Exercise-Solutions/) | Runnable answers to the end-of-tutorial exercises (1–6). Try the exercises first | OpenAI for some |
 
 Each folder has its own README that works like a mini lesson. Each one follows the same rhythm:
@@ -119,7 +121,7 @@ procedural memory) live in those tutorials' READMEs.
 | `ModuleNotFoundError: No module named 'langgraph'` | Activate the virtual environment and run `pip install -r requirements.txt` |
 | `OpenAI` authentication error in tutorials 3 and 5–11 | Check that `.env` exists in the repo root and contains a valid `OPENAI_API_KEY` |
 | Tutorial 10 cannot find `.env` or LangSmith keys | Copy `10-observability/.env.example` to `10-observability/.env`. Those scripts load env from **that** folder, not the repo root. Run 01–02 as `python 01_….py` and file 03 as `python 03_multi_tool_agent/main.py` from `10-observability/` |
-| Run commands fail with "file not found" | Run commands from the repo root, not from inside a tutorial folder (except tutorial 10 — run from `10-observability/`) |
+| Run commands fail with "file not found" | Run commands from the repo root, not from inside a tutorial folder (tutorial 10 runs from `10-observability/`; tutorial 12 documents the working folder for each example in its README) |
 
 ## Official References Used
 

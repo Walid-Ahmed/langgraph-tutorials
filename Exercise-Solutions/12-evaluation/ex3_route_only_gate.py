@@ -6,7 +6,7 @@
 #   (regression_gate.gate) for v2 -> v3, but with the candidate graded by
 #   correct_tools ONLY. The explicit metric selection is:
 #       gate("v2", "v3", metrics=("correct_tools",), evaluators=(correct_tools,))
-#   made from outside, so 12-Evaluation/regression_gate.py is never edited and
+#   made from outside, so 12-Evaluation/02-helpdesk-evaluation/regression_gate.py is never edited and
 #   there is no line to forget to put back.
 #
 # Why it matters:
@@ -22,7 +22,7 @@
 # Prerequisites:
 #   pip install -r requirements.txt, then OPENAI_API_KEY, LANGSMITH_API_KEY and
 #   LANGSMITH_TRACING=true in the repo-root .env or the environment, and a stored
-#   v2 baseline (run `python run_experiment.py v2` in 12-Evaluation once).
+#   v2 baseline (run `python run_experiment.py v2` in 12-Evaluation/02-helpdesk-evaluation once).
 #   About 30 gpt-4o-mini calls and no judge calls.
 #
 # Expected result (our run):
@@ -34,7 +34,7 @@
 
 import sys
 
-from dataset_copy import EVAL_DIR  # noqa: F401  (puts 12-Evaluation on the import path)
+from dataset_copy import EVAL_DIR  # noqa: F401  (puts the help-desk folder on the import path)
 
 import regression_gate  # noqa: E402  (loads .env)
 from evaluators import correct_tools  # noqa: E402

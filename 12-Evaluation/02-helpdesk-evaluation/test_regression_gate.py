@@ -1,7 +1,7 @@
 # Local tests for fail-closed coverage and historical-dataset comparisons.
 # Why: missing scores, failed targets or changed references must never pass CI.
 # Prerequisite: pip install -r requirements-dev.txt (repository root).
-# Run: python -m pytest -q 12-Evaluation/test_regression_gate.py
+# Run: python -m pytest -q 12-Evaluation/02-helpdesk-evaluation/test_regression_gate.py
 # LangSmith calls are replaced with fakes; no API key or paid call is required.
 
 from datetime import datetime, timezone

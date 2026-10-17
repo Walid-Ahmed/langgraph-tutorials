@@ -27,7 +27,7 @@
 # Prerequisites:
 #   pip install -r requirements.txt, then OPENAI_API_KEY, LANGSMITH_API_KEY and
 #   LANGSMITH_TRACING=true in the repo-root .env or the environment. The chapter's
-#   dataset must exist (run 12-Evaluation/run_experiment.py once).
+#   dataset must exist (run 12-Evaluation/02-helpdesk-evaluation/run_experiment.py once).
 #   One experiment over 16 examples: about 35 gpt-4o-mini calls and 16 gpt-4o
 #   judge calls, a few US cents.
 #

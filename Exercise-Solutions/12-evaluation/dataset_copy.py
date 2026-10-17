@@ -25,7 +25,7 @@ import sys
 import time
 from pathlib import Path
 
-EVAL_DIR = Path(__file__).resolve().parents[2] / "12-Evaluation"
+EVAL_DIR = Path(__file__).resolve().parents[2] / "12-Evaluation" / "02-helpdesk-evaluation"
 sys.path.insert(0, str(EVAL_DIR))  # the chapter's desk, evaluators and harness
 
 SOURCE = "corniche-cycles-desk"

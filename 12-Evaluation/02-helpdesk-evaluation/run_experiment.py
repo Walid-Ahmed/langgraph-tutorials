@@ -23,7 +23,7 @@
 #    LANGSMITH_API_KEY=your_langsmith_key      # from smith.langchain.com
 #    LANGSMITH_TRACING=true
 #
-# Run it with (from the 12-Evaluation folder):
+# Run it with (from the 12-Evaluation/02-helpdesk-evaluation folder):
 #    python run_experiment.py v1
 #    python run_experiment.py v2
 #

@@ -68,12 +68,16 @@ def ensure_dataset() -> None:
     print(f"created dataset {DATASET} with {len(seed)} examples")
 
 
-def run(version: str, evaluators=(correct_tools, facts_present, judge_reply)):
+def run(version: str, evaluators=None, *, dataset_version: str | None = None):
     """Run one experiment; return {example id: {evaluator: score}} for printing or gating."""
+    if evaluators is None:
+        evaluators = (correct_tools, facts_present, judge_reply)
+    data = (list(client.list_examples(dataset_name=DATASET, as_of=dataset_version))
+            if dataset_version else DATASET)
     desk = build_desk(version)
     results = client.evaluate(
         lambda inputs: run_desk(desk, inputs["question"]),  # the target: inputs -> outputs
-        data=DATASET,
+        data=data,
         evaluators=list(evaluators),
         experiment_prefix=f"desk-{version}",
         metadata={"version": version},  # lets the UI group experiments, and the gate find them
@@ -82,6 +86,13 @@ def run(version: str, evaluators=(correct_tools, facts_present, judge_reply)):
     scores = {}
     for row in results:
         example_id = row["example"].metadata["id"]
+        if row["run"] is None or row["run"].error:
+            raise ValueError(f"{example_id}: target execution failed")
+        if example_id in scores:
+            raise ValueError(f"duplicate example metadata id: {example_id}")
+        for result in row["evaluation_results"]["results"]:
+            if (result.extra or {}).get("error"):
+                raise ValueError(f"{example_id}: evaluator {result.key} failed")
         scores[example_id] = {r.key: r.score for r in row["evaluation_results"]["results"]}
     return scores
 

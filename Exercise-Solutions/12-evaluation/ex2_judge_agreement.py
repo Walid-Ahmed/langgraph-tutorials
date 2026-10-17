@@ -48,7 +48,7 @@ from pathlib import Path
 
 from dataset_copy import SOURCE
 
-from run_experiment import client  # noqa: E402  (loads .env before evaluators builds its judge)
+from run_experiment import client  # noqa: E402  (loads .env before the judge is used)
 from evaluators import JUDGE_RUBRIC, Verdict  # noqa: E402
 from langchain_openai import ChatOpenAI  # noqa: E402
 

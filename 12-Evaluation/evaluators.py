@@ -24,6 +24,7 @@
 # 1. OPENAI_API_KEY in the environment (judge_reply only; the others are offline).
 
 from collections import Counter
+from functools import cache
 from typing import Literal
 
 from langchain_openai import ChatOpenAI
@@ -87,13 +88,15 @@ class Verdict(BaseModel):
     verdict: Literal["pass", "fail"]
 
 
-# The judge is a stronger model than the desk it grades (gpt-4o vs gpt-4o-mini).
-judge = ChatOpenAI(model="gpt-4o", temperature=0).with_structured_output(Verdict)
+@cache
+def get_judge():
+    """Create the judge only when used, so code-only checks need no API key."""
+    return ChatOpenAI(model="gpt-4o", temperature=0).with_structured_output(Verdict)
 
 
 def judge_reply(inputs: dict, outputs: dict, reference_outputs: dict) -> dict:
     """LLM-as-judge: 1 if a second model says the reply meets the rubric, else 0."""
-    result = judge.invoke([
+    result = get_judge().invoke([
         ("system", JUDGE_RUBRIC),
         ("human",
          f"Customer question:\n{inputs['question']}\n\n"

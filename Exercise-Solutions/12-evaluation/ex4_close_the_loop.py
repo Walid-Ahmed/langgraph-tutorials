@@ -39,7 +39,6 @@
 #   group-quote under v4: tool result "3 electric bikes, 2 h: EGP 450"
 # and exit status 0. The wording of the replies varies between runs.
 
-import functools
 import os
 import sys
 
@@ -112,8 +111,7 @@ def main() -> int:
 
     # 2-3. The gate, with the candidate graded by the same four evaluators.
     print()
-    regression_gate.run = functools.partial(run, evaluators=EVALUATORS)
-    status = regression_gate.gate("v2", "v4")
+    status = regression_gate.gate("v2", "v4", metrics=tuple(METRICS), evaluators=EVALUATORS)
     show_replies(client, COPY, "v4", {"group-quote"}, METRICS)
     return status
 

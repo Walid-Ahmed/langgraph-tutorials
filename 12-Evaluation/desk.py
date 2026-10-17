@@ -3,8 +3,8 @@
 # This module builds a small tool-calling agent for a fictional bike-rental shop
 # in Alexandria. It has two tools (a price quote and a station stock check) and
 # the Chapter 7 loop: llm -> tools -> llm, until the model stops asking for tools.
-# It exports build_desk(version) and run_desk(desk, question); it is not meant to
-# be run on its own.
+# It exports build_desk(version), run_desk(desk, question) and make_llm_node(version),
+# the graph's `llm` node on its own; it is not meant to be run on its own.
 #
 # Why this matters:
 # - An evaluation needs a system under test whose correct answers you KNOW. Both
@@ -14,7 +14,7 @@
 #     v1  the first draft
 #     v2  v1 with the clarification rule fixed after the first offline run
 #     v3  v2 plus a "harmless" refactor of the pricing tool
-#   compare_runs.py shows what the v3 refactor broke.
+#   regression_gate.py shows what the v3 refactor broke.
 # - run_desk() returns the final answer, the names of the tools called and what
 #   those tools returned, so an evaluator can grade the result, the route the
 #   agent took to it, and whether the answer sticks to the evidence.
@@ -23,7 +23,11 @@
 # 1. pip install -r requirements.txt   (from the repository root)
 # 2. OPENAI_API_KEY in a .env file in this folder or the repository root.
 #
-# Imported by run_offline_eval.py, langsmith_experiment.py and online_feedback.py.
+# - make_llm_node() exists so component_eval.py can test one node by itself: a
+#   LangGraph node is just a function from state to a state update.
+#
+# Imported by run_experiment.py, component_eval.py, regression_gate.py and
+# online_feedback.py.
 
 from typing import Literal
 
@@ -104,8 +108,8 @@ VERSIONS = {
 }
 
 
-def build_desk(version: str = "v2"):
-    """Compile the help-desk graph for one version: its system prompt and its tools."""
+def make_llm_node(version: str = "v2"):
+    """The desk's `llm` node on its own: a plain function from state to a state update."""
     prompt, tools = VERSIONS[version]
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
     system = SystemMessage(prompt)
@@ -114,8 +118,14 @@ def build_desk(version: str = "v2"):
         # The system prompt is prepended on every lap, never stored in state.
         return {"messages": [llm.invoke([system] + state["messages"])]}
 
+    return call_llm
+
+
+def build_desk(version: str = "v2"):
+    """Compile the help-desk graph for one version: its system prompt and its tools."""
+    _, tools = VERSIONS[version]
     builder = StateGraph(MessagesState)
-    builder.add_node("llm", call_llm)
+    builder.add_node("llm", make_llm_node(version))
     builder.add_node("tools", ToolNode(tools))
     builder.add_edge(START, "llm")
     builder.add_conditional_edges("llm", tools_condition)  # "tools" or END

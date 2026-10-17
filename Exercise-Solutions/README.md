@@ -14,6 +14,7 @@ Attempt each exercise yourself before opening its solution — the exercises are
 | `4-conditional-edges/` | [4. Conditional Edges](../4-Conditional%20Edges/README.md) |
 | `5-workflows/` | [5. Workflows](../5-Workflows/README.md) |
 | `6-agents/` | [6. Agents](../6-Agents/README.md) |
+| `12-evaluation/` | [12. Evaluation](../12-Evaluation/README.md) (book Chapter 14) |
 
 ## Running a solution
 
@@ -73,6 +74,17 @@ OPENAI_API_KEY=your_key_here
 | `6-agents/ex1_word_count_tool.py` | Add a word_count tool |
 | `6-agents/ex2_iteration_cap.py` | Cap the agent loop at 5 iterations |
 | `6-agents/ex3_conversation_memory.py` | Multi-turn agent with carry-over history |
+
+### 12. Evaluation (book Chapter 14)
+These use LangSmith (`LANGSMITH_API_KEY`, `LANGSMITH_TRACING=true`) and work on copies of the golden dataset, so the chapter's own experiments aren't affected.
+
+| File | Exercise |
+|------|----------|
+| `12-evaluation/ex1_grow_golden_set.py` | 14.1: add three golden examples (`ex1_new_golden_examples.jsonl`) and run an experiment |
+| `12-evaluation/ex2_judge_agreement.py` | 14.2: hand labels vs gpt-4o and gpt-4o-mini judges on the same replies |
+| `12-evaluation/ex3_route_only_gate.py` | 14.3: break the gate by grading only the route |
+| `12-evaluation/ex4_close_the_loop.py` | 14.4: `grounded_numbers` as an evaluator, a `quantity` argument, and the gate |
+| `12-evaluation/dataset_copy.py` | Shared helper: dataset copies, and waiting for an experiment to be readable |
 
 
 ## Graph Gallery

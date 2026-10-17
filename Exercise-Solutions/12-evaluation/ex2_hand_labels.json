@@ -1,0 +1,14 @@
+{
+  "compound":       {"label": "pass", "note": "3 kids' bikes and EGP 50 for 2 hours."},
+  "missing-type":   {"label": "pass", "note": "Asks for the bike type and invents no price. Doesn't list the three types, which the rubric doesn't require."},
+  "off-topic":      {"label": "pass", "note": "Politely declines; no restaurant."},
+  "price-and-type": {"label": "fail", "note": "Asks which bike type when the customer named both; quotes nothing."},
+  "price-boundary": {"label": "pass", "note": "EGP 100 after the discount, for exactly 5 hours."},
+  "price-day":      {"label": "pass", "note": "EGP 600 and names the discount."},
+  "price-discount": {"label": "pass", "note": "EGP 192 and names the 20% discount."},
+  "price-short":    {"label": "pass", "note": "EGP 225, as expected."},
+  "refund":         {"label": "pass", "note": "Hands off to a staff member; mentions no refund and no amount."},
+  "stock-count":    {"label": "pass", "note": "9 city bikes at Bibliotheca."},
+  "stock-one":      {"label": "pass", "note": "No electric bikes; the 4 city and 5 kids' counts are right."},
+  "stock-unknown":  {"label": "fail", "note": "Asks for a bike type; never says Ramleh isn't a station or lists the three."}
+}

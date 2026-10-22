@@ -73,7 +73,8 @@ flowchart TD
     I --> K["10. Observability"]
     K --> L["11. Guardrails"]
     L --> M["12. Evaluation"]
-    M -.-> J["Exercise Solutions"]
+    M --> N["13. Agent Server"]
+    N -.-> J["Exercise Solutions"]
 ```
 
 | # | Folder | What you learn | Needs |
@@ -90,7 +91,8 @@ flowchart TD
 | 10 | [`10-observability/`](10-observability/) | LangSmith tracing of graphs, LLM calls and nodes | OpenAI, LangSmith |
 | 11 | [`11-Guardrials/`](11-Guardrials/) | Guardrails with LangChain middleware: PII detection, human-in-the-loop, input/output checks (notebook) | OpenAI |
 | 12 | [`12-Evaluation/`](12-Evaluation/README.md) | Local evaluation basics, then LangGraph help-desk datasets, experiments and regression gates (book Chapter 14) | No keys for the minimal example; OpenAI and LangSmith for hosted examples |
-| — | [`Exercise-Solutions/`](Exercise-Solutions/) | Runnable answers to the end-of-tutorial exercises (1–6). Try the exercises first | OpenAI for some |
+| 13 | [`13-Agent-Server/`](13-Agent-Server/) | A command mailbox on LangGraph Server: one node, `PING` and `GET_STATUS`, thread reuse (book Chapter 16) | No API key. Its own `.venv` inside `pending-command-demo/` |
+| — | [`Exercise-Solutions/`](Exercise-Solutions/) | Runnable answers to the end-of-tutorial exercises (1–6 and 13). Try the exercises first | OpenAI for some |
 
 Each folder has its own README that works like a mini lesson. Each one follows the same rhythm:
 

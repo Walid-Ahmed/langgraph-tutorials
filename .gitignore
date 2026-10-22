@@ -1,6 +1,10 @@
 # Python virtual environment
 .venv/
 venv/
+*.egg-info/
+
+# LangGraph Server local persistence (created by `langgraph dev`)
+.langgraph_api/
 
 # Python cache files
 __pycache__/

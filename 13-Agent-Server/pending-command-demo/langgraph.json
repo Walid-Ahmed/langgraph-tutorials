@@ -1,0 +1,6 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "commands": "./server/graph.py:graph"
+  }
+}

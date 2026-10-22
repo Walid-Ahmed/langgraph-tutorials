@@ -39,6 +39,7 @@ def get_thread_id() -> str:
 def run_command(thread_id: str, command_type: str) -> dict:
     """Submit one command and return the state after the run finishes."""
     final_state = None
+    # The first values event is the input, still holding the command. Keep the last.
     for chunk in client.runs.stream(
         thread_id,
         "commands",  # the graph name in langgraph.json, sent as assistant_id

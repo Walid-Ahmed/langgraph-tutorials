@@ -28,6 +28,7 @@ from langgraph.graph import END, START, StateGraph
 from server.command_types import State
 from server.handlers import handle_get_status, handle_ping
 
+# A new command is a new entry here, not a new node or a new edge.
 HANDLERS = {
     "PING": handle_ping,
     "GET_STATUS": handle_get_status,

@@ -20,6 +20,7 @@ from common import get_thread_id, run_command
 thread_id = get_thread_id()
 print(f"THREAD_ID={thread_id}")
 state = run_command(thread_id, "GET_STATUS")
+# This is the last snapshot. The first one still has response set to None.
 response = state.get("response")
 if response is None:
     raise RuntimeError("No status response received")

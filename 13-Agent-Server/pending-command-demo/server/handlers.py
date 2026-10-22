@@ -11,6 +11,7 @@ import logging
 
 from server.command_types import State
 
+# PING's client prints no reply, so this log is the server-side sign the handler ran.
 logger = logging.getLogger(__name__)
 
 

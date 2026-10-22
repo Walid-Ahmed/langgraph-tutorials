@@ -21,4 +21,5 @@ from common import get_thread_id, run_command
 
 thread_id = get_thread_id()
 print(f"THREAD_ID={thread_id}")
+# No reply is printed on purpose. A non-zero exit is how this script reports failure.
 run_command(thread_id, "PING")

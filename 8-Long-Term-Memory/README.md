@@ -85,7 +85,7 @@ Run every command from the repository root.
 | 2 | [`01_simple_cross_thread_memory.py`](01_simple_cross_thread_memory.py) | chatbot sharing one plain-text profile across two threads | `OPENAI_API_KEY` |
 | 3 | [`02_structured_cross_thread_memory.py`](02_structured_cross_thread_memory.py) | structured extraction, field merging, user isolation | `OPENAI_API_KEY` |
 | 4 | [`03-postgres-store/`](03-postgres-store/README.md) | memory that survives between Python processes | PostgreSQL (no LLM) |
-| 5 | [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | **semantic** memory saved and searched by the agent | `OPENAI_API_KEY`, `langmem` |
+| 5 | [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | **semantic** memory saved by the agent, read by the app | `OPENAI_API_KEY`, `langmem` |
 | 6 | [`05_episodic_memory.py`](05_episodic_memory.py) | **episodic** memory as few-shot examples | `OPENAI_API_KEY` |
 | 7 | [`06_procedural_memory.py`](06_procedural_memory.py) | **procedural** memory rewritten from feedback | `OPENAI_API_KEY`, `langmem` |
 | 8 | [`07-skills/`](07-skills/README.md) | **skills**: procedural knowledge kept in `SKILL.md` files, loaded on demand | `OPENAI_API_KEY` |
@@ -319,7 +319,7 @@ the backend: any of them can live in `InMemoryStore` or `PostgresStore`.
 
 | File | Type | Written by | Found by |
 |---|---|---|---|
-| [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | semantic | the agent, via LangMem `manage_memory` (while answering) | embedding search via `search_memory` |
+| [`04_semantic_memory_tools.py`](04_semantic_memory_tools.py) | semantic | the agent, via LangMem `manage_memory` (while answering) | the app: a `@dynamic_prompt` middleware runs `store.search(namespace, query=request)` before every model call |
 | [`05_episodic_memory.py`](05_episodic_memory.py) | episodic | the app, after the user approves (background) | `store.search(namespace, query=request)` |
 | [`06_procedural_memory.py`](06_procedural_memory.py) | procedural | a LangMem prompt optimizer, from feedback (background) | exact `store.get(namespace, key)` |
 | [`07-skills/`](07-skills/README.md) | procedural, in files | people, versioned in git (same for every user) | a catalog of names in the prompt; full text loaded with a tool |
@@ -333,10 +333,17 @@ expect.
 
 ### Walkthrough 5 — Semantic memory (`04_semantic_memory_tools.py`)
 
-The agent gets two tools. In run 1 the user states facts and the agent calls
-`manage_memory` to save them. In run 2, which shares no messages with run 1,
-the agent calls `search_memory` and personalizes its answer. A different user's
-namespace stays empty.
+The agent writes memory with a tool and the app reads it in code. In run 1 the
+user states facts and the agent calls `manage_memory` to save them. In run 2,
+which shares no messages with run 1, a `@dynamic_prompt` middleware searches
+the user's namespace before the model runs and puts what it finds in the system
+prompt, so the answer is personalized. A different user's namespace stays empty.
+
+Why read in code instead of with a `search_memory` tool? A read tool is optional
+to the model: in a real run it saved the facts in run 1 but never searched in
+run 2, and asked the user what topic they wanted. Reading before the model runs
+makes remembering a guarantee. Writing stays a tool, because deciding what is
+worth remembering is a judgment the model is good at.
 
 ### Walkthrough 6 — Episodic memory (`05_episodic_memory.py`)
 

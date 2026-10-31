@@ -1,6 +1,6 @@
 # 1. LangGraph Basics — Your First Graph
 
-**Example file:** [`00_simple_graph.py`](00_simple_graph.py)
+**Example files:** [`00_simple_graph.py`](00_simple_graph.py) (one node) · [`01_two_node_graph.py`](01_two_node_graph.py) (two nodes and a handoff)
 
 This tutorial builds the smallest complete LangGraph program: one state schema, one node, one straight path from `START` to `END`. Every later tutorial in this repo — reducers, routing, agents, checkpointing — is this same shape with more parts attached, so it is worth understanding this one deeply before moving on.
 
@@ -121,6 +121,35 @@ Simple graph result: {'input': 'hello', 'output': 'HELLO', 'step': 1}
 ```
 
 Change `"hello"` in `initial_state` to any other word and re-run: the flow is identical, only the data differs. That separation — fixed wiring, variable data — is the whole point.
+
+## Two Runners: Passing the Baton
+
+[`01_two_node_graph.py`](01_two_node_graph.py) adds the smallest possible handoff: two nodes in a row, where the second needs what the first produced. It converts Celsius to Fahrenheit (°F = °C × 9/5 + 32) in two steps.
+
+```mermaid
+flowchart LR
+    START([START]) --> S["scale (× 9/5)"]
+    S --> H["shift (+ 32)"]
+    H --> END([END])
+```
+
+| Stage | Reads | Writes |
+|---|---|---|
+| `scale` | `celsius` | `scaled` |
+| `shift` | `scaled` | `fahrenheit` |
+
+```bash
+python "1-Langgraph basics/01_two_node_graph.py"
+```
+
+Expected output (no API key needed):
+
+```python
+{'celsius': 25, 'scaled': 45.0, 'fahrenheit': 77.0}
+{'celsius': 100, 'scaled': 180.0, 'fahrenheit': 212.0}
+```
+
+The edge `scale → shift` is the handoff: `shift` never calls `scale`, it simply reads `scaled` from the baton. Each node returns only its own field, so `celsius` and `scaled` ride along to the final state untouched.
 
 ## Design Questions Worth Asking
 

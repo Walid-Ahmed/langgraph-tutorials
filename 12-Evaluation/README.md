@@ -2,6 +2,7 @@
 
 | Folder | What it teaches | Requirements |
 |---|---|---|
+| [02-metric-types](02-metric-types/README.md) | One small script per metric family: rule-based, heuristic, safety, RAG and LLM-as-judge (book Section 14.6) | Nothing, except an OpenAI key for `llm_judge.py` |
 | [04-agentic-rag-evaluation](04-agentic-rag-evaluation/README.md) | The Chapter 12 chatbot ([`9-Agentic-RAG`](../9-Agentic-RAG/README.md)), evaluated: golden set, rule-based, heuristic, safety, RAG and LLM-judge metrics, a CI gate, online scores and human review | Repository dependencies, OpenAI and LangSmith keys |
 | [01-minimal-evaluation](01-minimal-evaluation/README.md) | Optional warm-up: two golden cases, one Python target and one custom code evaluator | `langsmith==0.9.8`; no API keys or uploads |
 

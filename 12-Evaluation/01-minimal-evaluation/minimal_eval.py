@@ -11,10 +11,12 @@ from langsmith import Client, evaluate
 from langsmith.schemas import Example
 
 
+# The system under test: lowercase the text (and, on purpose, forget to trim it).
 def target(inputs: dict) -> dict:
     return {"answer": inputs["text"].lower()}  # deliberately forgets to trim spaces
 
 
+# Evaluator: 1 if the answer equals the reference exactly, else 0.
 def exact_match(outputs: dict, reference_outputs: dict) -> dict:
     matches = outputs["answer"] == reference_outputs["answer"]
     return {"score": int(matches), "comment": "matches" if matches else "text differs"}
@@ -36,6 +38,7 @@ def make_golden_dataset() -> list[Example]:
     ]
 
 
+# Run every example through the target and the evaluator, and print each score.
 def main():
     examples = make_golden_dataset()
     results = evaluate(

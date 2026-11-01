@@ -8,6 +8,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
+# Turn tracing off for every test, so no test needs a LangSmith key or a network.
 @pytest.fixture(autouse=True)
 def disable_tracing(monkeypatch):
     monkeypatch.setenv("LANGSMITH_TRACING", "false")

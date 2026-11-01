@@ -31,7 +31,10 @@ evals/                    the evaluation harness
   gate.py                 pass rule, summary, baseline comparison
   run_eval.py             the offline evaluation run and CI gate
   results/latest.json     per-case scores + summary of the last run
-tests/                    unit tests for the metrics and the gate (no API keys)
+online_traffic.py         simulated live sessions, scored online; reads the feedback back
+review_queue.py           flagged runs + a random sample into a LangSmith annotation queue
+promote_case.py           a reviewed production question into the golden set
+tests/                    unit tests for the metrics, the gate and the review selection (no API keys)
 ```
 
 ## Setup
@@ -53,6 +56,9 @@ python -m src.pipeline                    # ingest datasets/ into Chroma (once)
 python evals/run_eval.py                  # offline evaluation + CI gate
 python evals/run_eval.py --set-baseline   # keep a reviewed run as the baseline
 streamlit run src/app.py                  # the chat UI, with online scoring
+python online_traffic.py                  # simulated live traffic, scored online
+python review_queue.py                    # queue flagged and sampled runs for review
+python promote_case.py                    # add the reviewed case to the golden set
 ```
 
 Unit tests, from the repository root:

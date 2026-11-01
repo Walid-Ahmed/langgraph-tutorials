@@ -87,6 +87,20 @@ def test_golden_set_shape():
         assert all(not s.startswith("datasets/") for s in case["expected_sources"]), case["id"]
 
 
+def test_review_queue_takes_flagged_runs_and_a_sample_of_the_rest():
+    from review_queue import select_for_review
+    runs = [{"question": "q1", "scores": {"answer_relevancy": 0.6}},
+            {"question": "q2", "scores": {"answer_relevancy": 1.0, "toxicity": 1.0}},
+            {"question": "q3", "scores": {"bias_fairness": 0.0}},
+            {"question": "q4", "scores": {}},
+            {"question": "q5", "scores": {"answer_relevancy": 0.9}}]
+    chosen = select_for_review(runs, flag_below=0.8, sample_size=2, seed=14)
+    assert [(r["question"], why) for r, why in chosen[:2]] == [("q1", "flagged: answer_relevancy"),
+                                                              ("q3", "flagged: bias_fairness")]
+    assert len(chosen) == 4 and all(why == "sampled" for _, why in chosen[2:])
+    assert chosen == select_for_review(runs, flag_below=0.8, sample_size=2, seed=14)  # same seed, same sample
+
+
 class _FakeResponse:
     def __init__(self, payload):
         self.payload = payload

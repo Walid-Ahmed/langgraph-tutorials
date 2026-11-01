@@ -1,0 +1,110 @@
+[
+  {
+    "id": "acc004_project_technology",
+    "query": "What technology was used in the project for ACC004?",
+    "expected_answer": "The project for ACC004 uses Azure technology.",
+    "actual_answer": "The technology used in the project for account ACC004 (FinTrust) is Azure. The project is focused on modernizing FinTrust's core banking services on this platform."
+  },
+  {
+    "id": "accounts_north_america",
+    "query": "which accounts are active in North America",
+    "expected_answer": "HealthFirst, RetailMax, FinTrust, and TechNova are active accounts in North America.",
+    "actual_answer": "The active accounts in North America are:\n\n1. **HealthFirst**\n   - Industry: Healthcare\n   - Sales Rep: Michael Grant\n\n2. **RetailMax**\n   - Industry: Retail\n   - Sales Rep: Michael Grant\n\n3. **FinTrust**\n   - Industry: Finance\n   - Sales Rep: Michael Grant\n\n4. **TechNova**\n   - Industry: Technology\n   - Sales Rep: Michael Grant\n\nIf you need more information about any specific account, feel free to ask!"
+  },
+  {
+    "id": "autoworks_proposal_service",
+    "query": "What service does the AutoWorks proposal describe?",
+    "expected_answer": "The AutoWorks proposal describes Factory AI Insights.",
+    "actual_answer": "The AutoWorks proposal describes a service called **Factory AI Insights**. This service focuses on predictive maintenance and quality analytics for AutoWorks' assembly lines, utilizing sensor data. The proposal is valued at $390,000 and has a timeline of 8 months. The main risk identified is the sensor coverage on older assembly lines. The status of the proposal is marked as \"Won.\""
+  },
+  {
+    "id": "completed_projects_budget",
+    "query": "What is the total budget of the completed projects?",
+    "expected_answer": "The total budget of the completed projects is $2,150,000.",
+    "actual_answer": "The total budget of the completed projects is calculated as follows:\n\n1. **Azure Modernization**: $800,000\n2. **Snowflake Platform**: $650,000\n3. **Databricks Analytics**: $700,000\n\nAdding these amounts together:\n\n- Total Budget = $800,000 + $650,000 + $700,000 = **$2,150,000**\n\nTherefore, the total budget of the completed projects is **$2,150,000**."
+  },
+  {
+    "id": "delayed_projects",
+    "query": "Which projects are delayed and by how many days?",
+    "expected_answer": "The delayed projects are GraphRAG Platform with a 35-day delay and Factory AI Insights with a 45-day delay.",
+    "actual_answer": "There are two projects currently delayed:\n\n1. **GraphRAG Platform**\n   - Delay: 35 days\n\n2. **Factory AI Insights**\n   - Delay: 45 days\n\nIf you need more information about these projects, feel free to ask!"
+  },
+  {
+    "id": "europe_sales_rep",
+    "query": "Which sales rep covers Europe?",
+    "expected_answer": "Sarah Lee covers Europe.",
+    "actual_answer": "The sales representative covering Europe is **Sarah Lee**. You can reach her at her email: [sarah.lee@example.com](mailto:sarah.lee@example.com)."
+  },
+  {
+    "id": "fintrust_proposal_status",
+    "query": "Was the FinTrust proposal won or lost?",
+    "expected_answer": "The FinTrust proposal was won.",
+    "actual_answer": "The FinTrust proposal was won. It involves modernizing FinTrust's core banking services on Azure, with a proposal value of $820,000 and a timeline of 10 months."
+  },
+  {
+    "id": "graphrag_project_owner",
+    "query": "Who is assigned to the GraphRAG Platform project?",
+    "expected_answer": "Alex Martin is assigned to the GraphRAG Platform project.",
+    "actual_answer": "The GraphRAG Platform project is assigned to Alex Martin, who is the Lead Engineer for this project."
+  },
+  {
+    "id": "healthfirst_opportunity_status",
+    "query": "What was the status of the HealthFirst AWS Migration opportunity and what was its deal value?",
+    "expected_answer": "The HealthFirst AWS Migration opportunity was lost in the Negotiation stage with a deal value of $500,000.",
+    "actual_answer": "The HealthFirst AWS Migration opportunity was in the Negotiation stage and has a deal value of $500,000. Unfortunately, the opportunity was marked as \"Lost.\""
+  },
+  {
+    "id": "healthfirst_proposal_value",
+    "query": "What is the proposal value for HealthFirst?",
+    "expected_answer": "The HealthFirst proposal value is $500,000.",
+    "actual_answer": "The proposal value for HealthFirst is $500,000. This proposal, focused on migrating HealthFirst's patient-scheduling and billing systems to AWS, was submitted on February 10, 2025, but it was lost at the negotiation stage."
+  },
+  {
+    "id": "highest_q1_revenue",
+    "query": "Which industry had the highest revenue in 2025-Q1?",
+    "expected_answer": "Healthcare had the highest revenue in 2025-Q1 at $1,800,000.",
+    "actual_answer": "In the first quarter of 2025 (2025-Q1), the industry with the highest revenue was **Healthcare**, generating a revenue of **$1,800,000**."
+  },
+  {
+    "id": "london_weather",
+    "query": "What is the weather like in London right now?",
+    "expected_answer": "Gives the current weather in London from the weather tool: the temperature in °C and the conditions. It does not search the knowledge base.",
+    "actual_answer": "The current weather in London is 11°C, overcast, with a wind speed of 10 km/h."
+  },
+  {
+    "id": "medcore_proposal_risk",
+    "query": "What is the main risk mentioned in the MedCore proposal?",
+    "expected_answer": "The MedCore proposal mentions that proposal review was delayed by 3 weeks.",
+    "actual_answer": "The main risk mentioned in the MedCore proposal is that the proposal review is delayed by 3 weeks, which pushes the start date of the project."
+  },
+  {
+    "id": "projects_over_budget",
+    "query": "Which projects had actual costs above budget?",
+    "expected_answer": "GraphRAG Platform and Factory AI Insights had actual costs above budget.",
+    "actual_answer": "The following projects had actual costs that exceeded their budgets:\n\n1. **GraphRAG Platform**\n   - **Project ID:** PRJ004\n   - **Budget:** $450,000\n   - **Actual Cost:** $520,000\n   - **Status:** Delayed\n   - **Delay Days:** 35\n\n2. **Factory AI Insights**\n   - **Project ID:** PRJ005\n   - **Budget:** $380,000\n   - **Actual Cost:** $430,000\n   - **Status:** Delayed\n   - **Delay Days:** 45\n\nThese projects are currently over budget."
+  },
+  {
+    "id": "q2_healthcare_revenue",
+    "query": "How much revenue did Healthcare generate in 2025-Q2?",
+    "expected_answer": "Healthcare generated $900,000 in revenue in 2025-Q2.",
+    "actual_answer": "In the second quarter of 2025 (2025-Q2), the Healthcare industry generated a revenue of $900,000."
+  },
+  {
+    "id": "snowflake_sales_rep",
+    "query": "Who is the sales rep for the Snowflake Platform opportunity?",
+    "expected_answer": "The sales rep for the Snowflake Platform opportunity is Sarah Lee.",
+    "actual_answer": "The sales rep for the Snowflake Platform opportunity is REP01."
+  },
+  {
+    "id": "technova_proposal_technologies",
+    "query": "What technologies are mentioned in the TechNova proposal?",
+    "expected_answer": "The TechNova proposal mentions Neo4j, LangGraph, and OpenAI.",
+    "actual_answer": "The technologies mentioned in the TechNova proposal are:\n\n- **Neo4j**\n- **LangGraph**\n- **OpenAI**\n\nThis proposal is for a question-answering platform over TechNova's product knowledge graph, with a total value of $450,000 and a timeline of 6 months."
+  },
+  {
+    "id": "won_opportunities",
+    "query": "Which opportunities were won?",
+    "expected_answer": "The won opportunities were Azure Modernization, Snowflake Platform, Databricks Analytics, GraphRAG Platform, Factory AI Insights, and Retail Recommendation Engine.",
+    "actual_answer": "Here are the opportunities that were won:\n\n1. **Opportunity Name:** AWS Migration  \n   **Account Name:** HealthFirst  \n   **Deal Value:** $500,000  \n   **Sales Rep ID:** REP02  \n\n2. **Opportunity Name:** Azure Modernization  \n   **Account Name:** FinTrust  \n   **Deal Value:** $820,000  \n   **Sales Rep ID:** REP02  \n\n3. **Opportunity Name:** Snowflake Platform  \n   **Account Name:** Lumen Bank  \n   **Deal Value:** $660,000  \n   **Sales Rep ID:** REP01  \n\n4. **Opportunity Name:** Databricks Analytics  \n   **Account Name:** Orbit Telecom  \n   **Deal Value:** $710,000  \n   **Sales Rep ID:** REP03  \n\n5. **Opportunity Name:** GraphRAG Platform  \n   **Account Name:** TechNova  \n   **Deal Value:** $450,000  \n   **Sales Rep ID:** REP02  \n\n6. **Opportunity Name:** Factory AI Insights  \n   **Account Name:** AutoWorks  \n   **Deal Value:** $390,000  \n   **Sales Rep ID:** REP01  \n\nThese opportunities have successfully closed with a status of \"Won.\""
+  }
+]

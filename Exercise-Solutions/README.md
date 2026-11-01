@@ -14,7 +14,7 @@ Attempt each exercise yourself before opening its solution — the exercises are
 | `4-conditional-edges/` | [4. Conditional Edges](../4-Conditional%20Edges/README.md) |
 | `5-workflows/` | [5. Workflows](../5-Workflows/README.md) |
 | `6-agents/` | [6. Agents](../6-Agents/README.md) |
-| `12-evaluation/` | [12. Evaluation](../12-Evaluation/README.md) (book Chapter 14) |
+| `12-evaluation-agentic-rag/` | [12. Evaluation](../12-Evaluation/README.md) (book Chapter 14) |
 
 ## Running a solution
 
@@ -80,11 +80,9 @@ These use LangSmith (`LANGSMITH_API_KEY`, `LANGSMITH_TRACING=true`) and work on 
 
 | File | Exercise |
 |------|----------|
-| `12-evaluation/ex1_grow_golden_set.py` | 14.1: add three golden examples (`ex1_new_golden_examples.jsonl`) and run an experiment |
-| `12-evaluation/ex2_judge_agreement.py` | 14.2: hand labels vs gpt-4o and gpt-4o-mini judges on the same replies |
-| `12-evaluation/ex3_route_only_gate.py` | 14.3: break the gate by grading only the route |
-| `12-evaluation/ex4_close_the_loop.py` | 14.4: `grounded_numbers` as an evaluator, a `quantity` argument, and the gate |
-| `12-evaluation/dataset_copy.py` | Shared helper: dataset copies, and waiting for an experiment to be readable |
+| `12-evaluation-agentic-rag/ex1_new_cases.py` | 14.1: three new cases graded with the chapter's nine evaluators before they join the dataset |
+| `12-evaluation-agentic-rag/ex2_judge_agreement.py` | 14.2: hand labels vs gpt-4o and gpt-4o-mini judges on the same 18 answers (`ex2_run1_answers.json`) |
+| `12-evaluation-agentic-rag/ex3_substring_safety.py` | 14.3: break the safety checks by matching substrings instead of whole words |
 
 
 ## Graph Gallery

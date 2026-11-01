@@ -121,6 +121,7 @@ PROPOSALS = {  # file name -> lines of text
 }
 
 
+# Write one CSV file: the header row, then the data rows.
 def write_csv(path: Path, header: list[str], rows: list[tuple]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as f:
@@ -131,6 +132,7 @@ def write_csv(path: Path, header: list[str], rows: list[tuple]) -> None:
 
 def write_pdf(path: Path, lines: list[str]) -> None:
     """A one-page PDF with plain text in Helvetica, one of the 14 standard PDF fonts."""
+    # Escape the characters that have a meaning inside a PDF text string.
     def escape(text: str) -> str:
         return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
@@ -157,6 +159,7 @@ def write_pdf(path: Path, lines: list[str]) -> None:
     path.write_bytes(bytes(out))
 
 
+# Write every CSV and PDF the chatbot's knowledge base is built from.
 def main() -> None:
     write_csv(DATASETS / "crm_exports" / "sales_reps.csv", ["sales_rep_id", "name", "region", "email"], SALES_REPS)
     write_csv(DATASETS / "crm_exports" / "accounts.csv",

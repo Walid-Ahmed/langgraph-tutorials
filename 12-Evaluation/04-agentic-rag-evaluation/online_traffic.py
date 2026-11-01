@@ -46,6 +46,7 @@ SESSIONS = {
 ONLINE_KEYS = ("toxicity", "bias_fairness", "answer_relevancy")
 
 
+# Ask each session's questions in order, wait for the online scores, then print them.
 def main() -> None:
     served = []
     for session_id, questions in SESSIONS.items():

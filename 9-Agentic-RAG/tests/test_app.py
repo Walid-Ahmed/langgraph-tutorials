@@ -9,6 +9,7 @@ from src.chunking import fixed_size_chunk
 from src.loaders import load_documents
 
 
+# Chunks overlap, so a fact that straddles a boundary survives in one of them.
 def test_chunks_overlap_so_a_boundary_fact_survives():
     text = "abcdefghij" * 3                      # 30 characters
     chunks = fixed_size_chunk(text, chunk_size=10, chunk_overlap=4)
@@ -17,6 +18,7 @@ def test_chunks_overlap_so_a_boundary_fact_survives():
     assert all(len(c) <= 10 for c in chunks)
 
 
+# A CSV row is loaded as one "column: value" line, tagged with its file.
 def test_csv_rows_become_column_value_lines(tmp_path):
     (tmp_path / "crm").mkdir()
     (tmp_path / "crm" / "sales_reps.csv").write_text("name,region\nSarah Lee,Europe\n", encoding="utf-8")
@@ -25,17 +27,22 @@ def test_csv_rows_become_column_value_lines(tmp_path):
     assert doc.text == "name: Sarah Lee, region: Europe"
 
 
+# A stand-in for a requests response, so the weather tests need no network.
 class _FakeResponse:
+    # Keep the JSON payload the fake response will return.
     def __init__(self, payload):
         self.payload = payload
 
+    # A fake response never fails.
     def raise_for_status(self):
         pass
 
+    # Return the stored payload, as a real response would.
     def json(self):
         return self.payload
 
 
+# The weather tool turns a geocode and a forecast into one readable sentence.
 def test_get_weather_formats_the_live_reading(monkeypatch):
     import src.tools as tools
     replies = {
@@ -49,11 +56,13 @@ def test_get_weather_formats_the_live_reading(monkeypatch):
         "London, United Kingdom: 11°C, overcast, wind 10 km/h (Open-Meteo, local time 2026-11-01T16:30)."
 
 
+# The weather tool says so, instead of failing, for an unknown place or an outage.
 def test_get_weather_reports_unknown_places_and_outages(monkeypatch):
     import src.tools as tools
     monkeypatch.setattr(tools.requests, "get", lambda url, **kwargs: _FakeResponse({}))
     assert tools.get_weather.invoke({"location": "Atlantisville"}) == "No place called 'Atlantisville' was found."
 
+    # Simulate a network outage: every request raises.
     def offline(url, **kwargs):
         raise tools.requests.ConnectionError("no network")
     monkeypatch.setattr(tools.requests, "get", offline)

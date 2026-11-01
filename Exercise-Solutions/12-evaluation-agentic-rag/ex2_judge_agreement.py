@@ -28,6 +28,7 @@ from evals.metrics import llm_as_judge_metrics as judges
 HAND_LABELS = {"snowflake_sales_rep": False, "won_opportunities": False}  # every other answer is right
 
 
+# Grade one stored answer with the correctness rubric, on the given judge model.
 def grade_with(model: str, answer: dict) -> float:
     judge = ChatOpenAI(model=model, temperature=0).with_structured_output(judges.Grade)
     prompt = (f"Question:\n{answer['query']}\n\nExpected answer:\n{answer['expected_answer']}\n\n"
@@ -37,6 +38,7 @@ def grade_with(model: str, answer: dict) -> float:
     return grade.score / 10
 
 
+# Grade the stored answers with both judges and count how often each agrees with the hand labels.
 def main() -> None:
     answers = json.loads((HERE / "ex2_run1_answers.json").read_text(encoding="utf-8"))
     models = ["gpt-4o", "gpt-4o-mini"]

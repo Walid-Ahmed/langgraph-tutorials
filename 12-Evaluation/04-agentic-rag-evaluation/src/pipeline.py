@@ -15,6 +15,7 @@ from src.loaders import load_documents
 from src.vectorstore import get_collection
 
 
+# Chunk, embed and store every file in datasets/, unless the knowledge base is already filled.
 def run_ingestion() -> None:
     collection = get_collection()
     if collection.count() > 0:

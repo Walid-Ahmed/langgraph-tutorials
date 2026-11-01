@@ -20,27 +20,32 @@ from evals.metrics.safety_metrics import bias_fairness_score, toxicity_score
 GOLDEN = Path(__file__).resolve().parent.parent / "evals" / "data" / "golden_dataset.json"
 
 
+# tool_call_accuracy: 1.0 only for the expected first tool.
 def test_tool_call_accuracy():
     assert tool_call_accuracy("search_knowledge_base", "search_knowledge_base").score == 1.0
     assert tool_call_accuracy(None, "get_weather").score == 0.0
     assert tool_call_accuracy(None, None).score == 0.0  # "no tool" is never the expected first call here
 
 
+# keyword_coverage gives partial credit and says which keyword is missing.
 def test_keyword_coverage_is_case_insensitive_and_names_what_is_missing():
     result = keyword_coverage("Healthcare generated 900,000 in 2025-Q2", ["Healthcare", "900000", "2025-Q2"])
     assert result.score == 0.667          # "900,000" does not contain "900000": formats matter
     assert result.note == "missing ['900000']"
 
 
+# rouge is the share of the reference's words the answer covers.
 def test_rouge_counts_reference_words_covered():
     assert rouge("Europe is handled by Sarah Lee.", "Sarah Lee covers Europe.").score == 0.75  # 3 of 4
 
 
+# length_penalty passes 20 words or more and fails anything shorter.
 def test_length_penalty():
     assert length_penalty("too short").score == 0.0
     assert length_penalty(" ".join(["word"] * 20)).score == 1.0
 
 
+# The safety checks match whole words, so "skill" doesn't trip "kill".
 def test_safety_matches_whole_words_only():
     assert toxicity_score("You are an idiot").score == 0.0
     assert toxicity_score("Alex Martin has the right skill set").score == 1.0  # "skill" is not "kill"
@@ -48,6 +53,7 @@ def test_safety_matches_whole_words_only():
     assert bias_fairness_score("I can call the sales rep for all small accounts").score == 1.0
 
 
+# Retrieval precision and recall on a worked example of four documents.
 def test_context_precision_and_recall():
     retrieved = ["doc1", "doc2", "doc3", "doc4"]
     relevant = ["doc2", "doc4", "doc5"]
@@ -55,6 +61,7 @@ def test_context_precision_and_recall():
     assert context_recall(retrieved, relevant).score == 0.667
 
 
+# Evaluators return LangSmith feedback: a key, a score and a comment.
 def test_evaluators_return_langsmith_feedback():
     outputs = {"answer": "Sarah Lee covers Europe.", "tool": "search_knowledge_base",
                "sources": ["crm_exports/sales_reps.csv"]}
@@ -66,12 +73,14 @@ def test_evaluators_return_langsmith_feedback():
     assert context_recall_eval(outputs, reference)["score"] == 1.0
 
 
+# A case passes only with correctness >= 0.8 and the right tool.
 def test_pass_rule_needs_both_correctness_and_the_right_tool():
     assert case_passed({"correctness": 0.8, "tool_call_accuracy": 1.0})
     assert not case_passed({"correctness": 0.7, "tool_call_accuracy": 1.0})
     assert not case_passed({"correctness": 1.0, "tool_call_accuracy": 0.0})
 
 
+# Two runs with the same pass rate, and the regression check still finds the case that broke.
 def test_summary_and_regressions():
     baseline = [{"id": "a", "passed": True, "scores": {"x": 1.0}}, {"id": "b", "passed": False, "scores": {"x": 0.0}}]
     current = [{"id": "a", "passed": False, "scores": {"x": 0.0}}, {"id": "b", "passed": True, "scores": {"x": 1.0}}]
@@ -79,6 +88,7 @@ def test_summary_and_regressions():
     assert find_regressions(baseline, current) == ["a"]                                # ...but "a" broke
 
 
+# The golden set has 18 cases, each with a known tool and sources relative to datasets/.
 def test_golden_set_shape():
     cases = json.loads(GOLDEN.read_text(encoding="utf-8"))["cases"]
     assert len(cases) == 18
@@ -87,6 +97,7 @@ def test_golden_set_shape():
         assert all(not s.startswith("datasets/") for s in case["expected_sources"]), case["id"]
 
 
+# The review queue takes every flagged run, then a repeatable sample of the rest.
 def test_review_queue_takes_flagged_runs_and_a_sample_of_the_rest():
     from review_queue import select_for_review
     runs = [{"question": "q1", "scores": {"answer_relevancy": 0.6}},
@@ -101,17 +112,22 @@ def test_review_queue_takes_flagged_runs_and_a_sample_of_the_rest():
     assert chosen == select_for_review(runs, flag_below=0.8, sample_size=2, seed=14)  # same seed, same sample
 
 
+# A stand-in for a requests response, so the weather tests need no network.
 class _FakeResponse:
+    # Keep the JSON payload the fake response will return.
     def __init__(self, payload):
         self.payload = payload
 
+    # A fake response never fails.
     def raise_for_status(self):
         pass
 
+    # Return the stored payload, as a real response would.
     def json(self):
         return self.payload
 
 
+# The weather tool turns a geocode and a forecast into one readable sentence.
 def test_get_weather_formats_the_live_reading(monkeypatch):
     import src.tools as tools
     replies = {
@@ -125,11 +141,13 @@ def test_get_weather_formats_the_live_reading(monkeypatch):
         "London, United Kingdom: 11°C, overcast, wind 10 km/h (Open-Meteo, local time 2026-11-01T16:30)."
 
 
+# The weather tool says so, instead of failing, for an unknown place or an outage.
 def test_get_weather_reports_unknown_places_and_outages(monkeypatch):
     import src.tools as tools
     monkeypatch.setattr(tools.requests, "get", lambda url, **kwargs: _FakeResponse({}))
     assert tools.get_weather.invoke({"location": "Atlantisville"}) == "No place called 'Atlantisville' was found."
 
+    # Simulate a network outage: every request raises.
     def offline(url, **kwargs):
         raise tools.requests.ConnectionError("no network")
     monkeypatch.setattr(tools.requests, "get", offline)
@@ -137,6 +155,7 @@ def test_get_weather_reports_unknown_places_and_outages(monkeypatch):
         "The weather service is unavailable right now (ConnectionError)."
 
 
+# _retrieved reads the sources and chunk texts back from the agent's tool messages.
 def test_agent_reply_reads_back_the_retrieved_sources():
     from src.agents import _retrieved
     from src.tools import SOURCE_TAG

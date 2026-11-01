@@ -41,6 +41,7 @@ NEW_CASES = [
 ]
 
 
+# Grade each new case with the same target and evaluators, without adding it to the dataset.
 def main() -> None:
     for case in NEW_CASES:
         inputs = {"query": case["query"]}

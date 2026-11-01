@@ -29,7 +29,11 @@ You have access to tools:
 
 Only call a tool when it is relevant to the question. Answer general questions
 directly. Ground every answer about company data in the knowledge base results,
-and say so when you could not find the information."""
+and say so when you could not find the information.
+Records refer to people, accounts and projects by ID (REP01, ACC004, PRJ004).
+When the answer needs a name, search again for that ID and answer with the name.
+When the question asks for every record that matches a condition (won, delayed,
+over budget), check that condition on each row before you include it."""
 
 
 @lru_cache(maxsize=1)

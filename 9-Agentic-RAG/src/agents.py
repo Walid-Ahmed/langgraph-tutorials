@@ -36,15 +36,16 @@ When the question asks for every record that matches a condition (won, delayed,
 over budget), check that condition on each row before you include it."""
 
 
+# Build the agent once: a model node and a tool node in a loop (create_agent).
 @lru_cache(maxsize=1)
 def get_agent():
     model = ChatOpenAI(model=config.AGENT_MODEL, temperature=0)
     return create_agent(model, tools=ALL_TOOLS, system_prompt=SYSTEM_PROMPT)
 
 
+# Ask the agent one question; return the answer and the tools it called, in order.
 def ask_with_tools(question: str, chat_history: list[dict] | None = None,
                    session_id: str | None = None) -> tuple[str, list[str]]:
-    """Ask the agent one question; return the answer and the tools it called, in order."""
     messages = [*(chat_history or []), {"role": "user", "content": question}]
     result = get_agent().invoke({"messages": messages}, config={
         "run_name": "chatbot",

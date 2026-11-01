@@ -41,6 +41,7 @@ When the question asks for every record that matches a condition (won, delayed,
 over budget), check that condition on each row before you include it."""
 
 
+# What one answer gives the evaluation: the answer, the route, the evidence and the trace id.
 @dataclass
 class AgentReply:
     answer: str
@@ -50,14 +51,15 @@ class AgentReply:
     run_id: str = ""                                     # the trace this answer belongs to
 
 
+# Build the agent once: a model node and a tool node in a loop (create_agent).
 @lru_cache(maxsize=1)
 def get_agent():
     model = ChatOpenAI(model=config.AGENT_MODEL, temperature=0)
     return create_agent(model, tools=ALL_TOOLS, system_prompt=SYSTEM_PROMPT)
 
 
+# Read back what the knowledge-base searches returned: (sources, chunk texts).
 def _retrieved(messages) -> tuple[list[str], list[str]]:
-    """Read back what the knowledge-base searches returned: (sources, chunk texts)."""
     sources, contexts = [], []
     for message in messages:
         if isinstance(message, ToolMessage) and message.name == "search_knowledge_base":
@@ -72,14 +74,14 @@ def _retrieved(messages) -> tuple[list[str], list[str]]:
 _scoring_threads: list[threading.Thread] = []
 
 
+# Block until the background scoring threads finish; a script calls this before it exits.
 def wait_for_online_scores(timeout: float = 120) -> None:
-    """Block until the background scoring threads finish; a script calls this before it exits."""
     for thread in list(_scoring_threads):
         thread.join(timeout)
 
 
+# Reference-free checks for live traffic, where no golden answer exists.
 def _score_online(run_id: str, question: str, answer: str) -> None:
-    """Reference-free checks for live traffic, where no golden answer exists."""
     from evals.metrics.llm_as_judge_metrics import relevance_judge   # the judge loads only when used
     from evals.metrics.safety_metrics import bias_fairness_score, toxicity_score
 
@@ -94,13 +96,12 @@ def _score_online(run_id: str, question: str, answer: str) -> None:
         client.create_feedback(run_id, key="answer_relevancy_error", comment=str(exc))
 
 
+# Ask the agent one question; report the answer, the tools it called and what it retrieved.
+#
+# session_id groups a conversation's questions into one LangSmith thread.
+# online_eval is turned off by evals/run_eval.py, which grades against the golden set instead.
 def ask_with_tools(question: str, chat_history: list[dict] | None = None,
                    session_id: str | None = None, online_eval: bool = True) -> AgentReply:
-    """Ask the agent one question; report the answer, the tools it called and what it retrieved.
-
-    session_id groups a conversation's questions into one LangSmith thread.
-    online_eval is turned off by evals/run_eval.py, which grades against the golden set instead.
-    """
     run_id = uuid.uuid4()   # chosen up front so feedback can find this run later
     messages = [*(chat_history or []), {"role": "user", "content": question}]
     result = get_agent().invoke({"messages": messages}, config={

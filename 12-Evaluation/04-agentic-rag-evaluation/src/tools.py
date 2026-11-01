@@ -30,6 +30,7 @@ WEATHER_CODES = {
 }
 
 
+# The search tool: the four chunks closest to the agent's query, each tagged with its source file.
 @tool
 def search_knowledge_base(query: str, n_results: int = 4) -> str:
     """Search the internal knowledge base (CRM exports, projects, revenue, proposal
@@ -47,6 +48,7 @@ def search_knowledge_base(query: str, n_results: int = 4) -> str:
                               for text, meta in zip(documents, metadatas))
 
 
+# The weather tool: live conditions from Open-Meteo, no API key needed.
 @tool
 def get_weather(location: str) -> str:
     """Get the current weather (temperature, conditions and wind) for a city."""

@@ -37,28 +37,31 @@ RELEVANCE_STEPS = """You grade answers from a company's internal knowledge-base 
 Grade from 0 (off-topic) to 10 (answers exactly what was asked)."""
 
 
+# The judge's structured reply. The reason comes first, so the model explains before it scores.
 class Grade(BaseModel):
     reason: str = Field(description="One or two sentences explaining the grade.")
     score: int = Field(ge=0, le=10)
 
 
+# Create the judge model once, on first use.
 @cache
 def _judge():
     return ChatOpenAI(model=config.JUDGE_MODEL, temperature=0).with_structured_output(Grade)
 
 
+# Ask the judge for one grade, and scale it from 0-10 to 0-1.
 def _grade(name: str, steps: str, prompt: str) -> MetricResult:
     grade = _judge().invoke([("system", steps), ("human", prompt)])
     assert isinstance(grade, Grade)
     return MetricResult(name, grade.score / 10, grade.reason)
 
 
+# Reference-based: does the answer match the golden expected answer?
 def correctness_judge(question: str, answer: str, expected_answer: str) -> MetricResult:
-    """Reference-based: does the answer match the golden expected answer?"""
     return _grade("correctness", CORRECTNESS_STEPS,
                   f"Question:\n{question}\n\nExpected answer:\n{expected_answer}\n\nAnswer to grade:\n{answer}")
 
 
+# Reference-free: does the answer address the question? Usable offline and online.
 def relevance_judge(question: str, answer: str) -> MetricResult:
-    """Reference-free: does the answer address the question? Usable offline and online."""
     return _grade("relevance", RELEVANCE_STEPS, f"Question:\n{question}\n\nAnswer to grade:\n{answer}")

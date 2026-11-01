@@ -30,9 +30,9 @@ INSTRUCTIONS = ("Decide what the chatbot SHOULD have answered. If the case belon
                 "company-kb-golden with promote_case.py.")
 
 
+# Every run with a low online score, plus a seeded random sample of the rest, with the reason.
 def select_for_review(runs: list[dict], flag_below: float = FLAG_BELOW, sample_size: int = SAMPLE_SIZE,
                       seed: int = 14) -> list[tuple[dict, str]]:
-    """Every run with a low online score, plus a seeded random sample of the rest, with the reason."""
     flagged, unflagged = [], []
     for run in runs:
         low = [key for key in ONLINE_KEYS if run["scores"].get(key, 1.0) < flag_below]
@@ -41,8 +41,8 @@ def select_for_review(runs: list[dict], flag_below: float = FLAG_BELOW, sample_s
     return flagged + sampled
 
 
+# The newest root run per question in the production project, with its online scores.
 def latest_runs(client: Client) -> list[dict]:
-    """The newest root run per question in the production project, with its online scores."""
     runs = {}
     # Newest first. Only the chatbot's own runs: the online judge's calls are traced here too.
     for run in client.list_runs(project_name=PROJECT, is_root=True, filter='eq(name, "chatbot")', limit=100):
@@ -54,6 +54,7 @@ def latest_runs(client: Client) -> list[dict]:
     return list(runs.values())
 
 
+# Create the queue once, choose the runs, and add them to it.
 def main() -> None:
     client = Client()
     queue = next(iter(client.list_annotation_queues(name=QUEUE)), None) or \

@@ -28,6 +28,7 @@ REVIEWED = {  # written by the reviewer
 }
 
 
+# Add the reviewed case to the dataset unless it's already there, linked to its production run.
 def main() -> None:
     client = Client()
     if any((ex.metadata or {}).get("id") == "rep_performance" for ex in client.list_examples(dataset_name=DATASET)):

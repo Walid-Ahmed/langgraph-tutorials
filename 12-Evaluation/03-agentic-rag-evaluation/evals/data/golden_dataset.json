@@ -1,0 +1,282 @@
+{
+  "dataset_name": "company_knowledge_base_golden_dataset",
+  "description": "A gold-standard evaluation set for testing retrieval, answer quality, and tool selection against the company datasets and the chatbot's tool",
+  "cases": [
+    {
+      "id": "accounts_north_america",
+      "category": "crm",
+      "query": "which accounts are active in North America",
+      "expected_answer": "HeathFirst, RetailMax, FinTrust, and TechNova are active accounts in North America.",
+      "expected_keywords": [
+        "HeathFirst",
+        "RetailMax",
+        "FinTrust",
+        "TechNova",
+        "North America"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "crm_exports/accounts.csv"
+      ]
+    },
+    {
+      "id": "healthfirst_opportunity_status",
+      "category": "crm",
+      "query": "What was the status of the HealthFirst AWS Migration opportunity and what was its deal value?",
+      "expected_answer": "The HealthFirst AWS Migration opportunity was lost in the Negotiation stage with a deal value of $500,000.",
+      "expected_keywords": [
+        "HealthFirst",
+        "AWS Migration",
+        "Lost",
+        "Negotiation",
+        "500000"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "crm_exports/opportunities.csv"
+      ]
+    },
+    {
+      "id": "snowflake_sales_rep",
+      "category": "crm",
+      "query": "Who is the sales rep for the Snowflake Platform opportunity?",
+      "expected_answer": "The sales rep for the Snowflake Platform opportunity is Sarah Lee.",
+      "expected_keywords": [
+        "Snowflake Platform",
+        "Sarah Lee"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "crm_exports/opportunities.csv",
+        "crm_exports/sales_reps.csv"
+      ]
+    },
+    {
+      "id": "won_opportunities",
+      "category": "crm",
+      "query": "Which opportunities were won?",
+      "expected_answer": "The won opportunities were Azure Modernization, Snowflake Platform, Databricks Analytics, GraphRAG Platform, Factory AI Insights, and Retail Recommendation Engine.",
+      "expected_keywords": [
+        "Azure Modernization",
+        "Snowflake Platform",
+        "Databricks Analytics",
+        "GraphRAG Platform",
+        "Factory AI Insights",
+        "Retail Recommendation Engine",
+        "Won"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "crm_exports/opportunities.csv"
+      ]
+    },
+    {
+      "id": "delayed_projects",
+      "category": "projects",
+      "query": "Which projects are delayed and by how many days?",
+      "expected_answer": "The delayed projects are GraphRAG Platform with a 35-day delay and Factory AI Insights with a 45-day delay.",
+      "expected_keywords": [
+        "GraphRAG Platform",
+        "35",
+        "Factory AI Insights",
+        "45",
+        "Delayed"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "projects/projects.csv"
+      ]
+    },
+    {
+      "id": "graphrag_project_owner",
+      "category": "projects",
+      "query": "Who is assigned to the GraphRAG Platform project?",
+      "expected_answer": "Alex Martin is assigned to the GraphRAG Platform project.",
+      "expected_keywords": [
+        "GraphRAG Platform",
+        "Alex Martin"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "projects/projects.csv",
+        "projects/project_resources.csv"
+      ]
+    },
+    {
+      "id": "completed_projects_budget",
+      "category": "projects",
+      "query": "What is the total budget of the completed projects?",
+      "expected_answer": "The total budget of the completed projects is $2,150,000.",
+      "expected_keywords": [
+        "2,150,000",
+        "Completed",
+        "budget"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "projects/projects.csv"
+      ]
+    },
+    {
+      "id": "acc004_project_technology",
+      "category": "projects",
+      "query": "What technology was used in the project for ACC004?",
+      "expected_answer": "The project for ACC004 uses Azure technology.",
+      "expected_keywords": [
+        "ACC004",
+        "Azure"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "projects/projects.csv"
+      ]
+    },
+    {
+      "id": "q2_healthcare_revenue",
+      "category": "revenue",
+      "query": "How much revenue did Healthcare generate in 2025-Q2?",
+      "expected_answer": "Healthcare generated $900,000 in revenue in 2025-Q2.",
+      "expected_keywords": [
+        "Healthcare",
+        "900000",
+        "2025-Q2"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "revenue/revenue.csv"
+      ]
+    },
+    {
+      "id": "highest_q1_revenue",
+      "category": "revenue",
+      "query": "Which industry had the highest revenue in 2025-Q1?",
+      "expected_answer": "Healthcare had the highest revenue in 2025-Q1 at $1,800,000.",
+      "expected_keywords": [
+        "Healthcare",
+        "1800000",
+        "2025-Q1"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "revenue/revenue.csv"
+      ]
+    },
+    {
+      "id": "projects_over_budget",
+      "category": "projects",
+      "query": "Which projects had actual costs above budget?",
+      "expected_answer": "GraphRAG Platform and Factory AI Insights had actual costs above budget.",
+      "expected_keywords": [
+        "GraphRAG Platform",
+        "Factory AI Insights",
+        "actual cost",
+        "above budget"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "projects/projects.csv"
+      ]
+    },
+    {
+      "id": "europe_sales_rep",
+      "category": "crm",
+      "query": "Which sales rep covers Europe?",
+      "expected_answer": "Sarah Lee covers Europe.",
+      "expected_keywords": [
+        "Sarah Lee",
+        "Europe"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "crm_exports/sales_reps.csv"
+      ]
+    },
+    {
+      "id": "healthfirst_proposal_value",
+      "category": "proposals",
+      "query": "What is the proposal value for HealthFirst?",
+      "expected_answer": "The HealthFirst proposal value is $500,000.",
+      "expected_keywords": [
+        "HealthFirst",
+        "$500,000",
+        "proposal value"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "proposal_documents/proposal_001.pdf"
+      ]
+    },
+    {
+      "id": "medcore_proposal_risk",
+      "category": "proposals",
+      "query": "What is the main risk mentioned in the MedCore proposal?",
+      "expected_answer": "The MedCore proposal mentions that proposal review was delayed by 3 weeks.",
+      "expected_keywords": [
+        "MedCore",
+        "proposal review delayed",
+        "3 weeks"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "proposal_documents/proposal_002.pdf"
+      ]
+    },
+    {
+      "id": "fintrust_proposal_status",
+      "category": "proposals",
+      "query": "Was the FinTrust proposal won or lost?",
+      "expected_answer": "The FinTrust proposal was won.",
+      "expected_keywords": [
+        "FinTrust",
+        "Won"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "proposal_documents/proposal_003.pdf"
+      ]
+    },
+    {
+      "id": "technova_proposal_technologies",
+      "category": "proposals",
+      "query": "What technologies are mentioned in the TechNova proposal?",
+      "expected_answer": "The TechNova proposal mentions Neo4j, LangGraph, and OpenAI.",
+      "expected_keywords": [
+        "TechNova",
+        "Neo4j",
+        "LangGraph",
+        "OpenAI"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "proposal_documents/proposal_004.pdf"
+      ]
+    },
+    {
+      "id": "autoworks_proposal_service",
+      "category": "proposals",
+      "query": "What service does the AutoWorks proposal describe?",
+      "expected_answer": "The AutoWorks proposal describes Factory AI Insights.",
+      "expected_keywords": [
+        "AutoWorks",
+        "Factory AI Insights"
+      ],
+      "expected_tool": "search_knowledge_base",
+      "expected_sources": [
+        "proposal_documents/proposal_005.pdf"
+      ]
+    },
+    {
+      "id": "london_weather",
+      "category": "weather",
+      "query": "What is the weather like in London right now?",
+      "expected_answer": "The weather in London is sunny with a high of 24°C (dummy data).",
+      "expected_keywords": [
+        "London",
+        "sunny",
+        "24"
+      ],
+      "expected_tool": "get_weather",
+      "expected_sources": []
+    }
+  ]
+}

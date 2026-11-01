@@ -2,7 +2,7 @@
 
 The whole evaluation loop at its smallest, before the [agentic RAG evaluation](../04-agentic-rag-evaluation/README.md) (book Section 14.7). A travel assistant answers flight questions from a five-row timetable, and one LangSmith experiment grades it on five golden cases with one scorer.
 
-It needs `OPENAI_API_KEY` and `LANGSMITH_API_KEY` in a `.env` file. From the repository root:
+It needs `OPENAI_API_KEY` and `LANGSMITH_API_KEY` in a `.env` file; without them, [`01-minimal-evaluation`](../01-minimal-evaluation/README.md) runs the same loop locally, with no model and no upload. From the repository root:
 
 ```bash
 pip install -r requirements.txt

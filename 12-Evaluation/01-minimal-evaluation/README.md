@@ -1,6 +1,6 @@
 # A minimal LangSmith evaluation
 
-Companion code for Chapter 14, Section 14.6. Start here before the [help-desk evaluation](../02-helpdesk-evaluation/README.md). This example tests an ordinary Python function; it needs no LLM, graph, API keys or uploads.
+An optional warm-up for Chapter 14, before the [agentic RAG evaluation](../04-agentic-rag-evaluation/README.md). This example tests an ordinary Python function; it needs no LLM, graph, API keys or uploads.
 
 From the repository root:
 
@@ -38,6 +38,6 @@ SDK progress messages and a beta warning for `upload_results` may also appear. R
 
 We pass function references, without calling them. LangSmith calls `target` with each example's inputs, calls `exact_match` with the returned outputs and the matching reference outputs, and collects the scores/comments. The target does not receive the reference answer. Because our evaluator returns no feedback key, the SDK uses its function name, `exact_match`.
 
-The loop in `main()` reads the first evaluator result from each row and prints its key and score. A score of 0 is data: this printing-only script still exits normally with status 0. An explicit score check or the help-desk regression gate is needed to fail a test or CI step.
+The loop in `main()` reads the first evaluator result from each row and prints its key and score. A score of 0 is data: this printing-only script still exits normally with status 0. An explicit score check, like the gate in `04-agentic-rag-evaluation/evals/gate.py`, is needed to fail a test or CI step.
 
 LangSmith supplies the evaluation loop. We supply the cases, the application logic and the definition of correctness. With `upload_results=False`, this example creates no hosted dataset or stored experiment. The next example uploads results so you can inspect them in the UI.

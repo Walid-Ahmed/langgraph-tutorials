@@ -6,7 +6,7 @@
 #
 # The weather comes from Open-Meteo (open-meteo.com): free for non-commercial use,
 # no API key. Because it's live, a golden case can't store the expected temperature;
-# Section 14.5 shows how that case describes the expected behavior instead.
+# Section 14.9 shows how that case describes the expected behavior instead.
 # This module is imported, not run.
 
 import requests

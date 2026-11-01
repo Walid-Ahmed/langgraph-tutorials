@@ -2,7 +2,7 @@
 
 Companion code for **Chapter 14** of *Building AI Agents with LangGraph*, Section 14.1: the application the rest of the chapter evaluates. This folder is the application alone; [`04-agentic-rag-evaluation`](../04-agentic-rag-evaluation/README.md) adds the evaluation. The design comes from Kerolos Yacoub's practical session ([Evaluation_practical](https://github.com/Kerolos2019/Evaluation_practical)).
 
-An internal chatbot answers questions about a fictional company's records: CRM exports, projects, revenue and sales-proposal PDFs. It's **agentic RAG**. Classic RAG retrieves passages before every answer. Here retrieval is a tool, `search_knowledge_base`, that the agent decides to call. For a weather question it calls `get_weather` (live data from [Open-Meteo](https://open-meteo.com), no API key) and searches nothing.
+An internal chatbot answers questions about a fictional company's records: CRM exports, projects, revenue and sales-proposal PDFs. The records are synthetic, written for the book by [`make_datasets.py`](make_datasets.py), which rebuilds `datasets/` from scratch. It's **agentic RAG**. Classic RAG retrieves passages before every answer. Here retrieval is a tool, `search_knowledge_base`, that the agent decides to call. For a weather question it calls `get_weather` (live data from [Open-Meteo](https://open-meteo.com), no API key) and searches nothing.
 
 ## How it works
 
@@ -12,6 +12,7 @@ An internal chatbot answers questions about a fictional company's records: CRM e
 
 ```text
 datasets/        company files: crm_exports/, projects/, revenue/, proposal_documents/
+make_datasets.py rebuilds datasets/ (6 CSV exports, 5 proposal PDFs)
 src/
   config.py      paths, model names, chunk size
   loaders.py     CSV / PDF / TXT -> text

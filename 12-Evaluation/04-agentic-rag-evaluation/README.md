@@ -31,6 +31,7 @@ evals/                    the evaluation harness
   gate.py                 pass rule, summary, baseline comparison
   run_eval.py             the offline evaluation run and CI gate
   results/latest.json     per-case scores + summary of the last run
+show_example.py           one golden case read back from LangSmith: inputs, outputs, metadata
 online_traffic.py         simulated live sessions, scored online; reads the feedback back
 review_queue.py           flagged runs + a random sample into a LangSmith annotation queue
 promote_case.py           a reviewed production question into the golden set
@@ -55,6 +56,7 @@ From `12-Evaluation/04-agentic-rag-evaluation/`:
 python -m src.pipeline                    # ingest datasets/ into Chroma (once)
 python evals/run_eval.py                  # offline evaluation + CI gate
 python evals/run_eval.py --set-baseline   # keep a reviewed run as the baseline
+python show_example.py                    # read one golden case back from LangSmith
 streamlit run src/app.py                  # the chat UI, with online scoring
 python online_traffic.py                  # simulated live traffic, scored online
 python review_queue.py                    # queue flagged and sampled runs for review

@@ -1,6 +1,6 @@
 # Evaluating an agentic RAG chatbot with LangSmith
 
-Companion code for **Chapter 14** of *Building AI Agents with LangGraph*. The application and its evaluation design come from Kerolos Yacoub's practical session ([Evaluation_practical](https://github.com/Kerolos2019/Evaluation_practical)), ported from DeepEval and Langfuse to **LangSmith**.
+Companion code for **Chapter 14** of *Building AI Agents with LangGraph*. This is the chatbot from [`03-agentic-rag`](../03-agentic-rag/README.md) with its evaluation added. The application and its evaluation design come from Kerolos Yacoub's practical session ([Evaluation_practical](https://github.com/Kerolos2019/Evaluation_practical)), ported from DeepEval and Langfuse to **LangSmith**.
 
 An internal chatbot answers questions about company data (CRM exports, projects, revenue and proposal PDFs). It's **agentic RAG**: retrieval is a tool, `search_knowledge_base`, that the model decides to call. It can also skip it, as it does for the weather tool's questions. Classic RAG would retrieve before every answer.
 
@@ -14,7 +14,7 @@ The application is evaluated twice:
 ## Layout
 
 ```text
-datasets/                 company files the chatbot answers from (CSV + PDF)
+../03-agentic-rag/datasets/  company files (CSV + PDF), shared with the app-only version
 src/                      the chatbot
   config.py               paths, models, chunk size
   loaders.py              CSV / PDF / TXT -> text
@@ -22,7 +22,7 @@ src/                      the chatbot
   vectorstore.py          Chroma collection with OpenAI embeddings
   pipeline.py             ingestion: load -> chunk -> store (runs once)
   tools.py                search_knowledge_base, get_weather (live, Open-Meteo)
-  agents.py               create_agent, LangSmith tracing, online scores
+  agents.py               as in 03, plus run_id, retrieved sources and online scores
   app.py                  Streamlit chat UI
 evals/                    the evaluation harness
   data/golden_dataset.json  18 golden cases
@@ -46,7 +46,7 @@ Then, in this folder, copy `.env.example` to `.env` and fill in `OPENAI_API_KEY`
 
 ## Run
 
-From `12-Evaluation/03-agentic-rag-evaluation/`:
+From `12-Evaluation/04-agentic-rag-evaluation/`:
 
 ```bash
 python -m src.pipeline                    # ingest datasets/ into Chroma (once)
@@ -58,7 +58,7 @@ streamlit run src/app.py                  # the chat UI, with online scoring
 Unit tests, from the repository root:
 
 ```bash
-python -m pytest -q 12-Evaluation/03-agentic-rag-evaluation/tests
+python -m pytest -q 12-Evaluation/04-agentic-rag-evaluation/tests
 ```
 
 **Pass rule:** a case passes when `correctness >= 0.8` and the agent's first tool is the expected one. The run fails (exit 1) when fewer than 80% of cases pass, or when a case that passed in `evals/results/baseline.json` fails now.

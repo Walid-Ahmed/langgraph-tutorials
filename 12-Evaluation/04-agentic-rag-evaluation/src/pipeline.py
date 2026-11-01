@@ -5,7 +5,7 @@
 # changing datasets/ to re-ingest.
 #
 # Prerequisites: OPENAI_API_KEY in .env (embeddings), and the datasets/ folder.
-# Run it with (from 12-Evaluation/03-agentic-rag-evaluation):
+# Run it with (from 12-Evaluation/04-agentic-rag-evaluation):
 #    python -m src.pipeline
 # Expected result: "ingested N chunks from 11 files", or "ingestion skipped" on later runs.
 

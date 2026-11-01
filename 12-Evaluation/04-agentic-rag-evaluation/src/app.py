@@ -6,7 +6,7 @@
 #
 # Prerequisites: .env with OPENAI_API_KEY, LANGSMITH_API_KEY, LANGSMITH_TRACING=true,
 # and the datasets/ folder (ingestion runs on first start).
-# Run it with (from 12-Evaluation/03-agentic-rag-evaluation):
+# Run it with (from 12-Evaluation/04-agentic-rag-evaluation):
 #    streamlit run src/app.py
 # Expected result: a chat page at http://localhost:8501; each question appears as a
 # trace in your LangSmith project with toxicity, bias_fairness and answer_relevancy feedback.

@@ -1,10 +1,7 @@
-# Settings shared by the chatbot (src/) and the evaluation harness (evals/).
-#
-# Keeping paths, model names and chunk sizes in one place means the offline
-# evaluation always measures the same configuration the chat UI runs.
+# Settings for the knowledge-base chatbot: paths, model names and chunk sizes.
 #
 # Prerequisites: a .env file in this folder (or a parent folder) with
-# OPENAI_API_KEY, LANGSMITH_API_KEY and LANGSMITH_TRACING=true.
+# OPENAI_API_KEY, and LANGSMITH_API_KEY plus LANGSMITH_TRACING=true to trace runs.
 # This module is imported, not run.
 
 import os
@@ -23,6 +20,5 @@ CHUNK_SIZE = 1000                              # characters per chunk
 CHUNK_OVERLAP = int(CHUNK_SIZE * 0.2)          # 20% overlap so a fact split at a boundary survives
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-AGENT_MODEL = "gpt-4o-mini"                    # the chatbot
-JUDGE_MODEL = "gpt-4o"                         # the LLM-as-judge: at least as strong as the system it grades
+AGENT_MODEL = "gpt-4o-mini"
 EMBEDDING_MODEL = "text-embedding-3-small"

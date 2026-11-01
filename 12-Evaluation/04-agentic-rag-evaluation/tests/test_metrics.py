@@ -2,7 +2,7 @@
 #
 # None of these call a model, Chroma or LangSmith, so they run in a second with no keys.
 # Run them with (from the repository root):
-#    python -m pytest -q 12-Evaluation/03-agentic-rag-evaluation/tests
+#    python -m pytest -q 12-Evaluation/04-agentic-rag-evaluation/tests
 # Expected result: all tests pass.
 
 import json

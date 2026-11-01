@@ -18,7 +18,7 @@
 #
 # Prerequisites: .env with OPENAI_API_KEY, LANGSMITH_API_KEY and LANGSMITH_TRACING=true,
 # the datasets/ folder, and `pip install -r requirements.txt` from the repository root.
-# Run it with (from 12-Evaluation/03-agentic-rag-evaluation):
+# Run it with (from 12-Evaluation/04-agentic-rag-evaluation):
 #    python evals/run_eval.py                  # evaluate; compare with the baseline if one exists
 #    python evals/run_eval.py --set-baseline   # after reviewing a run, keep it as the baseline
 # Expected result: one line per case, then "Pass rate: ..%" and the average of each metric.

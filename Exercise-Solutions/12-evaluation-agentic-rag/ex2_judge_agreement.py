@@ -23,7 +23,7 @@ sys.path.insert(0, str(HERE.parents[1] / "12-Evaluation" / "04-agentic-rag-evalu
 from langchain_openai import ChatOpenAI
 
 from evals.gate import PASS_THRESHOLD
-from evals.metrics import judges
+from evals.metrics import llm_as_judge_metrics as judges
 
 HAND_LABELS = {"snowflake_sales_rep": False, "won_opportunities": False}  # every other answer is right
 

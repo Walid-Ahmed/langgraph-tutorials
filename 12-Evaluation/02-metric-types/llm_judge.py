@@ -1,4 +1,4 @@
-# An LLM-as-judge metric in a few lines (Chapter 14, Section 14.5).
+# An LLM-as-judge metric in a few lines (Chapter 14, Section 14.6).
 #
 # A second model grades each answer against the expected one, using a written
 # rubric, and returns its reason before its score. It reads meaning, so it can
@@ -19,24 +19,33 @@ from rule_and_heuristic import ANSWERS, REFERENCE
 
 load_dotenv(find_dotenv(usecwd=True))
 
-QUESTION = "Which sales rep covers Europe?"
+QUESTION = "When does flight EK924 leave Cairo?"
 RUBRIC = """You grade an answer against an expected answer.
 Check that the answer states the same facts; different wording is fine.
 A wrong or missing fact lowers the grade.
 Grade from 0 (wrong) to 10 (every expected fact, nothing contradicted)."""
 
 
+# The judge's structured reply. The reason comes first, so the model explains before it scores.
 class Grade(BaseModel):
-    reason: str = Field(description="One sentence explaining the grade.")  # declared first: reason before score
+    reason: str = Field(description="One sentence explaining the grade.")
     score: int = Field(ge=0, le=10)
 
 
 judge = ChatOpenAI(model="gpt-4o", temperature=0).with_structured_output(Grade)
 
+
+# LLM-as-judge: grade one answer against the expected answer, scaled from 0-10 to 0-1.
+def correctness(answer: str) -> tuple[float, str]:
+    grade = judge.invoke([
+        ("system", RUBRIC),
+        ("human", f"Question: {QUESTION}\nExpected answer: {REFERENCE}\nAnswer to grade: {answer}"),
+    ])
+    assert isinstance(grade, Grade)
+    return grade.score / 10, grade.reason
+
+
 if __name__ == "__main__":
     for name, answer in ANSWERS.items():
-        grade = judge.invoke([
-            ("system", RUBRIC),
-            ("human", f"Question: {QUESTION}\nExpected answer: {REFERENCE}\nAnswer to grade: {answer}"),
-        ])
-        print(f"{name}: {grade.score / 10:.1f} | {grade.reason}")
+        score, reason = correctness(answer)
+        print(f"{name}: {score:.1f} | {reason}")

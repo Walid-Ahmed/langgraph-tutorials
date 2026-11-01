@@ -1,6 +1,6 @@
 # Types of metrics, in a few lines each
 
-Companion code for **Chapter 14**, Section 14.6 of *Building AI Agents with LangGraph*. Each script shows one family of evaluation metrics on small, fixed examples, before the chapter applies them to the RAG chatbot in [`04-agentic-rag-evaluation`](../04-agentic-rag-evaluation/README.md). Several examples come from Kerolos Yacoub's practical evaluation session.
+Companion code for **Chapter 14**, Section 14.6 of *Building AI Agents with LangGraph*. Each script shows one family of evaluation metrics on small, fixed examples from an imaginary travel assistant, kept apart from the RAG chatbot the chapter evaluates later in [`04-agentic-rag-evaluation`](../04-agentic-rag-evaluation/README.md). The safety examples and the doc1-doc5 retrieval example come from Kerolos Yacoub's practical evaluation session.
 
 | Script | Family | Shows | Needs |
 |---|---|---|---|
@@ -18,4 +18,4 @@ python 12-Evaluation/02-metric-types/rag.py
 python 12-Evaluation/02-metric-types/llm_judge.py
 ```
 
-The point of the first script's table: word recall gives a right answer and a wrong answer the same score, and only the keyword check (and, in `llm_judge.py`, the judge) tells them apart.
+The point of the first script's table: both word-overlap heuristics score a wrong answer higher than a right one, and only the keyword check (and, in `llm_judge.py`, the judge) picks the right one.

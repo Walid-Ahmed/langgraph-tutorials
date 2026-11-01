@@ -14,3 +14,6 @@ langchain-tavily==0.2.18
 requests==2.34.2
 openai==2.44.0
 pydantic==2.13.4
+chromadb==1.5.9
+pypdf==6.21.4
+streamlit==1.66.1

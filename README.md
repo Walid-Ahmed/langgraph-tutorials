@@ -88,9 +88,10 @@ flowchart TD
 | 7 | [`7-Checkpointing/`](7-Checkpointing/) | Short-term memory per `thread_id`: `MemorySaver`, history, resume, human-in-the-loop, `PostgresSaver` | OpenAI; PostgreSQL for the last step |
 | 8 | [`8-Long-Term-Memory/`](8-Long-Term-Memory/) | Cross-conversation memory with a Store: namespaces, `PostgresStore`, semantic/episodic/procedural memory | OpenAI; PostgreSQL for `03-postgres-store/` |
 | 9 | [`9-Email-Assistant/`](9-Email-Assistant/) | A complete assistant built gradually: routing, tools, and every memory type | OpenAI |
+| 9 | [`9-Agentic-RAG/`](9-Agentic-RAG/README.md) | An agentic RAG chatbot over company files: Chroma, `create_agent`, a search tool it chooses to call, live weather (book Chapter 12) | OpenAI; LangSmith optional |
 | 10 | [`10-observability/`](10-observability/) | LangSmith tracing of graphs, LLM calls and nodes | OpenAI, LangSmith |
 | 11 | [`11-Guardrials/`](11-Guardrials/) | Guardrails with LangChain middleware: PII detection, human-in-the-loop, input/output checks (notebook) | OpenAI |
-| 12 | [`12-Evaluation/`](12-Evaluation/README.md) | Local evaluation basics, then LangGraph help-desk datasets, experiments and regression gates (book Chapter 14) | No keys for the minimal example; OpenAI and LangSmith for hosted examples |
+| 12 | [`12-Evaluation/`](12-Evaluation/README.md) | Evaluating the Chapter 12 chatbot: golden set, code and LLM-judge metrics, a CI gate with a regression check, online scores and human review (book Chapter 14) | No keys for the minimal example; OpenAI and LangSmith for the rest |
 | 13 | [`13-Agent-Server/`](13-Agent-Server/) | A command mailbox on LangGraph Server: one node, `PING` and `GET_STATUS`, thread reuse (book Chapter 16) | No API key. Its own `.venv` inside `pending-command-demo/` |
 | — | [`Exercise-Solutions/`](Exercise-Solutions/) | Runnable answers to the end-of-tutorial exercises (1–6 and 13). Try the exercises first | OpenAI for some |
 

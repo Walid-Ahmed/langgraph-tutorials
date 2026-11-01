@@ -15,7 +15,7 @@ from dotenv import find_dotenv, load_dotenv
 load_dotenv(find_dotenv(usecwd=True))
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-DATASETS_DIR = ROOT_DIR.parent / "03-agentic-rag" / "datasets"  # shared with the app-only version
+DATASETS_DIR = ROOT_DIR.parents[1] / "9-Agentic-RAG" / "datasets"  # shared with the Chapter 12 app
 CHROMA_PERSIST_DIR = ROOT_DIR / ".chroma"      # the vector store, built on first run
 CHROMA_COLLECTION_NAME = "chatbot_knowledge_base"
 

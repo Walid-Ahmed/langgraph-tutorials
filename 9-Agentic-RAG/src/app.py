@@ -6,7 +6,7 @@
 #
 # Prerequisites: .env with OPENAI_API_KEY (LANGSMITH_API_KEY and
 # LANGSMITH_TRACING=true to trace), and the datasets/ folder; ingestion runs on first start.
-# Run it with (from 12-Evaluation/03-agentic-rag):
+# Run it with (from 9-Agentic-RAG):
 #    streamlit run src/app.py
 # Expected result: a chat page at http://localhost:8501. "Which sales rep covers Europe?"
 # is answered from the knowledge base (tools: search_knowledge_base); "What's the

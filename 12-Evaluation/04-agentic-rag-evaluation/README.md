@@ -67,7 +67,7 @@ Unit tests, from the repository root:
 python -m pytest -q 12-Evaluation/04-agentic-rag-evaluation/tests
 ```
 
-**Results we got** (`gpt-4o-mini` agent, `gpt-4o` judge; Chapter 14, Section 14.8, tells the story):
+**Results we got** (`gpt-4o-mini` agent, `gpt-4o` judge; Chapter 14, Section 14.10, tells the story):
 
 ```text
 run 1  17/18 (94%)   snowflake_sales_rep answers "REP01"; the judge passes won_opportunities at 0.8

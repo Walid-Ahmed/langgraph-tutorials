@@ -6,7 +6,7 @@
 #
 # The weather comes from Open-Meteo (open-meteo.com): free for non-commercial use,
 # no API key. Because it's live, a golden case can't store the expected temperature;
-# Section 14.5 shows how that case describes the expected behavior instead.
+# Section 14.9 shows how that case describes the expected behavior instead.
 # This module is imported, not run.
 
 import requests
@@ -30,6 +30,7 @@ WEATHER_CODES = {
 }
 
 
+# The search tool: the four chunks closest to the agent's query, each tagged with its source file.
 @tool
 def search_knowledge_base(query: str, n_results: int = 4) -> str:
     """Search the internal knowledge base (CRM exports, projects, revenue, proposal
@@ -47,6 +48,7 @@ def search_knowledge_base(query: str, n_results: int = 4) -> str:
                               for text, meta in zip(documents, metadatas))
 
 
+# The weather tool: live conditions from Open-Meteo, no API key needed.
 @tool
 def get_weather(location: str) -> str:
     """Get the current weather (temperature, conditions and wind) for a city."""

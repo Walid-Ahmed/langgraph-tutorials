@@ -1,6 +1,6 @@
 # Exercise 14.1 - Grow the golden set: three new cases, graded before they join the dataset.
 #
-# Two cases come from production questions (Section 14.9); one checks that the
+# Two cases come from production questions (Section 14.11); one checks that the
 # chatbot admits what the records don't hold. The script runs each through the
 # same target and nine evaluators as run_eval.py, without uploading anything, so
 # you can see whether a new case passes before you add it.

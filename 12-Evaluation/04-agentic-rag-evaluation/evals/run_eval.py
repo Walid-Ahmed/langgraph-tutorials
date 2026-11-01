@@ -47,8 +47,8 @@ DATASET = "company-kb-golden"
 client = Client()
 
 
+# Upload the golden set once; after that the LangSmith dataset is the one that counts.
 def ensure_dataset() -> None:
-    """Upload the golden set once; after that the LangSmith dataset is the one that counts."""
     if client.has_dataset(dataset_name=DATASET):
         return
     cases = json.loads(GOLDEN_DATASET_PATH.read_text(encoding="utf-8"))["cases"]
@@ -62,13 +62,14 @@ def ensure_dataset() -> None:
     print(f"created dataset {DATASET} with {len(cases)} examples")
 
 
+# The system under test: one golden question in, what the agent did out.
 def target(inputs: dict) -> dict:
-    """The system under test: one golden question in, what the agent did out."""
     reply = ask_with_tools(inputs["query"], online_eval=False)
     return {"answer": reply.answer, "tool": reply.tools[0] if reply.tools else None,
             "tools": reply.tools, "sources": reply.sources, "contexts": reply.contexts}
 
 
+# The whole offline run: ingest, upload the golden set, evaluate, apply the gate, save the results.
 def run(set_baseline: bool) -> int:
     run_ingestion()
     ensure_dataset()

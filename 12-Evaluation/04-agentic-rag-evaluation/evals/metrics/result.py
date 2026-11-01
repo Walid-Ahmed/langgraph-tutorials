@@ -4,6 +4,7 @@
 from dataclasses import dataclass
 
 
+# What every metric returns: a name, a score from 0 to 1, and a note saying why.
 @dataclass
 class MetricResult:
     name: str

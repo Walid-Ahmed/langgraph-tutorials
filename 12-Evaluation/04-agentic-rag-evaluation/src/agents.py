@@ -69,6 +69,15 @@ def _retrieved(messages) -> tuple[list[str], list[str]]:
     return sources, contexts
 
 
+_scoring_threads: list[threading.Thread] = []
+
+
+def wait_for_online_scores(timeout: float = 120) -> None:
+    """Block until the background scoring threads finish; a script calls this before it exits."""
+    for thread in list(_scoring_threads):
+        thread.join(timeout)
+
+
 def _score_online(run_id: str, question: str, answer: str) -> None:
     """Reference-free checks for live traffic, where no golden answer exists."""
     from evals.metrics.judges import relevance_judge   # the judge loads only when used
@@ -108,6 +117,8 @@ def ask_with_tools(question: str, chat_history: list[dict] | None = None,
         sources=sources, contexts=contexts, run_id=str(run_id),
     )
     if online_eval:
-        threading.Thread(target=_score_online, args=(reply.run_id, question, reply.answer),
-                         daemon=True).start()
+        thread = threading.Thread(target=_score_online, args=(reply.run_id, question, reply.answer),
+                                  daemon=True)  # the user never waits for the scores
+        thread.start()
+        _scoring_threads.append(thread)
     return reply

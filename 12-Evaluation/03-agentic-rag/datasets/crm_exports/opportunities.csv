@@ -1,0 +1,12 @@
+opportunity_id,account_id,account_name,opportunity_name,stage,status,deal_value,sales_rep_id
+OPP001,ACC001,HealthFirst,AWS Migration,Negotiation,Lost,500000,REP02
+OPP002,ACC004,FinTrust,Azure Modernization,Closed,Won,820000,REP02
+OPP003,ACC007,Lumen Bank,Snowflake Platform,Closed,Won,660000,REP01
+OPP004,ACC008,Orbit Telecom,Databricks Analytics,Closed,Won,710000,REP03
+OPP005,ACC005,TechNova,GraphRAG Platform,Closed,Won,450000,REP02
+OPP006,ACC006,AutoWorks,Factory AI Insights,Closed,Won,390000,REP01
+OPP007,ACC002,RetailMax,Retail Recommendation Engine,Closed,Won,420000,REP02
+OPP008,ACC003,MedCore,Clinical Data Lake,Proposal,Open,600000,REP01
+OPP009,ACC001,HealthFirst,Patient Portal Upgrade,Qualification,Open,250000,REP02
+OPP010,ACC008,Orbit Telecom,Churn Prediction Model,Proposal,Lost,180000,REP03
+OPP011,ACC010,Sahara Foods,Supply Chain Dashboard,Discovery,Open,150000,REP04

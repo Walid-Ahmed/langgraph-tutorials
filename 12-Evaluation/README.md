@@ -6,8 +6,8 @@ Work through these four examples in order:
 |---|---|---|
 | [01-minimal-evaluation](01-minimal-evaluation/README.md) | Two golden cases, one Python target and one custom code evaluator | `langsmith==0.9.8`; no API keys or uploads |
 | [02-helpdesk-evaluation](02-helpdesk-evaluation/README.md) | LangGraph help desk: datasets, experiments, component evaluation, regression gates, online feedback and human review | Repository dependencies, OpenAI and LangSmith keys for model/hosted runs |
-| [03-agentic-rag](03-agentic-rag/README.md) | The application alone: an agentic RAG chatbot (Chroma + `create_agent`) that decides when to search the knowledge base, with a live weather tool | Repository dependencies, an OpenAI key, the `datasets/` folder |
-| [04-agentic-rag-evaluation](04-agentic-rag-evaluation/README.md) | The same chatbot, evaluated: golden set, rule-based, heuristic, safety, RAG and LLM-judge metrics, a CI gate, and online scores | Repository dependencies, OpenAI and LangSmith keys, the `03-agentic-rag/datasets/` folder |
+| [03-agentic-rag](03-agentic-rag/README.md) | The application alone: an agentic RAG chatbot (Chroma + `create_agent`) that decides when to search the knowledge base, with a live weather tool | Repository dependencies and an OpenAI key |
+| [04-agentic-rag-evaluation](04-agentic-rag-evaluation/README.md) | The same chatbot, evaluated: golden set, rule-based, heuristic, safety, RAG and LLM-judge metrics, a CI gate, and online scores | Repository dependencies, OpenAI and LangSmith keys |
 
 Start from the repository root:
 

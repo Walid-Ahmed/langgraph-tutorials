@@ -1,0 +1,11 @@
+account_id,account_name,industry,region,status,sales_rep_id
+ACC001,HealthFirst,Healthcare,North America,Active,REP02
+ACC002,RetailMax,Retail,North America,Active,REP02
+ACC003,MedCore,Healthcare,Europe,Active,REP01
+ACC004,FinTrust,Finance,North America,Active,REP02
+ACC005,TechNova,Technology,North America,Active,REP02
+ACC006,AutoWorks,Manufacturing,Europe,Active,REP01
+ACC007,Lumen Bank,Finance,Europe,Active,REP01
+ACC008,Orbit Telecom,Telecommunications,APAC,Active,REP03
+ACC009,Northwind Logistics,Logistics,North America,Inactive,REP02
+ACC010,Sahara Foods,Retail,Middle East & Africa,Active,REP04

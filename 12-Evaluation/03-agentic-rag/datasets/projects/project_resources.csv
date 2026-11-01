@@ -1,0 +1,9 @@
+project_id,employee_name,role,allocation_percent
+PRJ001,Emma Davis,Project Manager,50
+PRJ001,Omar Haddad,Cloud Architect,100
+PRJ002,Lucas Moreau,Data Engineer,100
+PRJ003,Mei Tanaka,Analytics Lead,80
+PRJ004,Alex Martin,Lead Engineer,100
+PRJ005,Jonas Weber,ML Engineer,100
+PRJ005,Fatima Zahra,IoT Specialist,60
+PRJ006,Carlos Ruiz,ML Engineer,100

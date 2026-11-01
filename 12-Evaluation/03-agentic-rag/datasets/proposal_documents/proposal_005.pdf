@@ -1,0 +1,45 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Length 496 >>
+stream
+BT
+/F1 16 Tf
+72 760 Td
+(Proposal 005 - AutoWorks: Factory AI Insights) Tj
+/F1 11 Tf
+0 -22 Td (Client: AutoWorks \(ACC006\), Manufacturing, Europe) Tj
+0 -22 Td (Date: 2025-04-08) Tj
+0 -22 Td (Proposal value: $390,000) Tj
+0 -22 Td (Service: Factory AI Insights, predictive maintenance and quality analytics) Tj
+0 -22 Td (for AutoWorks' assembly lines, built on sensor data.) Tj
+0 -22 Td (Timeline: 8 months.) Tj
+0 -22 Td (Main risk: sensor coverage on older lines.) Tj
+0 -22 Td (Status: Won.) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000338 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+885
+%%EOF

@@ -6,9 +6,9 @@
       "id": "accounts_north_america",
       "category": "crm",
       "query": "which accounts are active in North America",
-      "expected_answer": "HeathFirst, RetailMax, FinTrust, and TechNova are active accounts in North America.",
+      "expected_answer": "HealthFirst, RetailMax, FinTrust, and TechNova are active accounts in North America.",
       "expected_keywords": [
-        "HeathFirst",
+        "HealthFirst",
         "RetailMax",
         "FinTrust",
         "TechNova",

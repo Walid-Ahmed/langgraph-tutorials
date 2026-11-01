@@ -33,7 +33,7 @@ def test_keyword_coverage_is_case_insensitive_and_names_what_is_missing():
 
 
 def test_rouge_counts_reference_words_covered():
-    assert rouge("The cat sat on the mat", "A cat is sitting on the mat").score == 0.571  # 4 of 7
+    assert rouge("Europe is handled by Sarah Lee.", "Sarah Lee covers Europe.").score == 0.75  # 3 of 4
 
 
 def test_length_penalty():

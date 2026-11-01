@@ -1,6 +1,6 @@
 # An agentic RAG chatbot
 
-Companion code for **Chapter 14** of *Building AI Agents with LangGraph*, Section 14.1: the application the rest of the chapter evaluates. This folder is the application alone; [`04-agentic-rag-evaluation`](../04-agentic-rag-evaluation/README.md) adds the evaluation. The design comes from Kerolos Yacoub's practical session ([Evaluation_practical](https://github.com/Kerolos2019/Evaluation_practical)).
+Companion code for **Chapter 12** of *Building AI Agents with LangGraph*, Section 12.1. This folder is the application alone; Chapter 14 evaluates it in [`12-Evaluation/04-agentic-rag-evaluation`](../12-Evaluation/04-agentic-rag-evaluation/README.md). The design comes from Kerolos Yacoub's practical session ([Evaluation_practical](https://github.com/Kerolos2019/Evaluation_practical)).
 
 An internal chatbot answers questions about a fictional company's records: CRM exports, projects, revenue and sales-proposal PDFs. The records are synthetic, written for the book by [`make_datasets.py`](make_datasets.py), which rebuilds `datasets/` from scratch. It's **agentic RAG**. Classic RAG retrieves passages before every answer. Here retrieval is a tool, `search_knowledge_base`, that the agent decides to call. For a weather question it calls `get_weather` (live data from [Open-Meteo](https://open-meteo.com), no API key) and searches nothing.
 
@@ -29,7 +29,7 @@ tests/           unit tests (no API keys, no network)
 
 From the repository root, `pip install -r requirements.txt`. Then copy `.env.example` to `.env` in this folder and fill in `OPENAI_API_KEY`. Add `LANGSMITH_API_KEY` too if you want traces.
 
-From `12-Evaluation/03-agentic-rag/`:
+From `9-Agentic-RAG/`:
 
 ```bash
 python -m src.pipeline      # ingest datasets/ into Chroma (once)
@@ -41,5 +41,5 @@ Try "Which sales rep covers Europe?" (the tools caption shows `search_knowledge_
 Unit tests, from the repository root:
 
 ```bash
-python -m pytest -q 12-Evaluation/03-agentic-rag/tests
+python -m pytest -q 9-Agentic-RAG/tests
 ```

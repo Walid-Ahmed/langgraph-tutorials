@@ -1,7 +1,7 @@
 # Build the chatbot's company files: 6 CSV exports and 5 proposal PDFs under datasets/.
 #
 # The company and every record in it are fictional, written for this book. The
-# values are chosen so the 18 golden cases in 04-agentic-rag-evaluation have
+# values are chosen so the 18 golden cases in 12-Evaluation/04-agentic-rag-evaluation have
 # true answers (Sarah Lee covers Europe; the completed projects' budgets sum to
 # $2,150,000; and so on), plus enough distractors - inactive accounts, open and
 # lost deals, on-budget projects - that the agent has to find the right rows.
@@ -9,7 +9,7 @@
 # The PDFs are written with a minimal built-in writer and a standard font, so
 # they need no extra package and pypdf reads their text back exactly.
 #
-# Run it with (from 12-Evaluation/03-agentic-rag):
+# Run it with (from 9-Agentic-RAG):
 #    python make_datasets.py
 # Expected result: "wrote 11 files to datasets/". Delete .chroma/ afterwards so
 # the next start re-ingests the new files.

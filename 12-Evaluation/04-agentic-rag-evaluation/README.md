@@ -1,6 +1,6 @@
 # Evaluating an agentic RAG chatbot with LangSmith
 
-Companion code for **Chapter 14** of *Building AI Agents with LangGraph*. This is the chatbot from [`03-agentic-rag`](../03-agentic-rag/README.md) with its evaluation added. The application and its evaluation design come from Kerolos Yacoub's practical session ([Evaluation_practical](https://github.com/Kerolos2019/Evaluation_practical)), ported from DeepEval and Langfuse to **LangSmith**.
+Companion code for **Chapter 14** of *Building AI Agents with LangGraph*. This is the Chapter 12 chatbot from [`9-Agentic-RAG`](../../9-Agentic-RAG/README.md) with its evaluation added. The application and its evaluation design come from Kerolos Yacoub's practical session ([Evaluation_practical](https://github.com/Kerolos2019/Evaluation_practical)), ported from DeepEval and Langfuse to **LangSmith**.
 
 An internal chatbot answers questions about company data (CRM exports, projects, revenue and proposal PDFs). It's **agentic RAG**: retrieval is a tool, `search_knowledge_base`, that the model decides to call. It can also skip it, as it does for the weather tool's questions. Classic RAG would retrieve before every answer.
 
@@ -14,7 +14,7 @@ The application is evaluated twice:
 ## Layout
 
 ```text
-../03-agentic-rag/datasets/  company files (CSV + PDF), shared with the app-only version
+../../9-Agentic-RAG/datasets/  company files (CSV + PDF), shared with the Chapter 12 app
 src/                      the chatbot
   config.py               paths, models, chunk size
   loaders.py              CSV / PDF / TXT -> text
@@ -85,6 +85,6 @@ run 4  17/18 (94%)   n_results 4 -> 2: REGRESSED graphrag_project_owner, exit 1 
 - The RAG metrics grade the chunks the agent's own `search_knowledge_base` calls returned, not a separate retrieval with the raw question.
 - The safety keyword lists match whole words, so "skill" no longer counts as "kill" and "call" no longer counts as "all".
 - Golden case `accounts_north_america` used the key `expected_tools`; it's now `expected_tool`, like the others, and its "HeathFirst" typo is now "HealthFirst".
-- The company data in `../03-agentic-rag/datasets/` is new and synthetic (`make_datasets.py`), written so all 18 golden answers hold; the original data wasn't published.
+- The company data in `9-Agentic-RAG/datasets/` is new and synthetic (`make_datasets.py`), written so all 18 golden answers hold; the original data wasn't published.
 - The agent runs on `gpt-4o-mini` and the judge on `gpt-4o`, as in the rest of the book (the original used `gpt-5`).
 - `get_weather` returns live weather from [Open-Meteo](https://open-meteo.com) (free for non-commercial use, no API key) instead of dummy text. The `london_weather` golden case therefore describes the expected behavior rather than a temperature, and the correctness judge's rubric says how to grade such cases.

@@ -2,7 +2,7 @@
 #
 # None of these call a model, Chroma or the network, so they run in a second with no keys.
 # Run them with (from the repository root):
-#    python -m pytest -q 12-Evaluation/03-agentic-rag/tests
+#    python -m pytest -q 9-Agentic-RAG/tests
 # Expected result: all tests pass.
 
 from src.chunking import fixed_size_chunk

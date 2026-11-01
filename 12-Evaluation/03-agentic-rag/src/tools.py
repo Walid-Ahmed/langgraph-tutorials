@@ -32,7 +32,8 @@ WEATHER_CODES = {
 def search_knowledge_base(query: str, n_results: int = 4) -> str:
     """Search the internal knowledge base (CRM exports, projects, revenue, proposal
     documents). Use it for any question about company data: accounts, opportunities,
-    sales reps, projects, revenue or proposals."""
+    sales reps, projects, revenue or proposals. Write the query in words: to look up
+    an ID, say what it is, such as "sales rep REP01", never the bare ID."""
     collection = get_collection()
     if collection.count() == 0:
         return "The knowledge base is empty."

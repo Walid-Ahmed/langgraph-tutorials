@@ -61,7 +61,15 @@ Unit tests, from the repository root:
 python -m pytest -q 12-Evaluation/04-agentic-rag-evaluation/tests
 ```
 
-**First run** (`gpt-4o-mini` agent, `gpt-4o` judge): 17 of 18 cases pass (94%), exit code 0. The failure, `snowflake_sales_rep`, answers with the rep's ID (`REP01`) instead of looking up the name: the agent searched once and never retrieved `sales_reps.csv`, which `context_recall` = 0.5 shows. Chapter 14 fixes it and uses it to show the baseline check.
+**Results we got** (`gpt-4o-mini` agent, `gpt-4o` judge; Chapter 14, Section 14.8, tells the story):
+
+```text
+run 1  17/18 (94%)   snowflake_sales_rep answers "REP01"; the judge passes won_opportunities at 0.8
+                     although it lists a lost deal as won
+run 2  16/18 (89%)   stricter judge rubric: won_opportunities now fails, as it should
+run 3  18/18 (100%)  query rule in the search tool's docstring + row-check rule in the prompt; baseline
+run 4  17/18 (94%)   n_results 4 -> 2: REGRESSED graphrag_project_owner, exit 1 (change reverted)
+```
 
 **Pass rule:** a case passes when `correctness >= 0.8` and the agent's first tool is the expected one. The run fails (exit 1) when fewer than 80% of cases pass, or when a case that passed in `evals/results/baseline.json` fails now.
 

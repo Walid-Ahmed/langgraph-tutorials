@@ -269,11 +269,10 @@
       "id": "london_weather",
       "category": "weather",
       "query": "What is the weather like in London right now?",
-      "expected_answer": "The weather in London is sunny with a high of 24°C (dummy data).",
+      "expected_answer": "Gives the current weather in London from the weather tool: the temperature in °C and the conditions. It does not search the knowledge base.",
       "expected_keywords": [
         "London",
-        "sunny",
-        "24"
+        "°C"
       ],
       "expected_tool": "get_weather",
       "expected_sources": []

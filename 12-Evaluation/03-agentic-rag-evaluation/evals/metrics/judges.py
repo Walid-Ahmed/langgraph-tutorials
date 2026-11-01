@@ -20,6 +20,9 @@ CORRECTNESS_STEPS = """You grade answers from a company's internal knowledge-bas
 1. Check whether the answer states the same facts as the expected answer.
    Different wording and number formats ($500K, $500,000, 500000) are fine.
 2. Reject unsupported or contradictory claims; a missing key fact lowers the grade.
+3. Some expected answers describe behavior instead of facts, because the data is live
+   (the current weather, for example). Then check that the answer behaves as described;
+   don't judge the live values themselves.
 Grade from 0 (wrong) to 10 (every expected fact present, nothing contradicted)."""
 
 RELEVANCE_STEPS = """You grade answers from a company's internal knowledge-base chatbot.

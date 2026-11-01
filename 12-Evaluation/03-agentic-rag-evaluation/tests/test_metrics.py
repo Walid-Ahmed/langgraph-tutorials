@@ -87,6 +87,42 @@ def test_golden_set_shape():
         assert all(not s.startswith("datasets/") for s in case["expected_sources"]), case["id"]
 
 
+class _FakeResponse:
+    def __init__(self, payload):
+        self.payload = payload
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return self.payload
+
+
+def test_get_weather_formats_the_live_reading(monkeypatch):
+    import src.tools as tools
+    replies = {
+        tools.GEOCODE_URL: {"results": [{"name": "London", "country": "United Kingdom",
+                                         "latitude": 51.5, "longitude": -0.13}]},
+        tools.FORECAST_URL: {"current": {"time": "2026-11-01T16:30", "temperature_2m": 11.0,
+                                         "weather_code": 3, "wind_speed_10m": 10.1}},
+    }
+    monkeypatch.setattr(tools.requests, "get", lambda url, **kwargs: _FakeResponse(replies[url]))
+    assert tools.get_weather.invoke({"location": "London, UK"}) == \
+        "London, United Kingdom: 11°C, overcast, wind 10 km/h (Open-Meteo, local time 2026-11-01T16:30)."
+
+
+def test_get_weather_reports_unknown_places_and_outages(monkeypatch):
+    import src.tools as tools
+    monkeypatch.setattr(tools.requests, "get", lambda url, **kwargs: _FakeResponse({}))
+    assert tools.get_weather.invoke({"location": "Atlantisville"}) == "No place called 'Atlantisville' was found."
+
+    def offline(url, **kwargs):
+        raise tools.requests.ConnectionError("no network")
+    monkeypatch.setattr(tools.requests, "get", offline)
+    assert tools.get_weather.invoke({"location": "London"}) == \
+        "The weather service is unavailable right now (ConnectionError)."
+
+
 def test_agent_reply_reads_back_the_retrieved_sources():
     from src.agents import _retrieved
     from src.tools import SOURCE_TAG

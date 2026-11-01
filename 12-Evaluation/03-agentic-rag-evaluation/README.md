@@ -21,7 +21,7 @@ src/                      the chatbot
   chunking.py             1000-character chunks, 200 overlap
   vectorstore.py          Chroma collection with OpenAI embeddings
   pipeline.py             ingestion: load -> chunk -> store (runs once)
-  tools.py                search_knowledge_base, get_weather (dummy)
+  tools.py                search_knowledge_base, get_weather (live, Open-Meteo)
   agents.py               create_agent, LangSmith tracing, online scores
   app.py                  Streamlit chat UI
 evals/                    the evaluation harness
@@ -70,3 +70,4 @@ python -m pytest -q 12-Evaluation/03-agentic-rag-evaluation/tests
 - The safety keyword lists match whole words, so "skill" no longer counts as "kill" and "call" no longer counts as "all".
 - Golden case `accounts_north_america` used the key `expected_tools`; it's now `expected_tool`, like the others.
 - The agent runs on `gpt-4o-mini` and the judge on `gpt-4o`, as in the rest of the book (the original used `gpt-5`).
+- `get_weather` returns live weather from [Open-Meteo](https://open-meteo.com) (free for non-commercial use, no API key) instead of dummy text. The `london_weather` golden case therefore describes the expected behavior rather than a temperature, and the correctness judge's rubric says how to grade such cases.

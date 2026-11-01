@@ -7,7 +7,7 @@
 # Imported by run_eval.py, not run.
 
 from evals.metrics.heuristic_metrics import length_penalty, rouge
-from evals.metrics.judges import correctness_judge, relevance_judge
+from evals.metrics.llm_as_judge_metrics import correctness_judge, relevance_judge
 from evals.metrics.rag_metrics import context_precision, context_recall
 from evals.metrics.result import MetricResult
 from evals.metrics.rule_based_metrics import keyword_coverage, tool_call_accuracy

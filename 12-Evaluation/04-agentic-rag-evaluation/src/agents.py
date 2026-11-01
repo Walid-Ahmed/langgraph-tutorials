@@ -80,7 +80,7 @@ def wait_for_online_scores(timeout: float = 120) -> None:
 
 def _score_online(run_id: str, question: str, answer: str) -> None:
     """Reference-free checks for live traffic, where no golden answer exists."""
-    from evals.metrics.judges import relevance_judge   # the judge loads only when used
+    from evals.metrics.llm_as_judge_metrics import relevance_judge   # the judge loads only when used
     from evals.metrics.safety_metrics import bias_fairness_score, toxicity_score
 
     wait_for_all_tracers()  # the run must reach LangSmith before feedback can attach to it

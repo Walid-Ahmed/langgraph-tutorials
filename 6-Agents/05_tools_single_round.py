@@ -10,7 +10,7 @@
 #     4. run a small graph with exactly one round of tools:
 #        START -> llm -> (tools_condition) -> tools -> answer -> END
 #
-# What it demonstrates (Chapter 7 — Tools and Tool Calling):
+# What it demonstrates (Chapter 6 — Tools and Tool Calling):
 #   - a tool is a contract: the model sees only name + description + schema
 #   - bind_tools advertises; the model proposes; your code executes
 #   - tool_call_id pairs each ToolMessage with its request

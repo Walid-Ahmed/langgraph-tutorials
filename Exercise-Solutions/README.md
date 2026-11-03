@@ -1,20 +1,23 @@
 # Exercise Solutions
 
-Solutions to the exercises from tutorials 1–6. Each file is self-contained and runnable from the repo root.
+Runnable solutions to the book's end-of-chapter exercises. Each file is self-contained and runnable from the repo root. Appendix B of the book walks through every solution, including the ones that exist only in the book (Chapters 1, 8–11 and 13).
 
 Attempt each exercise yourself before opening its solution — the exercises are designed so that the gap between "I read the tutorial" and "I can build it" is exactly what you practice here. When you do read a solution, compare its approach with yours rather than just confirming it runs: most exercises have more than one valid wiring.
 
 ## Structure
 
-| Folder | Tutorial |
-|--------|----------|
-| `1-basics/` | [1. LangGraph Basics](../1-Langgraph%20basics/README.md) |
-| `2-reducers/` | [2. Reducers](../2-Reducer/README.md) |
-| `3-llm-messages/` | [3. LLM Messages](../3_LLM_Messages/README.md) |
-| `4-conditional-edges/` | [4. Conditional Edges](../4-Conditional%20Edges/README.md) |
-| `5-workflows/` | [5. Workflows](../5-Workflows/README.md) |
-| `6-agents/` | [6. Agents](../6-Agents/README.md) |
-| `12-evaluation-agentic-rag/` | [12. Evaluation](../12-Evaluation/README.md) (book Chapter 14) |
+Folder names follow the tutorial numbering, not the book's chapter numbers:
+
+| Folder | Tutorial | Book exercises |
+|--------|----------|----------------|
+| `1-basics/` | [1. LangGraph Basics](../1-Langgraph%20basics/README.md) | Chapter 2 (and 3.1) |
+| `2-reducers/` | [2. Reducers](../2-Reducer/README.md) | Chapter 3 (3.2–3.3) |
+| `3-llm-messages/` | [3. LLM Messages](../3_LLM_Messages/README.md) | Chapter 3 (3.4–3.6) |
+| `4-conditional-edges/` | [4. Conditional Edges](../4-Conditional%20Edges/README.md) | Chapter 4 |
+| `5-workflows/` | [5. Workflows](../5-Workflows/README.md) | Chapter 5 |
+| `6-agents/` | [6. Agents](../6-Agents/README.md) | Chapters 6 and 7 |
+| `12-evaluation-agentic-rag/` | [12. Evaluation](../12-Evaluation/README.md) | Chapter 14 |
+| `13-agent-server/` | [13. Agent Server](../13-Agent-Server/README.md) | Chapter 16 (see its [README](13-agent-server/README.md)) |
 
 ## Running a solution
 
@@ -83,6 +86,18 @@ These use LangSmith (`LANGSMITH_API_KEY`, `LANGSMITH_TRACING=true`) and work on 
 | `12-evaluation-agentic-rag/ex1_new_cases.py` | 14.1: three new cases graded with the chapter's nine evaluators before they join the dataset |
 | `12-evaluation-agentic-rag/ex2_judge_agreement.py` | 14.2: hand labels vs gpt-4o and gpt-4o-mini judges on the same 18 answers (`ex2_run1_answers.json`) |
 | `12-evaluation-agentic-rag/ex3_substring_safety.py` | 14.3: break the safety checks by matching substrings instead of whole words |
+
+### 13. Agent Server (book Chapter 16)
+16.1–16.3 need the server in `13-Agent-Server/pending-command-demo/` running; 16.4–16.6 run the FastAPI backend in-process. Use that folder's virtual environment; the commands are in [`13-agent-server/README.md`](13-agent-server/README.md).
+
+| File | Exercise |
+|------|----------|
+| `13-agent-server/ex1_reuse_thread.py` | 16.1: one thread, `PING` twice, then `GET_STATUS` |
+| `13-agent-server/ex2_router_forgets_to_clear.py` | 16.2: drop the clear and watch the command stay in state |
+| `13-agent-server/ex3_unknown_command.py` | 16.3: a command the router doesn't know |
+| `13-agent-server/ex4_two_users.py` | 16.4: two users, two threads |
+| `13-agent-server/ex5_no_checkpointer.py` | 16.5: compile with no checkpointer |
+| `13-agent-server/ex6_restart.py` | 16.6: restart the service and read the state back |
 
 
 ## Graph Gallery

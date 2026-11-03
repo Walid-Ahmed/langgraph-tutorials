@@ -1,5 +1,7 @@
 # 1. LangGraph Basics — Your First Graph
 
+**Book mapping:** Chapter 2 — Your First Graph. Exercise solutions: [`Exercise-Solutions/1-basics/`](../Exercise-Solutions/1-basics/).
+
 **Example files:** [`00_simple_graph.py`](00_simple_graph.py) (one node) · [`01_two_node_graph.py`](01_two_node_graph.py) (two nodes and a handoff)
 
 This tutorial builds the smallest complete LangGraph program: one state schema, one node, one straight path from `START` to `END`. Every later tutorial in this repo — reducers, routing, agents, checkpointing — is this same shape with more parts attached, so it is worth understanding this one deeply before moving on.

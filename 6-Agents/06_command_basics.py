@@ -8,7 +8,7 @@
 #   a `refunds` desk the same way. There is not a single add_conditional_edges
 #   call in the file.
 #
-# What it demonstrates (Chapter 8 — Agents, §8.4 "Command"):
+# What it demonstrates (Chapter 7 — Agents, §7.4 "Command"):
 #   - Command = a state update AND the next hop, returned together by a node
 #   - the Command[Literal[...]] return annotation, which tells LangGraph where
 #     a node may go (so compile() validates it and the drawn graph is complete)

@@ -1,5 +1,7 @@
 # Email Assistant — Built Gradually
 
+**Book mapping:** Chapter 12 — Capstone I, Section 12.2 (the email assistant with memory). Section 12.1, the agentic RAG chatbot, is [`9-Agentic-RAG/`](../9-Agentic-RAG/README.md).
+
 This tutorial builds an email assistant one small capability at a time. The
 first lesson tests email triage before introducing a graph, tools, or stored
 memories.

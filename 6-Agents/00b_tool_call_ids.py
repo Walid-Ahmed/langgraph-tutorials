@@ -8,7 +8,7 @@
 #   its tool_call_id. No model and no API key are needed: the AIMessage is
 #   written by hand so the ids are easy to read.
 #
-# What it demonstrates (Chapter 7 — Tools, §7.6):
+# What it demonstrates (Chapter 6 — Tools, §6.6):
 #   - every entry in AIMessage.tool_calls has an "id"
 #   - every ToolMessage carries tool_call_id = the id of the call it answers
 #   - so a result can always be paired with its request, even when several

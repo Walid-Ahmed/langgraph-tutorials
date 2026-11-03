@@ -1,5 +1,7 @@
 # 4. Conditional Edges — Graphs That Choose Their Path
 
+**Book mapping:** Chapter 4 — Conditional Edges. Exercise solutions: [`Exercise-Solutions/4-conditional-edges/`](../Exercise-Solutions/4-conditional-edges/).
+
 **Example file:** [`05_conditional_edges.py`](05_conditional_edges.py)
 
 **Also:** [`05a_label_mapping.py`](05a_label_mapping.py) — the router returns the labels `good` / `bad`, and the mapping decides which node each one means; the same router is wired two ways (no API key; book Chapter 4)

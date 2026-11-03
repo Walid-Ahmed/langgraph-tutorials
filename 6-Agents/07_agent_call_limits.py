@@ -11,7 +11,7 @@
 #                                exit_behavior="end") -> at most 2 tool runs
 #   and prints how many times the tool ran and the last message.
 #
-# What it demonstrates (Chapter 8 — Agents, §8.6 "What stops the loop?"):
+# What it demonstrates (Chapter 7 — Agents, §7.6 "Stopping the loop"):
 #   - you control how many laps a create_agent agent may take, without writing
 #     the loop yourself, by passing middleware=[...]
 #   - a limit ends the run cleanly (no exception); the last message says why

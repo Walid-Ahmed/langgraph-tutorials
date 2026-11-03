@@ -1,5 +1,7 @@
 # 2. Reducers — Controlling How State Updates Merge
 
+**Book mapping:** Chapter 3 — Reducers and Chat History (the reducer half; the chat half is [`3_LLM_Messages/`](../3_LLM_Messages/)). Exercise solutions: [`Exercise-Solutions/2-reducers/`](../Exercise-Solutions/2-reducers/).
+
 **Example files:**
 - [`01_state_without_reducer.py`](01_state_without_reducer.py) — the default: updates overwrite
 - [`02_custom_reducer.py`](02_custom_reducer.py) — custom merge rules per field

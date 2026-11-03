@@ -1,5 +1,7 @@
 # 7. Checkpointing — Graphs That Remember
 
+**Book mapping:** Chapter 9 — Checkpointing. The PostgreSQL step (`06-postgres-saver/`) needs a database first: see [`13-Postgres-Setup/`](../13-Postgres-Setup/) (Appendix F). Chapter 9's exercise solutions are in Appendix B only.
+
 ## TL;DR
 
 - Attach a checkpointer when compiling the graph.

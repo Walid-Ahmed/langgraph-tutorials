@@ -1,5 +1,7 @@
 # 3. LLM Messages — Chat History as Graph State
 
+**Book mapping:** Chapter 3 — Reducers and Chat History (the chat-history half; the reducer half is [`2-Reducer/`](../2-Reducer/)). Exercise solutions: [`Exercise-Solutions/3-llm-messages/`](../Exercise-Solutions/3-llm-messages/).
+
 **Example file:** [`04_simple_chatbot.py`](04_simple_chatbot.py)
 **Requires:** an `OPENAI_API_KEY` in a `.env` file at the repo root (see [Setup](#running-it)).
 

@@ -1,25 +1,32 @@
 # 6. Agents — Letting the Model Drive the Loop
 
-**Book mapping:** Chapter 7 (Tools) uses `00a_bind_tools_first_look.py`, `00b_tool_call_ids.py`, `05_tools_single_round.py` and `doc_tools.py`; Chapter 8 (Agents) uses `00`–`04`, `06_command_basics.py`, `07_agent_call_limits.py`, `08-notify-agent/`, `09_two_agents_direct.py` and `10_two_agents_with_state.py`.
+**Book mapping:** this folder serves three chapters.
+
+| Book chapter | Files |
+|---|---|
+| Chapter 6 — Tools | `00a_bind_tools_first_look.py`, `00b_tool_call_ids.py`, `05_tools_single_round.py`, `05a_single_tool_date.py`, `doc_tools.py` |
+| Chapter 7 — Agents and the ReAct Loop | `00`–`04`, `06_command_basics.py`, `07_agent_call_limits.py` |
+| Chapter 8 — Acting Agents and Multi-Agent Handoffs | `08-notify-agent/`, `09`–`13` (`trip_tools.py`, `trip_data.json`) |
 
 **Example files:**
-- [`00a_bind_tools_first_look.py`](00a_bind_tools_first_look.py) — **the very first tool example**: three smart-home tools are bound to a model, three requests are sent, and the raw `response.tool_calls` are printed — and nothing is ever executed (book Chapter 7, §7.1)
-- [`00b_tool_call_ids.py`](00b_tool_call_ids.py) — **no API key**: a `ToolNode` runs two smart-home tool calls from one reply, and each `ToolMessage` is paired with its request through `tool_call_id` (book Chapter 7, §7.6)
+- [`00a_bind_tools_first_look.py`](00a_bind_tools_first_look.py) — **the very first tool example**: three smart-home tools are bound to a model, three requests are sent, and the raw `response.tool_calls` are printed — and nothing is ever executed (book Chapter 6, §6.1)
+- [`00b_tool_call_ids.py`](00b_tool_call_ids.py) — **no API key**: a `ToolNode` runs two smart-home tool calls from one reply, and each `ToolMessage` is paired with its request through `tool_call_id` (book Chapter 6, §6.6)
 - [`00_tool_calling_agent_simple.py`](00_tool_calling_agent_simple.py) — the agent loop built by hand (start here)
 - [`01_tool_calling_agent.py`](01_tool_calling_agent.py) — the same loop with LangGraph's prebuilt `ToolNode`, real external APIs, and optional web search
 - [`02_tool_calling_agent_command.py`](02_tool_calling_agent_command.py) — the `ToolNode` loop using `Command` instead of a router and conditional edges
 - [`03_prebuilt_react_agent.py`](03_prebuilt_react_agent.py) — the high-level ReAct-style loop created with `create_agent`
 - [`04_rag_as_tool.py`](04_rag_as_tool.py) — tutorial 5's local RAG index wrapped as a validated tool: the model decides when to search, runs parallel searches, and recovers from bad arguments and transient failures. Same idea with two tools plus LangSmith: [`../10-observability/03_multi_tool_agent/`](../10-observability/03_multi_tool_agent/)
-- [`05_tools_single_round.py`](05_tools_single_round.py) — **tools without a loop**: the contract the model sees, a proposed tool call, executing it by hand, and one round of tools in a graph (start here for book Chapter 7)
-- [`06_command_basics.py`](06_command_basics.py) — **`Command` with no model and no API key**: a help-desk graph where nodes update state and choose the next node in one return, including a handoff between desks (book Chapter 8, §8.4)
-- [`07_agent_call_limits.py`](07_agent_call_limits.py) — capping a `create_agent` agent with `ModelCallLimitMiddleware` and `ToolCallLimitMiddleware` on a tool that never finishes (book Chapter 8, §8.6)
-- [`08-notify-agent/`](08-notify-agent/) — **an agent that acts**: Telegram, Gmail and Discord tools in separate files, with an email allow-list, a dry-run switch (`NOTIFY_DRY_RUN=1`) and a one-email-per-run limit (book Chapter 8, §8.7)
-- [`09_two_agents_direct.py`](09_two_agents_direct.py) — **two `create_agent` graphs**: analyst then writer; Python copies Agent 1's last message into Agent 2's prompt (no outer StateGraph)
-- [`10_two_agents_with_state.py`](10_two_agents_with_state.py) — the same two agents as nodes on `START → analyst → writer → END`; handoff is state fields `analysis` / `report`
-- [`11_parallel_subgraphs.py`](11_parallel_subgraphs.py) — **two agents in parallel as subgraphs**: a weather agent and a budget agent get the same question, each writes its own state field, and a `combine` node merges them (tools in [`trip_tools.py`](trip_tools.py), sample prices in [`trip_data.json`](trip_data.json))
-- [`12_subgraph_shared_keys.py`](12_subgraph_shared_keys.py) — the other way to attach a subgraph: a compiled graph passed straight to `add_node`, sharing state keys with its parent (no API key)
+- [`05_tools_single_round.py`](05_tools_single_round.py) — **tools without a loop**: the contract the model sees, a proposed tool call, executing it by hand, and one round of tools in a graph (start here for book Chapter 6)
+- [`05a_single_tool_date.py`](05a_single_tool_date.py) — **one tool, one round**: a `get_today` tool the model calls for "what day is it?" and skips for general questions; `ToolNode` + `tools_condition` with no back edge (book Chapter 6, §6.5, Listing 6.7)
+- [`06_command_basics.py`](06_command_basics.py) — **`Command` with no model and no API key**: a help-desk graph where nodes update state and choose the next node in one return, including a handoff between desks (book Chapter 7, §7.4)
+- [`07_agent_call_limits.py`](07_agent_call_limits.py) — capping a `create_agent` agent with `ModelCallLimitMiddleware` and `ToolCallLimitMiddleware` on a tool that never finishes (book Chapter 7, §7.6)
+- [`08-notify-agent/`](08-notify-agent/) — **an agent that acts**: Telegram, Gmail and Discord tools in separate files, with an email allow-list, a dry-run switch (`NOTIFY_DRY_RUN=1`) and a one-email-per-run limit (book Chapter 8, §8.1)
+- [`09_two_agents_direct.py`](09_two_agents_direct.py) — **two `create_agent` graphs**: analyst then writer; Python copies Agent 1's last message into Agent 2's prompt (no outer StateGraph) (book Chapter 8, §8.2)
+- [`10_two_agents_with_state.py`](10_two_agents_with_state.py) — the same two agents as nodes on `START → analyst → writer → END`; handoff is state fields `analysis` / `report` (book Chapter 8, §8.2)
+- [`11_parallel_subgraphs.py`](11_parallel_subgraphs.py) — **two agents in parallel as subgraphs**: a weather agent and a budget agent get the same question, each writes its own state field, and a `combine` node merges them (tools in [`trip_tools.py`](trip_tools.py), sample prices in [`trip_data.json`](trip_data.json)) (book Chapter 8, §8.3)
+- [`12_subgraph_shared_keys.py`](12_subgraph_shared_keys.py) — the other way to attach a subgraph: a compiled graph passed straight to `add_node`, sharing state keys with its parent (no API key) (book Chapter 8, §8.3)
 - [`13_supervisor.py`](13_supervisor.py) — **a supervisor agent**: a hub node reads each report and picks the next specialist (a nutrition agent or a cost agent) with structured output and `Command`, sends a weak report back with feedback, stops at a run cap set in code, then hands off to a writer that saves a recipe card (book Chapter 8, §8.4)
-- [`doc_tools.py`](doc_tools.py) — the shared `search_docs` tool used by examples 04 and 05
+- [`doc_tools.py`](doc_tools.py) — the shared `search_docs` tool used by examples 04 and 05 (book Chapters 6 and 7)
 
 **Requires:** `OPENAI_API_KEY` in the repo-root `.env`. Optional: `OPENWEATHER_API_KEY` (live weather) and `TAVILY_API_KEY` (web search) — the second example degrades gracefully without them.
 

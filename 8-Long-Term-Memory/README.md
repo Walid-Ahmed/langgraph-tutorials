@@ -1,5 +1,7 @@
 # 8. Long-Term Memory — Remembering Across Conversations
 
+**Book mapping:** Chapter 10 — Long-Term Memory uses `00`–`03` (`03-postgres-store/` needs a database first: see [`13-Postgres-Setup/`](../13-Postgres-Setup/), Appendix F). Chapter 11 — Memory Types uses `04_semantic_memory_tools.py`, `05_episodic_memory.py`, `06_procedural_memory.py` and [`07-skills/`](07-skills/README.md). Exercise solutions for both chapters are in Appendix B only.
+
 ## TL;DR
 
 - A **checkpointer** remembers one conversation (`thread_id`). A **Store**

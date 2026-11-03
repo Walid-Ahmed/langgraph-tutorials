@@ -2,8 +2,8 @@
 #
 # search_docs searches the local FAISS index built by repo-root rag_index.py.
 # It lives in its own module so that the single-round tools example
-# (05_tools_single_round.py, Chapter 7) and the agent example
-# (04_rag_as_tool.py, Chapter 8) use exactly the same tool.
+# (05_tools_single_round.py, Chapter 6) and the agent example
+# (04_rag_as_tool.py, Chapter 7) use exactly the same tool.
 #
 # Nothing to run here directly; import make_search_tool from the examples.
 
@@ -39,7 +39,7 @@ SIMULATE_OUTAGE = {"remaining_failures": 0}
 def make_search_tool(vectorstore):
     """Build a search tool that closes over an already-built index.
 
-    Same idea as Chapter 6: build the expensive index once, outside the graph,
+    Same idea as Chapter 5: build the expensive index once, outside the graph,
     and let the node (here, the tool) only read it.
     """
 

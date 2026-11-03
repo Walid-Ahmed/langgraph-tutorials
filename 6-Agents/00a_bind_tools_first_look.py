@@ -6,7 +6,7 @@
 #   requests, and prints what the model sends back. NO tool is ever executed:
 #   there is no tool node, no loop and no code that runs the requested calls.
 #
-# What it demonstrates (Chapter 7 — Tools, §7.1, the book's first tool example):
+# What it demonstrates (Chapter 6 — Tools, §6.1, the book's first tool example):
 #   - @tool turns a plain function into a tool (name + docstring + arguments)
 #   - bind_tools only ADVERTISES the tools to the model; it never runs them
 #   - the model's reply is an AIMessage whose tool_calls list says what it

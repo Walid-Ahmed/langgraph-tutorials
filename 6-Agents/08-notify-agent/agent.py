@@ -10,7 +10,7 @@
 #   send_discord_message (tools/discord.py) — and gives it three requests:
 #   a Telegram reminder, an email summary, and a team update on Discord.
 #
-# What it demonstrates (Chapter 8 — Agents, "An agent that acts"):
+# What it demonstrates (Chapter 8 — Acting Agents, §8.1 "Tools with side effects"):
 #   - tools kept in separate files and collected in one list (tools/__init__.py)
 #   - secrets read from .env inside the tools, never passed through the model
 #   - guardrails in CODE: an email allow-list, a dry-run switch, and a

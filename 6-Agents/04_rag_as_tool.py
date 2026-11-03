@@ -6,7 +6,7 @@
 #   but instead of wiring retrieval into every run, wraps it as a TOOL. The
 #   model decides whether to search, how many times, and with what query.
 #
-# What it demonstrates (Chapter 8 — Agents; the tool itself is taught in Chapter 7):
+# What it demonstrates (Chapter 7 — Agents, §7.5; the tool itself is taught in Chapter 6):
 #   - a tool with a Pydantic args schema: the model sees the schema, and bad
 #     arguments are rejected before your code runs
 #   - a tool built by a factory so it closes over a prebuilt index
@@ -54,7 +54,7 @@ from doc_tools import SIMULATE_OUTAGE, make_search_tool  # noqa: E402  (shared w
 
 
 # ---------------------------------------------------------
-# 2. State — Chapter 4's message list, nothing more
+# 2. State — Chapter 3's message list, nothing more
 # ---------------------------------------------------------
 class AgentState(TypedDict):
     messages: Annotated[list, add_messages]

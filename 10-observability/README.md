@@ -1,9 +1,12 @@
 # 10. Observability — Tracing Graphs with LangSmith
 
+**Book mapping:** Chapter 13 — Observability. The chapter's experiments (Listings 13.4–13.9) are in [`langsmith_basics.ipynb`](langsmith_basics.ipynb); the Research Assistant (Listings 13.10–13.13) is [`04_research_assistant/`](04_research_assistant/).
+
 **Example files (in reading order):**
 - [`01_langsmith_basic_tracing.py`](01_langsmith_basic_tracing.py) — one node, one LLM call, automatic tracing
 - [`02_langsmith_traces_and_runs.py`](02_langsmith_traces_and_runs.py) — two chained nodes; one trace, nested runs
 - [`03_multi_tool_agent/`](03_multi_tool_agent/) — `create_agent` with local-docs + web-search tools; [package README](03_multi_tool_agent/README.md) (`research_assistant.py`, `tools.py`, `main.py`)
+- [`langsmith_basics.ipynb`](langsmith_basics.ipynb) — **the chapter's experiments** (book Listings 13.4–13.9): an auto-traced call, `@traceable`, tags and metadata, traced RAG, and a two-tool agent. Open it from this folder so `load_dotenv()` finds `10-observability/.env`; Jupyter is not in `requirements.txt` (`pip install notebook`)
 - [`04_research_assistant/`](04_research_assistant/) — the five-node Research Assistant from Chapter 13 (Listings 13.10–13.13), built with no tracing code: `tools.py`, `graph.py`, `run_traced.py`. Run `python 04_research_assistant/run_traced.py` from this folder; it uses this folder's `.env` plus `SERPER_API_KEY`.
 
 **Requires:** `OPENAI_API_KEY`, `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, and `LANGSMITH_PROJECT` in `10-observability/.env` for files 01–02 (copy [`.env.example`](.env.example)). File 03 uses a **complete** [`03_multi_tool_agent/.env`](03_multi_tool_agent/.env.example) only. The optional document pipeline uses a complete [`document_workflow/.env`](document_workflow/.env.example) (`LANGSMITH_PROJECT=document-workflow`). File 03 also uses OpenAI embeddings and optional `SERPER_API_KEY`. Install this folder's extras with `pip install -r requirements.txt`.

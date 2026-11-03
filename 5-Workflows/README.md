@@ -1,5 +1,7 @@
 # 5. Workflows — The Classic LLM Orchestration Patterns
 
+**Book mapping:** Chapter 5 — Workflow Patterns. Exercise solutions: [`Exercise-Solutions/5-workflows/`](../Exercise-Solutions/5-workflows/).
+
 This folder combines everything from tutorials 1–4 — state, reducers, messages, conditional edges — into the six workflow patterns that cover most real LLM systems. Every pattern here is a **runnable script** plus a companion `.md` deep-dive.
 
 **Prerequisites:** tutorials 1–4, and an `OPENAI_API_KEY` in the repo-root `.env` (every script makes real model calls, except `03a_parallel_math.py`).
@@ -114,6 +116,8 @@ The expensive, fallible LLM call lives in a node (its output is captured in stat
 **Poor fit:** categories whose handlers are nearly identical (one parameterized prompt is simpler), or classifications too fuzzy for a one-shot label.
 
 Deep dive: [`02_routing.md`](02_routing.md).
+
+A second, complete routing graph (book Listing 5.6): [`02b_routing_feedback.py`](02b_routing_feedback.py) labels customer feedback positive, negative or neutral and sends each label to its own reply node.
 
 ---
 
@@ -257,6 +261,7 @@ python "5-Workflows/01_prompt_chaining.py"                   # sequential chain 
 python "5-Workflows/01_prompt_chaining_quality_gate.py"      # chain + quality gate
 python "5-Workflows/01_rag_retrieve_generate.py"             # local RAG: retrieve then generate
 python "5-Workflows/02_routing.py"                           # classify & dispatch
+python "5-Workflows/02b_routing_feedback.py"                 # routing: customer feedback
 python "5-Workflows/03a_parallel_math.py"                    # fan-out/fan-in, no API key
 python "5-Workflows/03_parallelization.py"                   # static fan-out/fan-in
 python "5-Workflows/04a_send_minimal.py"                    # Send with no model: one worker per word (no API key)

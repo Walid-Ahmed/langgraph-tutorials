@@ -178,6 +178,13 @@ Solutions live in [`Exercise-Solutions/1-basics/`](../Exercise-Solutions/1-basic
 3. Node **names** and node **functions** are separate — edges wire names, which makes flows rewireable.
 4. `compile()` turns the blueprint into a runnable app and validates the wiring; `invoke()` executes one run.
 
+## Flashcards
+
+Print-ready code cards for review: a cover plus one A4 page per concept, each with a short takeaway and a commented snippet. Open the PDF to read or print, or the PPTX to edit.
+
+- Chapter 1, *Why LangGraph?* (7 cards): [`ch01_why_langgraph_flashcards.pdf`](ch01_why_langgraph_flashcards.pdf) · [`ch01_why_langgraph_flashcards.pptx`](ch01_why_langgraph_flashcards.pptx)
+- Chapter 2, *Your First Graph* (7 cards): [`ch02_first_graph_flashcards.pdf`](ch02_first_graph_flashcards.pdf) · [`ch02_first_graph_flashcards.pptx`](ch02_first_graph_flashcards.pptx)
+
 ## Next Step
 
 [Tutorial 2 — Reducers](../2-Reducer/README.md): what "merging a state update" actually means, and how to control it when the default (overwrite) is wrong.

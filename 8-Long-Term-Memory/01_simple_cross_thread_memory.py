@@ -42,7 +42,7 @@ model = ChatOpenAI(model="gpt-4o-mini", temperature=0, api_key=api_key)
 @dataclass
 class Context:
     # @dataclass automatically creates Context.__init__(user_id), so we can
-    # construct the object with Context(user_id="user-1") without writing an
+    # construct the object with Context(user_id="walid") without writing an
     # __init__ method ourselves. It also gives the object a readable __repr__.
     #
     # user_id: str declares the one field that this runtime context carries.
@@ -175,12 +175,12 @@ def main() -> None:
 
     # Reusing user_id lets Thread 2 read facts learned in Thread 1, even though
     # the two thread_id values keep their chat histories separate.
-    same_user = Context(user_id="user-1")
+    same_user = Context(user_id="walid")
 
     # Thread 1 introduces the user and project, then update_memory stores them.
     run_thread(
         graph,
-        thread_id="thread-1",
+        thread_id="walid-chat-1",
         context=same_user,
         message=(
             "My name is Walid. I am a software engineer working on a LangGraph "
@@ -193,7 +193,7 @@ def main() -> None:
     # chat read the stored profile. The new role is then merged into memory.
     run_thread(
         graph,
-        thread_id="thread-2",
+        thread_id="walid-chat-2",
         context=same_user,
         message=(
             "This is a new chat. I am now an engineering manager. What do you "

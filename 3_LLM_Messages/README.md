@@ -162,6 +162,10 @@ Solutions live in [`Exercise-Solutions/3-llm-messages/`](../Exercise-Solutions/3
 3. `MessagesState` is the built-in version of the `messages` + `add_messages` schema; subclass it when you need extra fields.
 4. History accumulates **within** one `invoke()` — persistence across runs requires a checkpointer (tutorial 7).
 
+## Flashcards
+
+Chapter 3's code cards cover this folder and [`2-Reducer/`](../2-Reducer/): [`ch03_reducers_flashcards.pdf`](../2-Reducer/ch03_reducers_flashcards.pdf) · [`.pptx`](../2-Reducer/ch03_reducers_flashcards.pptx).
+
 ## Next Step
 
 [Tutorial 4 — Conditional Edges](../4-Conditional%20Edges/README.md): so far every graph has been a straight line. Next, the graph learns to choose its path at runtime.

@@ -254,9 +254,9 @@ Each update **replaces** the entire profile with a newly merged one. The script
 runs two threads for the same user:
 
 ```text
-thread-1, user-1 → "My name is Walid, I'm a software engineer…" → profile saved
-thread-2, user-1 → no thread-1 messages, but the profile is loaded
-                 → "I am now an engineering manager" → profile updated
+walid-chat-1, user walid → "My name is Walid, I'm a software engineer…" → profile saved
+walid-chat-2, user walid → no walid-chat-1 messages, but the profile is loaded
+                         → "I am now an engineering manager" → profile updated
 ```
 
 This file uses `("memory", user_id)` / `"user_details"`, while 00 and 02 use
@@ -403,3 +403,10 @@ introduced one lesson at a time. To revisit thread-scoped memory, see
 - [LangGraph memory](https://docs.langchain.com/oss/python/langgraph/add-memory)
 - [LangGraph persistence and Store](https://docs.langchain.com/oss/python/langgraph/persistence)
 - [Long-term memory Store notebook (additional examples)](https://github.com/Kerolos2019/Agentic_ai_using_LangGrph/blob/main/17_longterm-memory-store.ipynb)
+
+## Flashcards
+
+Print-ready code cards for review: a cover plus one A4 page per concept, each with a short takeaway and a commented snippet. Open the PDF to read or print, or the PPTX to edit.
+
+- Chapter 10, *Long-Term Memory* (9 cards): [`ch10_long_term_memory_flashcards.pdf`](ch10_long_term_memory_flashcards.pdf) · [`ch10_long_term_memory_flashcards.pptx`](ch10_long_term_memory_flashcards.pptx)
+- Chapter 11, *Semantic, Episodic & Procedural Memory* (11 cards): [`ch11_memory_types_flashcards.pdf`](ch11_memory_types_flashcards.pdf) · [`ch11_memory_types_flashcards.pptx`](ch11_memory_types_flashcards.pptx)

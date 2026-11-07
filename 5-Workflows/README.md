@@ -305,6 +305,12 @@ Solutions live in [`Exercise-Solutions/5-workflows/`](../Exercise-Solutions/5-wo
 5. Pattern choice is about where the task's structure comes from — sequence, category, independence, runtime planning, or iteration. Pick the simplest shape that fits.
 6. **Local RAG is a chain** (`retrieve → generate`) when every question should hit your docs. Make retrieval a tool only when the model must choose whether to search ([`04_rag_as_tool.py`](../6-Agents/04_rag_as_tool.py); traced in [`03_multi_tool_agent/`](../10-observability/03_multi_tool_agent/)).
 
+## Flashcards
+
+Print-ready code cards for review: a cover plus one A4 page per concept, each with a short takeaway and a commented snippet. Open the PDF to read or print, or the PPTX to edit.
+
+- Chapter 5, *Workflow Patterns* (12 cards): [`ch05_workflows_flashcards.pdf`](ch05_workflows_flashcards.pdf) · [`ch05_workflows_flashcards.pptx`](ch05_workflows_flashcards.pptx)
+
 ## Next Step
 
 [Tutorial 6 — Agents](../6-Agents/README.md): hand the model the steering wheel — a loop where the LLM itself decides which tools to call and when it's done.

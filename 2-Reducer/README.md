@@ -171,6 +171,12 @@ Solutions live in [`Exercise-Solutions/2-reducers/`](../Exercise-Solutions/2-red
 4. `add_messages` is the standard reducer for conversation history and underpins every chat graph later in this series.
 5. Choose overwrite vs. accumulate **per field, at schema design time** — reducer mistakes fail silently.
 
+## Flashcards
+
+Print-ready code cards for review: a cover plus one A4 page per concept, each with a short takeaway and a commented snippet. Open the PDF to read or print, or the PPTX to edit.
+
+- Chapter 3, *Reducers and Chat History* (11 cards): [`ch03_reducers_flashcards.pdf`](ch03_reducers_flashcards.pdf) · [`ch03_reducers_flashcards.pptx`](ch03_reducers_flashcards.pptx)
+
 ## Next Step
 
 [Tutorial 3 — LLM Messages](../3_LLM_Messages/README.md): put `add_messages` to work in a real chatbot node that calls an LLM.

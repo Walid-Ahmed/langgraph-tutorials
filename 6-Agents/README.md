@@ -299,6 +299,14 @@ Solutions live in [`Exercise-Solutions/6-agents/`](../Exercise-Solutions/6-agent
 7. Two `create_agent` specialists are still two graphs. Connect them with a Python variable (`09`) or an outer `StateGraph` (`10`).
 8. A supervisor (`13`) is a hub: specialists report back, and one node chooses the next hop from a structured decision. Cap it in code, because every lap is a paid agent run.
 
+## Flashcards
+
+Print-ready code cards for review: a cover plus one A4 page per concept, each with a short takeaway and a commented snippet. Open the PDF to read or print, or the PPTX to edit.
+
+- Chapter 6, *Tools and Tool Calling* (10 cards): [`ch06_tools_flashcards.pdf`](ch06_tools_flashcards.pdf) · [`ch06_tools_flashcards.pptx`](ch06_tools_flashcards.pptx)
+- Chapter 7, *Agents and the ReAct Loop* (12 cards): [`ch07_agents_flashcards.pdf`](ch07_agents_flashcards.pdf) · [`ch07_agents_flashcards.pptx`](ch07_agents_flashcards.pptx)
+- Chapter 8, *Acting Agents and Multi-Agent Handoffs* (12 cards): [`ch08_acting_agents_flashcards.pdf`](ch08_acting_agents_flashcards.pdf) · [`ch08_acting_agents_flashcards.pptx`](ch08_acting_agents_flashcards.pptx)
+
 ## Next Step
 
 [Tutorial 7 — Checkpointing](../7-Checkpointing/README.md): every graph so far forgets everything when `invoke()` returns. Next, graphs that remember — conversation threads, snapshots, and resuming after failure.

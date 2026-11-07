@@ -21,3 +21,9 @@ python -m pytest -q 12-Evaluation/04-agentic-rag-evaluation/tests
 ```
 
 Exercise solutions are in [`Exercise-Solutions/12-evaluation-agentic-rag/`](../Exercise-Solutions/12-evaluation-agentic-rag/).
+
+## Flashcards
+
+Print-ready code cards for review: a cover plus one A4 page per concept, each with a short takeaway and a commented snippet. Open the PDF to read or print, or the PPTX to edit.
+
+- Chapter 14, *Evaluation* (13 cards): [`ch14_evaluation_flashcards.pdf`](ch14_evaluation_flashcards.pdf) · [`ch14_evaluation_flashcards.pptx`](ch14_evaluation_flashcards.pptx)

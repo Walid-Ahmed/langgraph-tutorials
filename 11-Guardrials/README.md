@@ -19,10 +19,6 @@ The notebook runs top to bottom. Its sections line up with the chapter like this
 | After-agent guardrail | A model grades the answer against one stated rule | §15.6, Listing 15.6 |
 | Layered guardrails: healthcare chatbot | Four guardrails on one assistant, cheapest first | §15.8, Listing 15.9 |
 
-## Flashcards
-
-Review the chapter with the A4 slide deck: [`guardrails_flashcards.pptx`](guardrails_flashcards.pptx), or [`guardrails_flashcards.pdf`](guardrails_flashcards.pdf) to read or print. It has 18 slides: the concepts first, then one card per code idea (CODE 01–11), each with a short snippet from the notebook. The FLOW slide after CODE 04 shows when `before_agent` and `after_agent` run during one `invoke()`, and what `jump_to="end"` skips.
-
 ## Running it
 
 From the repo root, with the virtual environment active:

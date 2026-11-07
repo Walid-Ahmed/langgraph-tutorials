@@ -669,9 +669,3 @@ python "7-Checkpointing/06-postgres-saver/02_recall_name.py"       # new process
 ## Where to Go Next
 
 Continue to [`8-Long-Term-Memory/`](../8-Long-Term-Memory/) to learn how a LangGraph `Store` shares selected user facts across separate threads. Then work through the [`Exercise-Solutions/`](../Exercise-Solutions/) folders you have not attempted. For durable thread checkpoints, revisit the [`PostgresSaver` guide](06-postgres-saver/README.md).
-
-## Flashcards
-
-Print-ready code cards for review: a cover plus one A4 page per concept, each with a short takeaway and a commented snippet. Open the PDF to read or print, or the PPTX to edit.
-
-- Chapter 9, *Checkpointing* (12 cards): [`ch09_checkpointing_flashcards.pdf`](ch09_checkpointing_flashcards.pdf) · [`ch09_checkpointing_flashcards.pptx`](ch09_checkpointing_flashcards.pptx)

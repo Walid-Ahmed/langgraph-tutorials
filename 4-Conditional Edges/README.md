@@ -176,12 +176,6 @@ Solutions live in [`Exercise-Solutions/4-conditional-edges/`](../Exercise-Soluti
 4. The mapping dict declares every possible destination, which is what makes the graph statically drawable and validated at compile time.
 5. Branches and loops both come from this one primitive — everything in the workflow and agent tutorials builds on it.
 
-## Flashcards
-
-Print-ready code cards for review: a cover plus one A4 page per concept, each with a short takeaway and a commented snippet. Open the PDF to read or print, or the PPTX to edit.
-
-- Chapter 4, *Conditional Edges* (10 cards): [`ch04_conditional_edges_flashcards.pdf`](ch04_conditional_edges_flashcards.pdf) · [`ch04_conditional_edges_flashcards.pptx`](ch04_conditional_edges_flashcards.pptx)
-
 ## Next Step
 
 [Tutorial 5 — Workflows](../5-Workflows/README.md): reducers + messages + conditional edges combined into the classic LLM workflow patterns — chaining, routing, parallelization, orchestrator-workers, and evaluator-optimizer.

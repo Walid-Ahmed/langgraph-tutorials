@@ -61,29 +61,6 @@ The folder numbers follow the order the tutorials were written, not the book's c
 | 16. Deployment | [`13-Agent-Server/`](13-Agent-Server/) | [`13-agent-server/`](Exercise-Solutions/13-agent-server/) |
 | Appendix F. PostgreSQL | [`13-Postgres-Setup/`](13-Postgres-Setup/README.md) | — |
 
-## Flashcards
-
-Every chapter with code has a deck of print-ready code cards in its folder: one A4 page per concept, with a takeaway, two bullets and a commented snippet from the chapter's code.
-
-| Chapter | Deck |
-|---|---|
-| 1. Why LangGraph? | [PDF](1-Langgraph%20basics/ch01_why_langgraph_flashcards.pdf) · [PPTX](1-Langgraph%20basics/ch01_why_langgraph_flashcards.pptx) (7 cards) |
-| 2. Your First Graph | [PDF](1-Langgraph%20basics/ch02_first_graph_flashcards.pdf) · [PPTX](1-Langgraph%20basics/ch02_first_graph_flashcards.pptx) (7 cards) |
-| 3. Reducers and Chat History | [PDF](2-Reducer/ch03_reducers_flashcards.pdf) · [PPTX](2-Reducer/ch03_reducers_flashcards.pptx) (11 cards) |
-| 4. Conditional Edges | [PDF](4-Conditional%20Edges/ch04_conditional_edges_flashcards.pdf) · [PPTX](4-Conditional%20Edges/ch04_conditional_edges_flashcards.pptx) (10 cards) |
-| 5. Workflow Patterns | [PDF](5-Workflows/ch05_workflows_flashcards.pdf) · [PPTX](5-Workflows/ch05_workflows_flashcards.pptx) (12 cards) |
-| 6. Tools and Tool Calling | [PDF](6-Agents/ch06_tools_flashcards.pdf) · [PPTX](6-Agents/ch06_tools_flashcards.pptx) (10 cards) |
-| 7. Agents and the ReAct Loop | [PDF](6-Agents/ch07_agents_flashcards.pdf) · [PPTX](6-Agents/ch07_agents_flashcards.pptx) (12 cards) |
-| 8. Acting Agents and Multi-Agent Handoffs | [PDF](6-Agents/ch08_acting_agents_flashcards.pdf) · [PPTX](6-Agents/ch08_acting_agents_flashcards.pptx) (12 cards) |
-| 9. Checkpointing | [PDF](7-Checkpointing/ch09_checkpointing_flashcards.pdf) · [PPTX](7-Checkpointing/ch09_checkpointing_flashcards.pptx) (12 cards) |
-| 10. Long-Term Memory | [PDF](8-Long-Term-Memory/ch10_long_term_memory_flashcards.pdf) · [PPTX](8-Long-Term-Memory/ch10_long_term_memory_flashcards.pptx) (9 cards) |
-| 11. Semantic, Episodic & Procedural Memory | [PDF](8-Long-Term-Memory/ch11_memory_types_flashcards.pdf) · [PPTX](8-Long-Term-Memory/ch11_memory_types_flashcards.pptx) (11 cards) |
-| 12. Two Complete Agents | [PDF](9-Agentic-RAG/ch12_capstone_flashcards.pdf) · [PPTX](9-Agentic-RAG/ch12_capstone_flashcards.pptx) (12 cards) |
-| 13. Observability | [PDF](10-observability/ch13_observability_flashcards.pdf) · [PPTX](10-observability/ch13_observability_flashcards.pptx) (11 cards) |
-| 14. Evaluation | [PDF](12-Evaluation/ch14_evaluation_flashcards.pdf) · [PPTX](12-Evaluation/ch14_evaluation_flashcards.pptx) (13 cards) |
-| 15. Guardrails | [PDF](11-Guardrials/guardrails_flashcards.pdf) · [PPTX](11-Guardrials/guardrails_flashcards.pptx) (18 slides) |
-| 16. Deployment | [PDF](13-Agent-Server/ch16_deployment_flashcards.pdf) · [PPTX](13-Agent-Server/ch16_deployment_flashcards.pptx) (12 cards) |
-
 ## The Core Idea
 
 LangGraph lets you build workflows as graphs. A graph is made of three main pieces:

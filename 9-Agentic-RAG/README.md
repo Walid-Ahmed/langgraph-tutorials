@@ -43,9 +43,3 @@ Unit tests, from the repository root:
 ```bash
 python -m pytest -q 9-Agentic-RAG/tests
 ```
-
-## Flashcards
-
-Print-ready code cards for review: a cover plus one A4 page per concept, each with a short takeaway and a commented snippet. Open the PDF to read or print, or the PPTX to edit.
-
-- Chapter 12, *Two Complete Agents* (12 cards): [`ch12_capstone_flashcards.pdf`](ch12_capstone_flashcards.pdf) · [`ch12_capstone_flashcards.pptx`](ch12_capstone_flashcards.pptx)

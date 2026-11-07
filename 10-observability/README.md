@@ -236,12 +236,6 @@ Then open [smith.langchain.com](https://smith.langchain.com), select project `10
 5. A longer graph does not need a new tracing API. The same three variables cover one node, two nodes, five workflow nodes, or a `create_agent` tool loop.
 6. You define the toolbox; the agent chooses which tool to call. LangSmith is how you *see* that choice.
 
-## Flashcards
-
-Print-ready code cards for review: a cover plus one A4 page per concept, each with a short takeaway and a commented snippet. Open the PDF to read or print, or the PPTX to edit.
-
-- Chapter 13, *Observability* (11 cards): [`ch13_observability_flashcards.pdf`](ch13_observability_flashcards.pdf) · [`ch13_observability_flashcards.pptx`](ch13_observability_flashcards.pptx)
-
 ## Next Step
 
 [Tutorial 11 — Guardrails](../11-Guardrials/guardrails_langchain_middleware.ipynb): once you can *see* what the model did, constrain what it is allowed to do — PII filters, human-in-the-loop, and other LangChain middleware on `create_agent`.

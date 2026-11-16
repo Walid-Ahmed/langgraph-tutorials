@@ -33,9 +33,16 @@ copy is the image displayed above.
    example the limit is 3 analysis passes, which guarantees that the graph
    cannot loop forever if the score remains below 8.
 
-The checkpointer saves a complete copy of the graph state after every node.
-That means you can inspect the document, score, issues, current stage, and next
-node at each point in the run. After the workflow finishes,
+The checkpointer saves a complete copy of the graph state after every node,
+plus two checkpoints at the start (input received, input applied). That means
+you can inspect the document, score, issues, current stage, and next node at
+each point in the run. History needs no second turn: this single `invoke()`
+leaves the whole trail. A typical run is 2 start checkpoints + 7 node runs
+(intake, analyze ×3, revise ×2, finalize) = 9.
+
+Read each snapshot with one rule: it is saved *after* a step, so `Stage` says
+what just ran and `Next Nodes` says what runs next. A `revise` snapshot still
+shows the previous score, because `revise` doesn't score anything. After the workflow finishes,
 `get_state_history()` retrieves those saved snapshots and the script prints
 them from newest to oldest. This history lets you see exactly how the document
 and routing decisions changed during every pass through the loop.
@@ -45,7 +52,8 @@ previous `invoke()`** before running again. The `thread_id` therefore does more
 than label the printed history: it tells the checkpointer which saved workflow
 state to retrieve. This example invokes the graph only once and then inspects
 its history, but a second `invoke()` using `doc_review_001` would begin from
-that thread's latest saved state before applying the new input.
+that thread's latest saved state, merge the new input, and run again from
+`START`. Only `invoke(None, config)` continues an unfinished run from its `next`.
 
 ## Run
 

@@ -1,7 +1,8 @@
 # A realistic checkpointed workflow: intake -> analyze -> (revise -> analyze)*
 # -> finalize, where an LLM scores a document and loops it through revisions
 # until the quality score is high enough or MAX_ITERATIONS is hit. Each node
-# is its own checkpoint, and the full checkpoint history is printed at the end.
+# is its own checkpoint (plus two at the start), and the full checkpoint history
+# from this ONE invoke() is printed at the end.
 #
 # Run from the repository root (requires OPENAI_API_KEY in .env or the shell):
 #   python "7-Checkpointing/03-checkpoint-history/00_document_review_loop.py"
@@ -253,26 +254,16 @@ result = graph.invoke(initial_input, config=config)
 # 7. Inspect the full checkpoint history
 #
 # Every node run above (intake, each analyze, each revise,
-# finalize) saved its own checkpoint. get_state_history returns
-# all of them for this thread, newest first.
+# finalize) saved its own checkpoint, after two start checkpoints
+# (input received, input applied). get_state_history returns all
+# of them for this thread, newest first: one invoke() is enough.
 # ---------------------------------------------------------
 
-def print_snapshot_data(snapshot_state) -> None:
-    thread_id = snapshot_state.config["configurable"]["thread_id"]
-    print(f"Thread ID: {thread_id}")
-
-    checkpoint_id = snapshot_state.config["configurable"]["checkpoint_id"]
-    print(f"Checkpoint ID: {checkpoint_id}")
-
-    next_nodes = snapshot_state.next if snapshot_state.next else "None (workflow complete)"
-    print(f"Next Nodes -> {next_nodes}")
-
-    print("\nState Values:")
-    print(f"  Title: {snapshot_state.values.get('document_title', 'N/A')}")
-    print(f"  Stage: {snapshot_state.values.get('processing_stage', 'N/A')}")
-    print(f"  Quality Score: {snapshot_state.values.get('quality_score', 0)}")
-    print(f"  Approved: {snapshot_state.values.get('approved', False)}")
-    print(f"  Issues Found: {snapshot_state.values.get('issues_found', 'None')}")
+def print_snapshot_ids(snapshot) -> None:
+    """The identifiers and issues the summary lines in the loop below leave out."""
+    print(f"  Thread ID: {snapshot.config['configurable']['thread_id']}")
+    print(f"  Checkpoint ID: {snapshot.config['configurable']['checkpoint_id']}")
+    print(f"  Issues Found: {snapshot.values.get('issues_found', 'None')}")
 
 
 print("-" * 50)
@@ -286,8 +277,12 @@ print(f"Total Checkpoints: {total_checkpoints}")
 print("\nCheckpoint Timeline (newest to oldest)")
 print("=" * 50)
 
-for i, checkpoint in enumerate(history):
+for i, snapshot in enumerate(history):
     print(f"\n{'*' * 30}")
-    print(f"Checkpoint Snapshot {total_checkpoints - i}")
+    print(f"Checkpoint Snapshot {len(history) - i}")            # 1 = the oldest
     print(f"{'*' * 30}")
-    print_snapshot_data(checkpoint)
+    print(f"Next Nodes -> {snapshot.next or 'None (workflow complete)'}")
+    print(f"  Stage: {snapshot.values.get('processing_stage', 'N/A')}")
+    print(f"  Quality Score: {snapshot.values.get('quality_score', 0)}")
+    print(f"  Approved: {snapshot.values.get('approved', False)}")
+    print_snapshot_ids(snapshot)

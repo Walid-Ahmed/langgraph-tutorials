@@ -98,7 +98,7 @@ def main() -> None:
     print("\n=== Stored checkpoint after first invoke ===")
     print(graph.get_state(config).values)
 
-    print_checkpoint_history(graph, config, "one entry per node run so far")
+    print_checkpoint_history(graph, config, "4 entries: input, start, node_a, node_b")
 
     print("\n=== Second invoke with the same thread_id ===")
     second_result = graph.invoke({"foo": "", "bar": []}, config)
@@ -108,7 +108,7 @@ def main() -> None:
     print("\n=== Stored checkpoint after second invoke ===")
     print(graph.get_state(config).values)
 
-    print_checkpoint_history(graph, config, "grows by two more entries (node_a, node_b) each invoke")
+    print_checkpoint_history(graph, config, "grows by 4 more; the new turn opens with next=('__start__',)")
 
 
 if __name__ == "__main__":

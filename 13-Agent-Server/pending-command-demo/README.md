@@ -27,6 +27,25 @@ After one `PING` on that thread the status client prints `{"status": "ok", "ping
 
 `SERVER_URL` defaults to `http://127.0.0.1:2024`. If that port is taken, start with `langgraph dev --no-browser --port 2025` and set `SERVER_URL=http://127.0.0.1:2025` in the client terminal. Stop the server with Ctrl+C.
 
+## The same handlers behind an API gateway graph
+
+`langgraph.json` registers a second graph, `gateway` (`server/gateway.py`). It takes HTTP-style requests as its input (`method`, `path`, `body`), looks the pair up in a route table, and returns `{"status": ..., "body": ...}`. With the server from above running, in the client terminal:
+
+```bash
+python clients/gateway_call.py
+```
+
+On a fresh thread it prints:
+
+```text
+POST /ping -> 204 None
+GET /status -> 200 {'status': 'ok', 'ping_count': 1}
+GET /ping -> 405 {'detail': 'Method not allowed', 'allowed': ['POST']}
+GET /pings -> 404 {'detail': 'Not found'}
+POST /ping {'ping_count': 99} -> 422 {'detail': [{'type': 'extra_forbidden', 'loc': ['ping_count'], 'msg': 'Extra inputs are not permitted', 'input': 99}]}
+GET /status -> 200 {'status': 'ok', 'ping_count': 1}
+```
+
 ## Option B: the same graph behind your own FastAPI service
 
 `backend/` runs the graph inside a FastAPI process instead of on LangGraph Server. It reuses the `builder` from `server/graph.py` and compiles it with a checkpointer the service owns. The browser (here, `curl`) sends a demo bearer token, never a thread id. The service picks one thread per user.

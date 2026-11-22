@@ -1,6 +1,6 @@
 # Types of metrics, in a few lines each
 
-Companion code for **Chapter 14**, Section 14.6 of *Building AI Agents with LangGraph*. Each script shows one family of evaluation metrics on small, fixed examples from an imaginary travel assistant, kept apart from the RAG chatbot the chapter evaluates later in [`04-agentic-rag-evaluation`](../04-agentic-rag-evaluation/README.md). The safety examples and the doc1-doc5 retrieval example come from Kerolos Yacoub's practical evaluation session.
+Companion code for **Chapter 14**, Section 14.7 of *Building AI Agents with LangGraph*. Each script shows one family of evaluation metrics on small, fixed examples from an imaginary travel assistant, kept apart from the RAG chatbot the chapter evaluates later in [`04-agentic-rag-evaluation`](../04-agentic-rag-evaluation/README.md). The safety examples and the doc1-doc5 retrieval example come from Kerolos Yacoub's practical evaluation session.
 
 | Script | Family | Shows | Needs |
 |---|---|---|---|

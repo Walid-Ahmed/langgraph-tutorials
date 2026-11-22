@@ -1,4 +1,4 @@
-# An LLM-as-judge metric in a few lines (Chapter 14, Section 14.6).
+# An LLM-as-judge metric in a few lines (Chapter 14, Section 14.7).
 #
 # A second model grades each answer against the expected one, using a written
 # rubric, and returns its reason before its score. It reads meaning, so it can

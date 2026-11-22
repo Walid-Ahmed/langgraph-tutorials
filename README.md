@@ -54,9 +54,9 @@ The folder numbers follow the order the tutorials were written, not the book's c
 | 9. Checkpointing | [`7-Checkpointing/`](7-Checkpointing/) | Appendix B only |
 | 10. Long-Term Memory | [`8-Long-Term-Memory/`](8-Long-Term-Memory/) (`00`–`03`) | Appendix B only |
 | 11. Memory Types | [`8-Long-Term-Memory/`](8-Long-Term-Memory/) (`04`–`06`, `07-skills/`) | Appendix B only |
-| 12. Capstone I: Two Complete Agents | [`9-Agentic-RAG/`](9-Agentic-RAG/README.md) (§12.1) and [`9-Email-Assistant/`](9-Email-Assistant/) (§12.2) | — |
+| 12. Capstone I | [`9-Email-Assistant/`](9-Email-Assistant/) | — |
 | 13. Observability | [`10-observability/`](10-observability/) | Appendix B only |
-| 14. Evaluation | [`12-Evaluation/`](12-Evaluation/README.md) | [`12-evaluation-agentic-rag/`](Exercise-Solutions/12-evaluation-agentic-rag/) |
+| 14. Evaluation | [`9-Agentic-RAG/`](9-Agentic-RAG/README.md) (§14.1, the chatbot) and [`12-Evaluation/`](12-Evaluation/README.md) | [`12-evaluation-agentic-rag/`](Exercise-Solutions/12-evaluation-agentic-rag/) |
 | 15. Guardrails | [`11-Guardrials/`](11-Guardrials/README.md) | — |
 | 16. Deployment | [`13-Agent-Server/`](13-Agent-Server/) | [`13-agent-server/`](Exercise-Solutions/13-agent-server/) |
 | Appendix F. PostgreSQL | [`13-Postgres-Setup/`](13-Postgres-Setup/README.md) | — |
@@ -113,10 +113,10 @@ flowchart TD
 | 7 | [`7-Checkpointing/`](7-Checkpointing/) | Short-term memory per `thread_id`: `MemorySaver`, history, resume, human-in-the-loop, `PostgresSaver` | OpenAI; PostgreSQL for the last step |
 | 8 | [`8-Long-Term-Memory/`](8-Long-Term-Memory/) | Cross-conversation memory with a Store: namespaces, `PostgresStore`, semantic/episodic/procedural memory | OpenAI; PostgreSQL for `03-postgres-store/` |
 | 9 | [`9-Email-Assistant/`](9-Email-Assistant/) | A complete assistant built gradually: routing, tools, and every memory type | OpenAI |
-| 9 | [`9-Agentic-RAG/`](9-Agentic-RAG/README.md) | An agentic RAG chatbot over company files: Chroma, `create_agent`, a search tool it chooses to call, live weather (book Chapter 12) | OpenAI; LangSmith optional |
+| 9 | [`9-Agentic-RAG/`](9-Agentic-RAG/README.md) | An agentic RAG chatbot over company files: Chroma, `create_agent`, a search tool it chooses to call, live weather (book Chapter 14, Section 14.1) | OpenAI; LangSmith optional |
 | 10 | [`10-observability/`](10-observability/) | LangSmith tracing of graphs, LLM calls and nodes | OpenAI, LangSmith |
 | 11 | [`11-Guardrials/`](11-Guardrials/README.md) | Guardrails with LangChain middleware: PII detection, human-in-the-loop, input/output checks (notebook, book Chapter 15) | OpenAI; Jupyter |
-| 12 | [`12-Evaluation/`](12-Evaluation/README.md) | Evaluating the Chapter 12 chatbot: golden set, code and LLM-judge metrics, a CI gate with a regression check, online scores and human review (book Chapter 14) | No keys for the minimal example; OpenAI and LangSmith for the rest |
+| 12 | [`12-Evaluation/`](12-Evaluation/README.md) | Evaluating the `9-Agentic-RAG` chatbot: golden set, code and LLM-judge metrics, a CI gate with a regression check, online scores and human review (book Chapter 14) | No keys for the minimal example; OpenAI and LangSmith for the rest |
 | 13 | [`13-Agent-Server/`](13-Agent-Server/) | A command mailbox on LangGraph Server: one node, `PING` and `GET_STATUS`, thread reuse (book Chapter 16) | No API key. Its own `.venv` inside `pending-command-demo/` |
 | — | [`13-Postgres-Setup/`](13-Postgres-Setup/README.md) | One-time PostgreSQL setup for the Postgres examples in tutorials 7 and 8: role, database, `DB_URI`, `.setup()`, a pool (book Appendix F) | A local PostgreSQL server |
 | — | [`Exercise-Solutions/`](Exercise-Solutions/) | Runnable answers to the exercises of book Chapters 2–7, 14 and 16. Try the exercises first | OpenAI for some |

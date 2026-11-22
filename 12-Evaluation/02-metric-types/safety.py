@@ -1,4 +1,4 @@
-# Safety metrics in a few lines: toxicity and bias keyword lists (Chapter 14, Section 14.6).
+# Safety metrics in a few lines: toxicity and bias keyword lists (Chapter 14, Section 14.7).
 #
 # Keyword lists are rule-based and need no reference answer, so they can run on
 # live traffic. Matching matters: as a substring, "kill" is found inside "skills";

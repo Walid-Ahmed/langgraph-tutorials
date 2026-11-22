@@ -1,4 +1,4 @@
-# Rule-based and heuristic metrics in a few lines of plain Python (Chapter 14, Section 14.6).
+# Rule-based and heuristic metrics in a few lines of plain Python (Chapter 14, Section 14.7).
 #
 # The examples come from an imaginary travel assistant that searches flights and
 # answers baggage questions. Rule-based metrics check a condition the answer must

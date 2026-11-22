@@ -1,0 +1,11 @@
+# Install with:  pip install -r requirements.txt
+#
+# Upper bounds are deliberate: these are the versions this chapter was
+# written and tested against, so a future breaking release cannot
+# silently break the examples.
+langgraph>=1.0,<2
+langgraph-checkpoint-sqlite>=3.0,<4
+langchain-core>=1.0,<2
+langchain-openai>=1.0,<2
+streamlit>=1.40,<2
+python-dotenv>=1.0,<2

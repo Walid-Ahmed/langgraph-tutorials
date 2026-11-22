@@ -1,4 +1,4 @@
-# Retrieval metrics in a few lines: precision, recall and reciprocal rank (Chapter 14, Section 14.6).
+# Retrieval metrics in a few lines: precision, recall and reciprocal rank (Chapter 14, Section 14.7).
 #
 # Three searches. The first is Kerolos Yacoub's worked example: four documents
 # retrieved, three relevant, one of them never found. The other two answer the

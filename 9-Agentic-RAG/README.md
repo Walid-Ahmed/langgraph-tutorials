@@ -1,6 +1,6 @@
 # An agentic RAG chatbot
 
-Companion code for **Chapter 12** of *Building AI Agents with LangGraph*, Section 12.1. This folder is the application alone; Chapter 14 evaluates it in [`12-Evaluation/04-agentic-rag-evaluation`](../12-Evaluation/04-agentic-rag-evaluation/README.md). The design comes from Kerolos Yacoub's practical session ([Evaluation_practical](https://github.com/Kerolos2019/Evaluation_practical)).
+Companion code for **Chapter 14** of *Building AI Agents with LangGraph*, Section 14.1, the system under test. This folder is the application alone; the rest of Chapter 14 evaluates it in [`12-Evaluation/04-agentic-rag-evaluation`](../12-Evaluation/04-agentic-rag-evaluation/README.md). The design comes from Kerolos Yacoub's practical session ([Evaluation_practical](https://github.com/Kerolos2019/Evaluation_practical)).
 
 An internal chatbot answers questions about a fictional company's records: CRM exports, projects, revenue and sales-proposal PDFs. The records are synthetic, written for the book by [`make_datasets.py`](make_datasets.py), which rebuilds `datasets/` from scratch. It's **agentic RAG**. Classic RAG retrieves passages before every answer. Here retrieval is a tool, `search_knowledge_base`, that the agent decides to call. For a weather question it calls `get_weather` (live data from [Open-Meteo](https://open-meteo.com), no API key) and searches nothing.
 

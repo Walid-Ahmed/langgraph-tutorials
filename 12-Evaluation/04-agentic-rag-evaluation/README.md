@@ -1,6 +1,6 @@
 # Evaluating an agentic RAG chatbot with LangSmith
 
-Companion code for **Chapter 14** of *Building AI Agents with LangGraph*. This is the Chapter 12 chatbot from [`9-Agentic-RAG`](../../9-Agentic-RAG/README.md) with its evaluation added. The application and its evaluation design come from Kerolos Yacoub's practical session ([Evaluation_practical](https://github.com/Kerolos2019/Evaluation_practical)), ported from DeepEval and Langfuse to **LangSmith**.
+Companion code for **Chapter 14** of *Building AI Agents with LangGraph*. This is the Section 14.1 chatbot from [`9-Agentic-RAG`](../../9-Agentic-RAG/README.md) with its evaluation added. The application and its evaluation design come from Kerolos Yacoub's practical session ([Evaluation_practical](https://github.com/Kerolos2019/Evaluation_practical)), ported from DeepEval and Langfuse to **LangSmith**.
 
 An internal chatbot answers questions about company data (CRM exports, projects, revenue and proposal PDFs). It's **agentic RAG**: retrieval is a tool, `search_knowledge_base`, that the model decides to call. It can also skip it, as it does for the weather tool's questions. Classic RAG would retrieve before every answer.
 
@@ -14,7 +14,7 @@ The application is evaluated twice:
 ## Layout
 
 ```text
-../../9-Agentic-RAG/datasets/  company files (CSV + PDF), shared with the Chapter 12 app
+../../9-Agentic-RAG/datasets/  company files (CSV + PDF), shared with the 9-Agentic-RAG app
 src/                      the chatbot
   config.py               paths, models, chunk size
   loaders.py              CSV / PDF / TXT -> text
@@ -69,7 +69,7 @@ Unit tests, from the repository root:
 python -m pytest -q 12-Evaluation/04-agentic-rag-evaluation/tests
 ```
 
-**Results we got** (`gpt-4o-mini` agent, `gpt-4o` judge; Chapter 14, Section 14.11, tells the story):
+**Results we got** (`gpt-4o-mini` agent, `gpt-4o` judge; Chapter 14, Section 14.12, tells the story):
 
 ```text
 run 1  17/18 (94%)   snowflake_sales_rep answers "REP01"; the judge passes won_opportunities at 0.8

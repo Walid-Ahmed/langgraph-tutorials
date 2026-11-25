@@ -1,12 +1,18 @@
 # Run from the repository root:
 #   python "Exercise-Solutions/5-workflows/ex3_structured_router.py"
 #
-# Exercise 3 — Structured-output router
+# Exercise 5.4 — A structured-output router (Appendix B, Listing B.14)
 #
-# Step 1: classify_node uses a Pydantic schema to classify the input
-#         into one of three categories: factual / creative / technical.
-# Step 2: a conditional edge routes to a specialist LLM node.
-# Each specialist node uses a tailored prompt for its category.
+# What it shows: classify with a schema, then route on the label.
+# The Literal type makes an out-of-list label impossible, so the router can
+# never name a node that does not exist; the label IS the node name.
+# Each category gets its own answer node with a category-specific prompt.
+# Needs OPENAI_API_KEY in the repository-root .env file.
+#
+# Expected output (representative):
+#   'What year did the Berlin Wall fall?'        -> factual
+#   'Write a limerick about Mondays.'            -> creative
+#   'Why does my Python loop skip items?'        -> technical
 
 import sys
 from pathlib import Path
@@ -15,7 +21,7 @@ from typing import Literal
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
@@ -26,95 +32,61 @@ load_dotenv()
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
 
-# ---------------------------------------------------------
-# Pydantic schema for classification output
-# ---------------------------------------------------------
-class Classification(BaseModel):
-    category: Literal["factual", "creative", "technical"]
+class Route(BaseModel):
+    category: Literal["factual", "creative", "technical"] = Field(
+        description="factual = look-up questions; creative = writing requests; "
+                    "technical = programming or engineering questions")
 
 
-classifier_llm = llm.with_structured_output(Classification)
+router_llm = llm.with_structured_output(Route)
 
 
-# ---------------------------------------------------------
-# State
-# ---------------------------------------------------------
 class State(TypedDict):
     question: str
     category: str
     answer: str
 
 
-# ---------------------------------------------------------
-# Nodes
-# ---------------------------------------------------------
-def classify_node(state: State) -> dict:
-    result: Classification = classifier_llm.invoke(
-        f"Classify this question into one of: factual, creative, technical.\n\nQuestion: {state['question']}"
-    )
-    print(f"Classified as: {result.category}")
-    return {"category": result.category}
+# One instruction per category; make_answer_node turns each into a node.
+ANSWER_PROMPTS = {
+    "factual": "Answer this factual question concisely and accurately:",
+    "creative": "Answer this request imaginatively and creatively:",
+    "technical": "Answer this technical question with precise detail and, if helpful, code:",
+}
 
 
-def route_by_category(state: State) -> str:
-    return state["category"]
+def make_answer_node(name: str):
+    def answer(state: State) -> dict:
+        reply = llm.invoke(f"{ANSWER_PROMPTS[name]}\n\n{state['question']}")
+        return {"answer": reply.content}
+    return answer
 
 
-def factual_node(state: State) -> dict:
-    answer = llm.invoke(
-        f"Answer this factual question concisely and accurately:\n\n{state['question']}"
-    ).content
-    return {"answer": answer}
+def classify(state: State) -> dict:
+    return {"category": router_llm.invoke(state["question"]).category}
 
 
-def creative_node(state: State) -> dict:
-    answer = llm.invoke(
-        f"Answer this question imaginatively and creatively:\n\n{state['question']}"
-    ).content
-    return {"answer": answer}
+def route(state: State) -> str:
+    return state["category"]                 # the label IS the node name
 
 
-def technical_node(state: State) -> dict:
-    answer = llm.invoke(
-        f"Answer this technical question with precise detail and, if helpful, code:\n\n{state['question']}"
-    ).content
-    return {"answer": answer}
-
-
-# ---------------------------------------------------------
-# Graph
-# ---------------------------------------------------------
 def main() -> None:
-    graph = StateGraph(State)
-    graph.add_node("classify", classify_node)
-    graph.add_node("factual", factual_node)
-    graph.add_node("creative", creative_node)
-    graph.add_node("technical", technical_node)
+    builder = StateGraph(State)
+    builder.add_node("classify", classify)
+    for name in ("factual", "creative", "technical"):
+        builder.add_node(name, make_answer_node(name))    # category-specific prompt
+        builder.add_edge(name, END)
+    builder.add_edge(START, "classify")
+    builder.add_conditional_edges("classify", route, ["factual", "creative", "technical"])
 
-    graph.add_edge(START, "classify")
-    graph.add_conditional_edges(
-        "classify",
-        route_by_category,
-        {"factual": "factual", "creative": "creative", "technical": "technical"},
-    )
-    graph.add_edge("factual", END)
-    graph.add_edge("creative", END)
-    graph.add_edge("technical", END)
+    app = builder.compile()
+    plot_graph(app, print_mermaid=False)
 
-    app = graph.compile()
-    plot_graph(app)
-
-    questions = [
-        "What year did the Berlin Wall fall?",
-        "Write a metaphor for loneliness.",
-        "How does Python's GIL affect multithreaded performance?",
-    ]
-
-    for q in questions:
-        result = app.invoke({"question": q, "category": "", "answer": ""})
-        print(f"\nQ: {q}")
-        print(f"Category: {result['category']}")
-        print(f"A: {result['answer'][:200]}...")
+    for question in ["What year did the Berlin Wall fall?",
+                     "Write a limerick about Mondays.",
+                     "Why does my Python loop skip items?"]:
+        result = app.invoke({"question": question})
+        print(f"{repr(question):<44} -> {result['category']}")
 
 
 if __name__ == "__main__":

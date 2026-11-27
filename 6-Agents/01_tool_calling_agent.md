@@ -28,7 +28,7 @@ flowchart TD
 The key loop is:
 
 ```text
-llm -> should_use_tools -> tools -> llm
+llm -> tools_condition -> tools -> llm
 ```
 
 The graph does not know ahead of time how many tool calls will happen. The LLM decides at runtime:
@@ -128,15 +128,10 @@ llm_with_tools = llm.bind_tools(tools)
 
 `bind_tools()` tells the model which tools are available. It does not run tools directly; it lets the model request tool calls.
 
-```python
-class AgentState(TypedDict):
-    messages: Annotated[list, add_messages]
-```
-
-The agent state stores conversation history. `add_messages` appends user messages, AI messages, tool calls, and tool results.
+The graph uses `MessagesState`, which stores the conversation history in `messages` with the `add_messages` reducer. That reducer appends user messages, AI messages, tool calls, and tool results instead of replacing the list.
 
 ```python
-def call_llm(state: AgentState) -> dict:
+def call_llm(state: MessagesState) -> dict:
     response = llm_with_tools.invoke(state["messages"])
     return {"messages": [response]}
 ```
@@ -144,23 +139,15 @@ def call_llm(state: AgentState) -> dict:
 The LLM node reads the current messages and decides what to do next.
 
 ```python
-tool_node = ToolNode(tools)
+builder = StateGraph(MessagesState)
+builder.add_node("llm", call_llm)
+builder.add_node("tools", ToolNode(tools))
+builder.add_edge(START, "llm")
+builder.add_conditional_edges("llm", tools_condition)     # "tools" or END
+builder.add_edge("tools", "llm")                           # the back edge
+agent = builder.compile()
 ```
 
-`ToolNode` executes whichever tool the latest AI message requested.
-
-```python
-def should_use_tools(state: AgentState) -> str:
-    last_message = state["messages"][-1]
-    if getattr(last_message, "tool_calls", None):
-        return "tools"
-    return END
-```
-
-This router checks whether the LLM requested tools.
-
-```python
-graph_builder.add_edge("tools", "llm")
-```
+`ToolNode` executes whichever tool the latest AI message requested. `tools_condition` is the prebuilt router: it returns `"tools"` when the latest AI message requested tools, and `END` otherwise.
 
 After a tool runs, the graph returns to the LLM. That loop is why this belongs in the Agents section.

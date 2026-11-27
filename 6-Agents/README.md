@@ -78,7 +78,7 @@ flowchart LR
 | Example | Construction | Routing |
 |---|---|---|
 | `00_tool_calling_agent_simple.py` | manual model and tool nodes | router + conditional edges |
-| `01_tool_calling_agent.py` | model node + prebuilt `ToolNode` | router + conditional edges |
+| `01_tool_calling_agent.py` | model node + prebuilt `ToolNode` | prebuilt `tools_condition` + conditional edges |
 | `02_tool_calling_agent_command.py` | model node + prebuilt `ToolNode` | `Command` from the model node |
 | `03_prebuilt_react_agent.py` | `create_agent` builds the compiled LangGraph | handled by the high-level helper |
 

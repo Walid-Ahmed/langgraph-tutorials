@@ -1,14 +1,14 @@
 # Run from the repository root:
 #   python "6-Agents/01_tool_calling_agent.py"
 #
-# A more complete tool-calling agent using LangGraph's prebuilt ToolNode:
+# A more complete tool-calling agent built from prebuilt parts (book Listing 7.3:
+# ToolNode runs the tools, tools_condition routes, MessagesState holds history):
 # the LLM can call a live weather tool, a tip calculator, and (if a Tavily
 # key is set) a web search tool, looping until it has a final answer.
 
 import os
 import sys
 from pathlib import Path
-from typing import Annotated
 
 import requests
 
@@ -16,10 +16,8 @@ from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
-from langgraph.graph import END, StateGraph
-from langgraph.graph.message import add_messages
-from langgraph.prebuilt import ToolNode
-from typing_extensions import TypedDict
+from langgraph.graph import START, MessagesState, StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from util import plot_graph
@@ -104,76 +102,38 @@ llm_with_tools = llm.bind_tools(tools)
 
 
 # ---------------------------------------------------------
-# 3. State Definition
+# 3. Node
 #
-# messages stores the conversation history.
-# add_messages appends new messages instead of replacing history.
+# MessagesState already declares messages with the add_messages
+# reducer, so every lap appends to the history instead of replacing it.
 # ---------------------------------------------------------
-class AgentState(TypedDict):
-    messages: Annotated[list, add_messages]
-
-
-# ---------------------------------------------------------
-# 4. Nodes
-# ---------------------------------------------------------
-def call_llm(state: AgentState) -> dict:
+def call_llm(state: MessagesState) -> dict:
     """Send messages to the LLM and receive a response."""
     response = llm_with_tools.invoke(state["messages"])
     return {"messages": [response]}
 
 
-# ToolNode automatically runs whichever tool the LLM requested.
-tool_node = ToolNode(tools)
-
-
 # ---------------------------------------------------------
-# 5. Routing Logic
-#
-# If the LLM response contains tool calls, route to the tools node.
-# Otherwise, the graph can end.
-# ---------------------------------------------------------
-def should_use_tools(state: AgentState) -> str:
-    """Route to tools if the last LLM message requested tool calls."""
-    last_message = state["messages"][-1]
-
-    if getattr(last_message, "tool_calls", None):
-        return "tools"
-
-    return END
-
-
-# ---------------------------------------------------------
-# 6. Build The Agent Graph
+# 4. Build The Agent Graph (book Listing 7.3)
 #
 # Agent loop:
-# llm -> should_use_tools -> tools -> llm -> ... -> END
+# llm -> tools_condition -> tools -> llm -> ... -> END
 #
+# ToolNode runs whichever tool the LLM requested; tools_condition is the
+# prebuilt router: "tools" if the last AIMessage has tool calls, else END.
 # The number of tool iterations is not fixed ahead of time.
-# The model decides whether to keep calling tools or stop.
 # ---------------------------------------------------------
-graph_builder = StateGraph(AgentState)
-
-graph_builder.add_node("llm", call_llm)
-graph_builder.add_node("tools", tool_node)
-
-graph_builder.set_entry_point("llm")
-
-graph_builder.add_conditional_edges(
-    "llm",
-    should_use_tools,
-    {
-        "tools": "tools",
-        END: END,
-    },
-)
-
-graph_builder.add_edge("tools", "llm")
-
-graph = graph_builder.compile()
+builder = StateGraph(MessagesState)
+builder.add_node("llm", call_llm)
+builder.add_node("tools", ToolNode(tools))
+builder.add_edge(START, "llm")
+builder.add_conditional_edges("llm", tools_condition)     # "tools" or END
+builder.add_edge("tools", "llm")                           # the back edge
+agent = builder.compile()
 
 
 # ---------------------------------------------------------
-# 7. Run It
+# 5. Run It
 # ---------------------------------------------------------
 def main() -> None:
     graph_image_path = (
@@ -182,7 +142,7 @@ def main() -> None:
         / "00_tool_calling_agent_graph.png"
     )
     graph_image_path.parent.mkdir(exist_ok=True)
-    plot_graph(graph, graph_image_path)
+    plot_graph(agent, graph_image_path)
 
     prompts = [
         "What's the weather in London?",
@@ -197,7 +157,7 @@ def main() -> None:
         print(f"Prompt: {prompt}")
         print("=" * 60)
 
-        result = graph.invoke({"messages": [HumanMessage(content=prompt)]})
+        result = agent.invoke({"messages": [HumanMessage(content=prompt)]})
         final_message = result["messages"][-1]
 
         print("Final answer:", final_message.content)

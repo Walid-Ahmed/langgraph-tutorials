@@ -1,86 +1,55 @@
 # Run from the repository root:
 #   python "Exercise-Solutions/6-agents/ex3_conversation_memory.py"
 #
-# Exercise 3 — Multi-turn agent with carry-over history
+# Exercise 7.4 — Multi-turn by hand (Appendix B, Listing B.18)
 #
-# After the first graph run, the full message history is captured.
-# The second run passes that history plus a follow-up question.
-# The agent should recall context from the first turn.
+# What it shows: without a checkpointer the caller carries the history.
+# We save first["messages"], append the follow-up question, and pass the
+# whole list back, so the agent can answer "What did I just ask you?".
+# Chapter 9's checkpointer does the same thing for you, keyed by thread_id.
+# Needs OPENAI_API_KEY in the repository-root .env file.
+#
+# Expected output (representative):
+#   You asked me to add 3 and 4, then multiply the result by 2 — which came to 14.
 
-import sys
 from pathlib import Path
-from typing import Annotated
 
 from dotenv import load_dotenv
+from langchain.agents import create_agent
 from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
-from langchain_openai import ChatOpenAI
-from langgraph.graph import END, StateGraph
-from langgraph.graph.message import add_messages
-from langgraph.prebuilt import ToolNode
-from typing_extensions import TypedDict
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
-from util import plot_graph
-
-load_dotenv()
-
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
+REPO_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(REPO_ROOT / ".env")
 
 
 @tool
-def calculate_tip(bill_amount: float, tip_percentage: float) -> float:
-    """Calculate tip amount based on bill and percentage."""
-    return round(bill_amount * (tip_percentage / 100), 2)
+def add(a: int, b: int) -> int:
+    """Add two integers."""
+    return a + b
 
 
-tools = [calculate_tip]
-llm_with_tools = llm.bind_tools(tools)
+@tool
+def multiply(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
 
 
-class AgentState(TypedDict):
-    messages: Annotated[list, add_messages]
-
-
-def call_llm(state: AgentState) -> dict:
-    return {"messages": [llm_with_tools.invoke(state["messages"])]}
-
-
-tool_node = ToolNode(tools)
-
-
-def should_use_tools(state: AgentState) -> str:
-    last = state["messages"][-1]
-    return "tools" if getattr(last, "tool_calls", None) else END
-
-
-graph = StateGraph(AgentState)
-graph.add_node("llm", call_llm)
-graph.add_node("tools", tool_node)
-graph.set_entry_point("llm")
-graph.add_conditional_edges("llm", should_use_tools, {"tools": "tools", END: END})
-graph.add_edge("tools", "llm")
-app = graph.compile()
-plot_graph(app)
+# The Chapter 7 arithmetic agent (6-Agents/03_prebuilt_react_agent.py).
+agent = create_agent(
+    model="openai:gpt-4o-mini",
+    tools=[add, multiply],
+    system_prompt="You are an arithmetic assistant. "
+                  "Always use the provided tools for calculations.",
+)
 
 
 def main() -> None:
-    # Turn 1
-    print("=== Turn 1 ===")
-    turn1 = app.invoke({
-        "messages": [HumanMessage(content="Calculate a 20% tip on a $50 bill.")]
-    })
-    print(f"Agent: {turn1['messages'][-1].content}")
+    first = agent.invoke({"messages": [HumanMessage("Add 3 and 4, then multiply by 2.")]})
 
-    # Turn 2 — pass the full history from turn 1 plus a follow-up
-    print("\n=== Turn 2 (with memory) ===")
-    turn2 = app.invoke({
-        "messages": turn1["messages"] + [
-            HumanMessage(content="What was the bill amount I asked about?")
-        ]
-    })
-    print(f"Agent: {turn2['messages'][-1].content}")
-    # The agent should mention $50 because it sees the full prior history.
+    history = first["messages"] + [HumanMessage("What did I just ask you?")]
+    second = agent.invoke({"messages": history})
+    print(second["messages"][-1].content)
 
 
 if __name__ == "__main__":

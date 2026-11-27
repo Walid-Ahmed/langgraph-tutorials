@@ -1,11 +1,17 @@
 # Run from the repository root:
 #   python "Exercise-Solutions/4-conditional-edges/ex3_llm_grader.py"
 #
-# Exercise 3 — LLM-based grader
+# Exercise 4.3 — A real LLM grader (Appendix B, Listing B.10)
 #
-# Replace the keyword-matching score with a real LLM call.
-# The LLM is asked to score the answer 0-100; we parse the integer.
-# Routing logic (pass >= 70, else retry) stays the same.
+# What it shows: the model writes the evidence (a 0-100 score); the router
+# still just reads it, so the routing logic (pass >= 70, else retry) is
+# unchanged. An unparseable reply falls back to 0: fail safe.
+# Needs OPENAI_API_KEY in the repository-root .env file.
+#
+# Expected output (scores vary by model run):
+#   -> Passed ✅ (score 100)
+#   -> Retry needed 🔁 (score 20)
+#   -> Retry needed 🔁 (score 0)
 
 import sys
 from pathlib import Path
@@ -30,17 +36,14 @@ class AgentState(TypedDict):
 
 
 def grade_node(state: AgentState) -> dict:
-    prompt = (
-        "Score the following answer to the question 'What is RAG?' from 0 to 100. "
-        "Respond with only the integer number, nothing else.\n\n"
-        f"Answer: {state['answer']}"
-    )
-    response = llm.invoke(prompt).content.strip()
+    reply = llm.invoke(
+        "Score this answer to 'What is RAG?' from 0-100. "
+        f"Respond with only the number.\n\nAnswer: {state['answer']}"
+    ).content
     try:
-        score = int(response)
+        score = int(reply.strip())
     except ValueError:
-        score = 0
-    print(f"LLM score: {score}")
+        score = 0                                   # unparseable => fail safe
     return {"score": score}
 
 

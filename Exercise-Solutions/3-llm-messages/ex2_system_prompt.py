@@ -1,7 +1,7 @@
 # Run from the repository root:
 #   python "Exercise-Solutions/3-llm-messages/ex2_system_prompt.py"
 #
-# Exercise 2 — Add a system prompt
+# Exercise 3.5 — Add a system prompt (Appendix B, Listing B.6)
 #
 # A SystemMessage at the front of the history shapes how the LLM responds.
 # Here we instruct it to always answer in one sentence.
@@ -45,16 +45,16 @@ def main() -> None:
     initial_state = {
         "messages": [
             SystemMessage(content="You are a helpful assistant who always answers in exactly one sentence."),
-            HumanMessage(content="What is RAG?"),
+            HumanMessage(content="Explain what a vector database is."),
         ]
     }
 
     final_state = app.invoke(initial_state)
 
-    print("Full conversation:")
-    for msg in final_state["messages"]:
-        print(f"  {msg.__class__.__name__}: {msg.content}")
-    # The AI reply should be noticeably shorter than without the system prompt.
+    # Representative output: one sentence, e.g. "A vector database stores data
+    # as numerical embeddings so it can quickly find items that are semantically
+    # similar to a query."
+    print(final_state["messages"][-1].content)
 
 
 if __name__ == "__main__":
